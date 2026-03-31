@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สร้างเอกสารใหม่ — ระบบเอกสารอิเล็กทรอนิกส์</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
+    <!-- SweetAlert2 for Premium Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* ── Premium Wizard Stepper ── */
+        .wizard-header {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: var(--radius-2xl);
+            padding: 28px 32px; margin-bottom: 32px; display: flex; align-items: center; gap: 16px;
+            box-shadow: 0 4px 20px -8px rgba(15,23,42,0.06), 0 0 1px rgba(15,23,42,0.1);
+        }
+        .wiz-step { display: flex; align-items: center; gap: 16px; position: relative; }
+        .wiz-dot {
+            width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 800; border: 2px solid var(--color-border);
+            background: #fff; color: var(--color-text-faint);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .wiz-step.active .wiz-dot {
+            background: var(--color-primary); border-color: var(--color-primary);
+            color: #fff; transform: scale(1.1);
+            box-shadow: 0 8px 16px -4px rgba(234,88,12,0.3);
+        }
+        .wiz-step.done .wiz-dot {
+            background: #22c55e; border-color: #22c55e; 
+            color: #fff; border-width: 0; box-shadow: 0 8px 16px -4px rgba(34,197,94,0.3);
+        }
+        .wiz-label { display: flex; flex-direction: column; }
+        .wiz-label-title { font-size: 14px; font-weight: 800; color: var(--color-text-muted); transition: color 0.3s; }
+        .wiz-step.active .wiz-label-title { color: var(--color-text-main); }
+        .wiz-step.done .wiz-label-title { color: #15803d; }
+        .wiz-label-sub { font-size: 11px; color: var(--color-text-faint); font-weight: 600; margin-top: 1px; }
+
+        .wiz-connector { flex: 1; height: 3px; background: var(--color-border-light); border-radius: 10px; overflow: hidden; position: relative; }
+        .wiz-connector::after {
+            content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 0%;
+            background: #bbf7d0; transition: width 0.6s ease-in-out;
+        }
+        .wiz-connector.done::after { width: 100%; }
+
+        .wizard-panel { display: none; animation: wiz-in 0.5s var(--ease-spring); }
+        .wizard-panel.active { display: block; }
+        @keyframes wiz-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* ── Submit Grid ── */
+        .submit-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+        @media (max-width: 992px) { .submit-grid { grid-template-columns: 1fr; } }
+        
+        /* ── Custom Builder Styling ── */
+        .route-mode-tabs { 
+            display: flex; gap: 8px; margin-bottom: 20px; 
+            background: #f1f5f9; padding: 4px; border-radius: var(--radius-lg);
+        }
+        .route-mode-tab {
+            flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; 
+            background: transparent; border: none; border-radius: var(--radius-md);
+            cursor: pointer; color: var(--color-text-muted); font-family: var(--font-sans);
+            transition: all 0.25s; text-align: center;
+        }
+        .route-mode-tab.active { background: #fff; color: var(--color-primary); box-shadow: var(--shadow-sm); }
+        
+        .cs-item { 
+            display: flex; align-items: center; gap: 12px; padding: 12px; 
+            background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-md);
+            margin-bottom: 8px; transition: all 0.2s;
+        }
+        .cs-item:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); }
+        .cs-num {
+            width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; font-size: 11px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid var(--color-border); color: var(--color-text-muted);
+        }
+        .cs-item.cs-first .cs-num { background: var(--color-primary-light); border-color: var(--color-primary); color: var(--color-primary); }
+        
+        .cs-select {
+            border: 1px solid var(--color-border); background: #f8fafc; border-radius: 8px;
+            font-size: 13px; padding: 8px 12px; width: 100%; transition: all 0.2s;
+        }
+        .cs-select:focus { background: #fff; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(234,88,12,0.1); }
+        
+        .review-summary-card {
+            background: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: 24px;
+        }
+        .review-item { margin-bottom: 16px; }
+        .review-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--color-text-faint); margin-bottom: 4px; letter-spacing: 0.05em; }
+        .review-value { font-size: 15px; font-weight: 700; color: var(--color-text-main); }
+        .cs-input { flex: 1; border: none; background: transparent; font-size: 13px; font-weight: 500; font-family: var(--font-sans); color: var(--color-text); outline: none; padding: 0; min-width: 0; }
+        .cs-del { background: none; border: none; cursor: pointer; color: var(--color-text-faint); padding: 3px; border-radius: 4px; flex-shrink: 0; line-height: 1; margin-top: 2px; transition: color 0.15s, background 0.15s; }
+        .cs-del:hover { color: var(--color-danger); background: #fef2f2; }
+        .cs-add-btn {
+            display: flex; align-items: center; gap: 6px; padding: 8px 10px; margin-top: 8px; border: 1.5px dashed var(--color-border);
+            border-radius: var(--radius-md); background: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--color-text-muted);
+            font-family: var(--font-sans); width: 100%; transition: all 0.15s;
+        }
+        .cs-add-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-light); }
+
+        .route-step-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; margin-bottom: 4px; font-size: 13px; background: var(--color-bg); border: 1px solid var(--color-border); }
+        .route-step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+        .review-section { margin-bottom: 20px; }
+        .review-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); margin-bottom: 8px; }
+        .review-value { font-size: 15px; font-weight: 700; color: var(--color-text); }
+        .review-sub  { font-size: 13px; color: var(--color-text-muted); margin-top: 2px; font-weight: 500; }
+        .autosave-indicator { font-size: 12px; color: var(--color-text-muted); display: flex; align-items: center; gap: 5px; font-weight: 600; transition: color 0.3s; }
+        .autosave-indicator.saving { color: #ea580c; }
+        .autosave-indicator.saved  { color: #16a34a; }
+        .upload-zone { 
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: var(--color-bg);
+        }
+        .upload-zone.drag-over {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary-light);
+        }
+        .upload-icon {
+            width: 48px; height: 48px;
+            background: var(--color-primary-light);
+            color: var(--color-primary);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .file-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            margin-top: 12px;
+            animation: file-item-in 0.4s var(--ease-out);
+        }
+        @keyframes file-item-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .file-icon {
+            width: 36px; height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .file-icon.pdf { background-color: #e53e3e; }
+        .file-icon.doc { background-color: #4285f4; }
+        .file-icon.docx { background-color: #4285f4; }
+        .file-icon.other { background-color: #718096; }
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .file-name {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-size {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+        .file-remove-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-text-faint);
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .file-remove-btn:hover {
+            color: var(--color-danger);
+            background-color: var(--color-danger-light);
+        }
+        .wiz-nav { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--color-border); }
+        .wiz-progress-text { font-size: 12px; color: var(--color-text-muted); font-weight: 600; }
+    </style>
+</head>
+<body data-page-id="submitDoc">
+<div class="app-wrapper">
+    <div id="sidebar-container" class="app-sidebar"></div>
+    <div class="app-main">
+        <header id="navbar-container" class="app-navbar"></header>
+        <main class="app-content">
+            <div class="container-lg">
+                <div class="page-header animate-enter">
+                    <div class="page-header-left">
+                        <h1 class="premium-title"><span class="premium-gradient-text">สร้างเอกสารใหม่</span></h1>
+                        <p class="premium-subtitle">ระบุรายละเอียดและเส้นทางเดินเอกสารสำหรับความโปร่งใสและรวดเร็ว</p>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="autosave-indicator" id="autosave-status">
+                            <span id="autosave-text">บันทึกร่างอัตโนมัติ...</span>
+                        </span>
+                        <a href="status.html" class="btn btn-secondary btn-sm magnetic-hover">← กลับสู่หน้าหลัก</a>
+                    </div>
+                </div>
+
+                <div class="wizard-header animate-enter delay-100">
+                    <div class="wiz-step active" id="wiz-step-1">
+                        <div class="wiz-dot" id="wiz-dot-1">1</div>
+                        <div class="wiz-label">
+                            <span class="wiz-label-title">ประเภท & สายงาน</span>
+                            <span class="wiz-label-sub">เลือกประเภทและผู้พิจารณา</span>
+                        </div>
+                    </div>
+                    <div class="wiz-connector" id="wiz-conn-1"></div>
+                    <div class="wiz-step" id="wiz-step-2">
+                        <div class="wiz-dot" id="wiz-dot-2">2</div>
+                        <div class="wiz-label">
+                            <span class="wiz-label-title">รายละเอียด & ไฟล์</span>
+                            <span class="wiz-label-sub">หัวเรื่อง รายละเอียด เอกสาร</span>
+                        </div>
+                    </div>
+                    <div class="wiz-connector" id="wiz-conn-2"></div>
+                    <div class="wiz-step" id="wiz-step-3">
+                        <div class="wiz-dot" id="wiz-dot-3">3</div>
+                        <div class="wiz-label">
+                            <span class="wiz-label-title">ตรวจสอบ & ส่ง</span>
+                            <span class="wiz-label-sub">ยืนยันข้อมูลก่อนส่ง</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-grid">
+                    <div class="card card-premium animate-enter delay-200" style="padding: 32px;">
+                        <form id="doc-form" novalidate>
+                            <div class="wizard-panel active" id="panel-1">
+                                <h2 style="font-size:16px;font-weight:700;margin-bottom:20px;">ประเภทเอกสารและสายงาน</h2>
+                                <div class="form-group">
+                                    <select id="docType" class="form-input" required onchange="onTypeChange(this.value)">
+                                        <option value="" disabled selected>— เลือกประเภทเอกสาร —</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" id="manual-workflow-root">
+                                    <label class="form-label">กำหนดสายงานการพิจารณา (Manual Workflow)</label>
+                                    <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:12px;background:var(--color-bg);padding:10px;border-radius:8px;border:1px solid var(--color-border);">
+                                        <div style="display:flex;gap:8px;align-items:center;">
+                                            <span style="font-size:16px;">✏️</span>
+                                            <span>กรุณากำหนดลำดับผู้พิจารณาโดยการเลือก <strong>ฝ่าย</strong> และ <strong>รายชื่อ</strong> ตามลำดับความสำคัญ</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="cs-list"></div>
+                                    
+                                    <button type="button" class="cs-add-btn" onclick="csAddStep()">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4"/></svg> เพิ่มขั้นตอนการพิจารณาต่อจากนี้
+                                    </button>
+                                </div>
+
+                                <div class="wiz-nav">
+                                    <span class="wiz-progress-text">ขั้นตอนที่ 1 จาก 3</span>
+                                    <button type="button" class="btn btn-primary" onclick="wizNext(1)">ถัดไป: รายละเอียด <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>
+                                </div>
+                            </div>
+
+                            <div class="wizard-panel" id="panel-2">
+                                <h2 style="font-size:16px;font-weight:700;margin-bottom:20px;">รายละเอียดเอกสาร</h2>
+                                <div class="form-group">
+                                    <label class="form-label" for="title">หัวเรื่อง</label>
+                                    <input type="text" id="title" class="form-input" required placeholder="เช่น ขออนุมัติจัดซื้ออุปกรณ์..." oninput="scheduleDraftSave()">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="description">รายละเอียด / วัตถุประสงค์ (ระบุหรือไม่ก็ได้)</label>
+                                    <textarea id="description" class="form-input" rows="4" placeholder="อธิบายจุดประสงค์ของเอกสารโดยสังเขป..." oninput="scheduleDraftSave()"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--color-bg);border:1px solid var(--color-border);border-radius:10px;padding:12px 14px;">
+                                        <input type="checkbox" id="isUrgent" style="width:16px;height:16px;accent-color:var(--color-danger);">
+                                        <div>
+                                            <div style="font-size:13px;font-weight:600;">ทำเครื่องหมายว่าเร่งด่วน</div>
+                                            <div class="text-xs text-muted">จะแสดงสัญลักษณ์พิเศษเพื่อให้ผู้พิจารณาสังเกตเห็นได้ง่าย</div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">เอกสารแนบ (ถ้ามี)</label>
+                                    <div class="upload-zone" id="upload-zone">
+                                        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.png,.jpg" multiple>
+                                        <div class="upload-icon">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        </div>
+                                        <div style="font-size:15px;font-weight:700;color:var(--color-text-main);">คลิกหรือลากไฟล์มาวางที่นี่</div>
+                                        <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px;">รองรับ PDF, DOCX, PNG, JPG ขนาดไม่เกิน 35MB</div>
+                                    </div>
+                                    <div id="file-list" style="margin-top:8px;"></div>
+                                </div>
+                                <div class="wiz-nav">
+                                    <button type="button" class="btn btn-secondary" onclick="wizBack(2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> ย้อนกลับ</button>
+                                    <span class="wiz-progress-text">ขั้นตอนที่ 2 จาก 3</span>
+                                    <button type="button" class="btn btn-primary" onclick="wizNext(2)">ถัดไป: ตรวจสอบ <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>
+                                </div>
+                            </div>
+
+                            <div class="wizard-panel" id="panel-3">
+                                <h2 style="font-size:16px;font-weight:700;margin-bottom:20px;">ตรวจสอบและยืนยัน</h2>
+                                <div id="review-summary" style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:12px;padding:20px;margin-bottom:20px;"></div>
+                                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+                                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                                        <input type="checkbox" id="confirm-check" style="width:16px;height:16px;accent-color:#16a34a;margin-top:2px;">
+                                        <div>
+                                            <div style="font-size:13px;font-weight:700;color:#065f46;">ฉันยืนยันว่าข้อมูลและสายงานถูกต้องแล้ว</div>
+                                            <div style="font-size:12px;color:#047857;margin-top:2px;">เมื่อส่งแล้ว เอกสารจะเข้าสู่สายงานพิจารณาทันที</div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="wiz-nav">
+                                    <button type="button" class="btn btn-secondary" onclick="wizBack(3)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> ย้อนกลับ</button>
+                                    <span class="wiz-progress-text">ขั้นตอนที่ 3 จาก 3</span>
+                                    <button type="submit" class="btn btn-primary btn-lg" id="btn-submit">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg> ส่งเอกสารเข้าระบบ
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="workflow-preview">
+                        <div class="card card-premium anim-fade-up anim-stagger-2" style="padding:24px;">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                                <div style="width:30px;height:30px;border-radius:8px;background:var(--color-primary-light);display:flex;align-items:center;justify-content:center;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
+                                </div>
+                                <h3 style="font-size:14px;font-weight:700;">สายงานการอนุมัติ</h3>
+                            </div>
+                            <div id="workflow-preview-content">
+                                <div class="empty-state" style="padding:24px 16px;">
+                                    <div class="empty-state-icon" style="width:48px;height:48px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"/></svg></div>
+                                    <div class="empty-state-title" style="font-size:13px;">ยังไม่มีสายงาน</div>
+                                    <div class="empty-state-desc" style="font-size:12px;">เลือกประเภทหรือกำหนดสายงานเองเพื่อดูขั้นตอน</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card card-premium anim-fade-up anim-stagger-3" style="margin-top:20px; padding:24px; background: var(--color-primary-pale); border-color: rgba(234,88,12,0.1);">
+                            <h3 style="font-size:14px;font-weight:800;margin-bottom:16px;color:var(--color-primary);">💡 คำแนะนำเพิ่มเติม</h3>
+                            <ul style="margin:0;padding:0;font-size:12px;color:var(--color-text-muted);display:flex;flex-direction:column;gap:8px;list-style:none;">
+                                <li style="display:flex;gap:8px;"><span>📝</span><span>กรอกหัวเรื่องให้ชัดเจน เพื่อให้ผู้พิจารณาเข้าใจง่าย</span></li>
+                                <li style="display:flex;gap:8px;"><span>📎</span><span>แนบไฟล์ที่เกี่ยวข้องเพื่อให้ข้อมูลครบถ้วน</span></li>
+                                <li style="display:flex;gap:8px;"><span>✅</span><span>ตรวจสอบสายงานก่อนส่งเพื่อให้เอกสารถึงมือที่ถูกต้อง</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script>
+/* ══ STATE ══ */
+let selectedTemplate = null;
+let routeMode = 'manual';
+let csDragSrc = null;
+let currentStep = 1;
+let draftSaveTimer = null;
+// realParticipants is already defined in core.js
+
+/* ══ NAVIGATION ══ */
+function wizNext(fromStep) {
+    if (fromStep === 1) {
+        const type = document.getElementById('docType').value;
+        if (!type) { UI.showToast('กรุณาเลือกประเภทเอกสารก่อน', 'error'); return; }
+        
+        const steps = csGetSteps();
+        if (steps.length < 2) { 
+            UI.showToast('กรุณาเพิ่มผู้พิจารณาอย่างน้อย 1 ท่านต่อจากตนเอง', 'error'); 
+            return; 
+        }
+        // Validate all steps have selection
+        const hasEmpty = Array.from(document.querySelectorAll('.person-select')).some(s => !s.value);
+        if (hasEmpty) {
+            UI.showToast('กรุณาระบุรายชื่อผู้พิจารณาให้ครบถ้วนทุกขั้นตอนครับ', 'error');
+            return;
+        }
+    }
+    if (fromStep === 2) {
+        const title = document.getElementById('title').value.trim();
+        if (!title) { UI.showToast('กรุณากรอกหัวเรื่องก่อน', 'error'); return; }
+        buildReviewSummary();
+    }
+    gotoStep(fromStep + 1, 'forward');
+}
+
+function wizBack(fromStep) { gotoStep(fromStep - 1, 'back'); }
+
+function gotoStep(step, dir = 'forward') {
+    document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active', 'back'));
+    const panel = document.getElementById(`panel-${step}`);
+    panel.classList.add('active'); if (dir === 'back') panel.classList.add('back');
+
+    [1,2,3].forEach(n => {
+        const s = document.getElementById(`wiz-step-${n}`);
+        const d = document.getElementById(`wiz-dot-${n}`);
+        s.classList.remove('active','done');
+        if (n < step) { s.classList.add('done'); d.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`; }
+        else if (n === step) { s.classList.add('active'); d.textContent = n; }
+        else { d.textContent = n; }
+    });
+    [1,2].forEach(n => document.getElementById(`wiz-conn-${n}`)?.classList.toggle('done', n < step));
+    currentStep = step; window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ══ REVIEW SUMMARY ══ */
+function buildReviewSummary() {
+    const type = document.getElementById('docType').value;
+    const title = document.getElementById('title').value.trim();
+    const urgent = document.getElementById('isUrgent').checked;
+    
+    // Find label from mockDocumentTypes
+    const typeObj = mockDocumentTypes.find(t => t.value === type);
+    const typeLabel = typeObj ? typeObj.label : type;
+    const steps = routeMode === 'manual' ? csGetSteps() : (selectedTemplate?.steps || []);
+    
+    const stepsHTML = steps.map((s, i) => {
+        let displayName = s;
+        if (s.includes('@')) {
+            // Find name from realParticipants
+            Object.values(realParticipants).forEach(deptDocs => {
+                const found = deptDocs.find(p => p.email === s);
+                if (found) displayName = found.name;
+            });
+        } else if (s.startsWith('dept:')) {
+            displayName = 'ทุกคนใน' + s.replace('dept:', '');
+        }
+
+        return `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;padding:8px;background:${i===0?'var(--color-primary-pale)':'#fff'};border:1px solid ${i===0?'var(--color-primary)':'var(--color-border)'};border-radius:10px;">
+            <div style="width:22px;height:22px;border-radius:6px;background:${i===0?'var(--color-primary)':'#f1f5f9'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${i===0?'#fff':'var(--color-text-muted)'};">${i+1}</div>
+            <span style="font-size:13px;font-weight:${i===0?'700':'600'};color:${i===0?'var(--color-primary)':'var(--color-text-main)'};">${displayName}</span>
+        </div>`;
+    }).join('');
+
+    document.getElementById('review-summary').innerHTML = `
+        <div class="review-summary-card">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--color-border);">
+                <div><div class="review-label">ประเภทเอกสาร</div><div class="review-value">${typeLabel}</div></div>
+                <div><div class="review-label">ความเร่งด่วน</div><div class="review-value">${urgent?'<span class="badge badge-red">ด่วนพิเศษ ⚡</span>':'<span class="badge badge-gray">ปกติ</span>'}</div></div>
+            </div>
+            <div style="margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--color-border);">
+                <div class="review-label">หัวเรื่อง</div><div class="review-value" style="font-size:18px;line-height:1.4;">${title}</div>
+            </div>
+            <div>
+                <div class="review-label" style="margin-bottom:12px;">สายงานการอนุมัติ (${steps.length} ขั้นตอน)</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:10px;">${stepsHTML}</div>
+            </div>
+        </div>`;
+}
+
+/* ══ MODE & EVENTS ══ */
+function onTypeChange(type) {
+    if (!type) return;
+    scheduleDraftSave();
+    // In manual-only mode, we no longer swap templates automatically.
+    // But we refresh the preview to keep it in sync.
+    csSyncPreview();
+}
+
+async function syncAndLoad() {
+    UI.setLoadingState(document.getElementById('tab-manual'), true);
+    await WorkflowEngine.syncTemplates();
+    try {
+        const participants = await API.getWorkflowParticipants();
+        if (participants) {
+            realParticipants = participants;
+            // If already in manual mode, refresh the steps to show depts
+            if (routeMode === 'manual') {
+                const currentData = csGetRawSteps();
+                csSetSteps(currentData.length > 0 ? currentData : ['ผู้ร่าง']);
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load real participants:', e);
+    } finally {
+        UI.setLoadingState(document.getElementById('tab-manual'), false);
+    }
+    const type = document.getElementById('docType').value;
+    if (type) onTypeChange(type);
+}
+
+function onManualTemplateChange(val) {
+    // Legacy function, no longer used in manual-only mode.
+}
+
+function renderPreview(tpl) {
+    // Preview is now handled by csSyncPreview()
+}
+
+/* ══ CUSTOM STEP BUILDER (Manual) ══ */
+function csSetSteps(steps) { 
+    const list = document.getElementById('cs-list'); 
+    list.innerHTML = ''; 
+    steps.forEach((s, i) => csAppendItem(s, i === 0)); 
+    csSync(); 
+}
+
+function csGetRawSteps() {
+    return Array.from(document.querySelectorAll('.cs-item')).map(item => {
+        const input = item.querySelector('.cs-input'); if (input) return input.value;
+        const ps = item.querySelector('.person-select'); 
+        const ds = item.querySelector('.dept-select');
+        return ps?.value || ds?.value || '';
+    }).filter(Boolean);
+}
+
+function csAddStep() { csAppendItem('', false); csSync(); }
+function csRemove(btn) { btn.closest('.cs-item').remove(); csSync(); }
+function csSync() { document.querySelectorAll('.cs-num').forEach((el,i) => el.textContent=i+1); csSyncPreview(); }
+function csIdx(el) { return Array.from(document.querySelectorAll('.cs-item')).indexOf(el); }
+
+function csAppendItem(label, isFirst) {
+    const list = document.getElementById('cs-list');
+    const div = document.createElement('div');
+    div.className = 'cs-item' + (isFirst ? ' cs-first' : '');
+    div.draggable = !isFirst;
+    
+    // Build department options from realParticipants
+    const depts = Object.keys(realParticipants);
+    const deptOpts = depts.map(d => `<option value="${d}">${d}</option>`).join('');
+
+    if (isFirst) {
+        div.innerHTML = `<div class="cs-num">1</div><div style="flex:1;"><input class="cs-input" type="text" value="${label||'ผู้ร่าง (คุณ)'}" readonly style="font-weight:700;color:var(--color-primary);"></div>`;
+    } else {
+        const isLoading = Object.keys(realParticipants).length === 0;
+        div.innerHTML = `
+            <div class="cs-num">2</div>
+            <div style="flex:1;display:flex;gap:8px;">
+                <select class="cs-select dept-select" onchange="onCsDeptChange(this)">
+                    <option value="">${isLoading ? '— กำลังโหลดข้อมูล... —' : '— เลือกฝ่าย —'}</option>
+                    ${deptOpts}
+                </select>
+                <select class="cs-select person-select" disabled onchange="csSyncPreview()">
+                    <option value="">— เลือกบุคคล —</option>
+                </select>
+            </div>
+            <button type="button" class="cs-del" onclick="csRemove(this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>`;
+        
+        // Try to match existing label if it's a dept or name
+        if (label) {
+            if (depts.includes(label)) {
+                div.querySelector('.dept-select').value = label;
+                onCsDeptChange(div.querySelector('.dept-select'));
+            } else {
+                let foundDept = '';
+                for (const d of depts) {
+                    if (realParticipants[d].some(p => p.name === label)) {
+                        foundDept = d; break;
+                    }
+                }
+                if (foundDept) {
+                    div.querySelector('.dept-select').value = foundDept;
+                    onCsDeptChange(div.querySelector('.dept-select'));
+                    const ps = div.querySelector('.person-select');
+                    const person = realParticipants[foundDept].find(p => p.name === label);
+                    if (person) ps.value = person.email;
+                }
+            }
+        }
+    }
+    div.addEventListener('dragstart', csDragStart); div.addEventListener('dragend', csDragEnd);
+    div.addEventListener('dragover', e => { e.preventDefault(); if (!div.classList.contains('cs-first')) div.classList.add('drag-target'); });
+    div.addEventListener('dragleave', () => div.classList.remove('drag-target'));
+    div.addEventListener('drop', csDrop);
+    list.appendChild(div);
+}
+
+function onCsDeptChange(sel) {
+    const item = sel.closest('.cs-item'); const ps = item.querySelector('.person-select');
+    const dept = sel.value; if (!dept) { ps.disabled=true; csSyncPreview(); return; }
+    
+    const people = realParticipants[dept] || [];
+    if (people.length > 0) {
+        ps.disabled = false;
+        ps.innerHTML = `<option value="dept:${dept}">— ทุกคนในฝ่าย —</option>` + 
+                       people.map(p => `<option value="${p.email}">${p.name}</option>`).join('');
+    } else {
+        ps.disabled = true;
+        ps.innerHTML = '<option value="">ไม่มีรายชื่อในฝ่ายนี้</option>';
+    }
+    csSyncPreview();
+}
+
+function csGetSteps() { 
+    return Array.from(document.querySelectorAll('.cs-item')).map(item => {
+        const input = item.querySelector('.cs-input'); if (input) return input.value;
+        const ps = item.querySelector('.person-select'); 
+        const ds = item.querySelector('.dept-select');
+        return ps.value || ds.value || '';
+    }).filter(Boolean);
+}
+
+function csSyncPreview() {
+    const steps = csGetSteps(); const el = document.getElementById('workflow-preview-content');
+    if (steps.length < 2) { el.innerHTML = '<div class="empty-state">กำหนดขั้นตอน</div>'; return; }
+    
+    const listHTML = steps.map((s, i) => {
+        let label = s;
+        if (s.includes('@')) {
+            Object.values(realParticipants).forEach(deptDocs => {
+                const found = deptDocs.find(p => p.email === s);
+                if (found) label = found.name;
+            });
+        } else if (s.startsWith('dept:')) {
+            label = 'ทุกคนใน' + s.replace('dept:', '');
+        }
+        return `<div class="route-step-item"><div class="route-step-num">${i+1}</div><div style="font-size:12px;flex:1;">${label}</div></div>`;
+    }).join('');
+
+    el.innerHTML = `
+        <div style="margin-bottom:8px;"><span class="badge badge-gray">กำหนดเอง</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+            ${listHTML}
+        </div>`;
+}
+
+/* ── Drag and Drop ── */
+function csDragStart(e) { csDragSrc = csIdx(this); this.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; }
+function csDragEnd() { this.classList.remove('dragging'); document.querySelectorAll('.drag-target').forEach(el=>el.classList.remove('drag-target')); }
+function csDrop(e) { 
+    e.preventDefault(); const ti = csIdx(this); if (csDragSrc===null || csDragSrc===ti || ti===0) return;
+    const list = document.getElementById('cs-list'); const items = Array.from(list.children);
+    list.insertBefore(items[csDragSrc], csDragSrc < ti ? items[ti].nextSibling : items[ti]); csSync();
+}
+
+/* ══ MISC ══ */
+function scheduleDraftSave() { clearAfterDraftSave(); draftSaveTimer = setTimeout(() => { localStorage.setItem('wf_draft', JSON.stringify({ type: document.getElementById('docType').value, title: document.getElementById('title').value })); }, 2000); }
+function clearAfterDraftSave() { clearTimeout(draftSaveTimer); }
+
+// Helper: อ่านไฟล์เป็น Base64
+async function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function onFileSelect(input) { 
+    const fileList = document.getElementById('file-list');
+    fileList.innerHTML = Array.from(input.files).map(f => `<div style="font-size:11px;color:var(--color-primary);margin-top:2px;">📎 ${f.name}</div>`).join(''); 
+}
+
+document.getElementById('doc-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    
+    if (!document.getElementById('confirm-check').checked) { 
+        UI.showToast('กรุณายืนยันความถูกต้องของข้อมูลก่อนส่งครับ', 'error'); 
+        return; 
+    }
+    
+    const confirmSubmit = await UI.confirm('ยืนยันการส่งเอกสาร', 'เมื่อท่านส่งแล้ว เอกสารจะเข้าสู่สายงานพิจารณาทันทีและไม่สามารถแก้ไขได้ในภายหลัง', 'ส่งเอกสาร', 'ตรวจสอบอีกครั้ง');
+    if (!confirmSubmit) return;
+
+    // Disable immediately to prevent double-click
+    UI.setLoadingState(btn, true);
+    
+    try {
+        const fileInput = document.getElementById('file-input');
+        let fileData = null;
+        let fileName = '';
+        
+        // จัดการไฟล์หลักไฟล์เดียว
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            
+            // Check file size (35MB limit due to Base64 overhead in GAS)
+            if (file.size > 35 * 1024 * 1024) {
+                UI.showToast('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 35MB)', 'error');
+                UI.setLoadingState(btn, false);
+                return;
+            }
+
+            fileName = file.name;
+            fileData = await readFileAsBase64(file);
+        }
+
+        const response = await API.submitDocument({
+            docType: document.getElementById('docType').value,
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            isUrgent: document.getElementById('isUrgent').checked,
+            customSteps: routeMode==='manual' ? csGetSteps() : selectedTemplate?.steps,
+            fileData: fileData,
+            fileName: fileName,
+            senderEmail: API.getUser()?.email
+        });
+
+        if (response.status === 'success') {
+            localStorage.removeItem('wf_draft'); 
+            UI.showToast('ส่งเอกสารเรียบร้อยแล้ว', 'success'); 
+            setTimeout(()=>location.href='status.html', 1500);
+        } else {
+            throw new Error(response.message || 'ส่งเอกสารไม่สำเร็จ');
+        }
+    } catch(err) { 
+        console.error(err);
+        UI.showToast('เกิดข้อผิดพลาด: ' + err.message, 'error'); 
+        UI.setLoadingState(btn, false); 
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    syncAndLoad();
+
+    // Populate DocTypes
+    const typeSelect = document.getElementById('docType');
+    mockDocumentTypes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.value;
+        opt.textContent = t.label;
+        typeSelect.appendChild(opt);
+    });
+
+    const manualTpls = WorkflowEngine.getAllTemplates().filter(t => !t.docTypes || t.docTypes.length===0);
+    if (manualTpls.length) {
+        document.getElementById('manual-template-select').innerHTML = '<option value="">— อัตโนมัติ —</option>' + manualTpls.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+        document.getElementById('manual-template-section').style.display = '';
+    }
+});
+</script>
+</body>
+</html>
