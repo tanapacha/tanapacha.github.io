@@ -595,6 +595,11 @@ const UI = {
         }
     },
 
+    getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    },
+
     _getSidebarHTML(activePageId, role) {
         const user = WorkflowEngine.getCurrentUser();
         const items = [
