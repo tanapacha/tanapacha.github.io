@@ -208,6 +208,13 @@
             WorkflowEngine.setLastLoadedDocs(allDocs);
             renderPendingBadge(allDocs.length);
             filterTable();
+
+            // 👑 Auto-open deep link doc if present
+            const deepId = UI.getQueryParam('id');
+            if (deepId && WorkflowEngine.getById(deepId)) {
+                console.log('[DeepLink] Auto-opening document:', deepId);
+                setTimeout(() => openDrawer(deepId), 500); 
+            }
         } catch (err) {
             console.error('Load Error:', err);
             tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-danger);">
