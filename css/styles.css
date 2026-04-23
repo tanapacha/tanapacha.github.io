@@ -1,0 +1,730 @@
+/* 
+  Aura LifeOS — Premium Animation Design System
+  Focus: Cinematic micro-interactions, spring physics, layered motion
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Kanit:wght@200;300;400;500&display=swap');
+
+:root {
+    /* Dynamic Theme Variables (Default: Gold/Morning) */
+    --aura-primary: oklch(75% 0.15 85);
+    --aura-glow: rgba(212, 175, 55, 0.3);
+    --aura-bg-gradient: linear-gradient(135deg, oklch(15% 0.02 260) 0%, oklch(20% 0.04 80) 50%, oklch(15% 0.02 260) 100%);
+
+    --bg-dark: oklch(15% 0.02 260);
+    --bg-card: oklch(20% 0.03 260 / 0.8);
+    --accent-gold: var(--aura-primary);
+    --accent-blue: oklch(70% 0.15 240);
+    --text-primary: oklch(95% 0.01 260);
+    --text-secondary: oklch(75% 0.02 260);
+    --border-luxury: oklch(30% 0.03 260 / 0.5);
+    --glass-blur: 12px;
+    --radius-lg: 24px;
+    --radius-md: 12px;
+    --shadow-luxury: 0 10px 40px -10px rgba(0,0,0,0.5);
+    --shadow-gold: 0 0 30px var(--aura-glow);
+    --spring: cubic-bezier(0.22, 1, 0.36, 1);
+    --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Sentiment Colors */
+    --aura-sentiment-neutral: oklch(75% 0.15 85);
+    --aura-sentiment-positive: oklch(70% 0.18 320);
+    --aura-sentiment-negative: oklch(70% 0.12 210);
+}
+
+/* True OLED Black Theme */
+.theme-oled {
+    --bg-dark: #000000;
+    --bg-card: rgba(15, 15, 15, 0.7);
+    --border-luxury: rgba(255, 255, 255, 0.08);
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ───────────────────────────────────────────────
+   PAGE TRANSITION — fade + lift on every load
+─────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Outfit', 'Kanit', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    min-height: 100vh;
+    /* Page appear animation */
+    animation: pageEnter 0.55s var(--ease-out) both;
+}
+
+@keyframes pageEnter {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ───────────────────────────────────────────────
+   SCROLLBAR
+─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--border-luxury);
+    border-radius: 10px;
+    transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
+
+/* ───────────────────────────────────────────────
+   LAYOUT
+─────────────────────────────────────────────── */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ───────────────────────────────────────────────
+   BENTO GRID
+─────────────────────────────────────────────── */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-gap: 24px;
+    padding: 24px;
+    width: 100%;
+}
+
+/* ───────────────────────────────────────────────
+   BENTO CARD — glass morphism + magnetic lift
+─────────────────────────────────────────────── */
+.bento-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid var(--border-luxury);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.45s var(--spring),
+        box-shadow 0.45s var(--spring),
+        border-color 0.35s ease;
+    /* Stagger reveal handled via JS class */
+}
+
+/* Shimmer sweep on hover */
+.bento-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent 30%,
+        rgba(212,175,55,0.05) 50%,
+        transparent 70%
+    );
+    transform: translateX(-100%);
+    transition: transform 0s;
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 1;
+}
+
+/* Modal expansion state for BentoCard */
+.bento-card.expanded {
+    position: fixed;
+    inset: 24px;
+    z-index: 100;
+    margin: auto;
+    max-width: 900px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    background: var(--bg-dark);
+    box-shadow: 0 0 0 100vw rgba(0,0,0,0.8), var(--shadow-luxury);
+    transform: none !important;
+    transition: all 0.45s var(--spring);
+    cursor: default;
+}
+
+/* Gold ambient glow layer */
+.bento-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle at top right, var(--accent-gold) 0%, transparent 65%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.bento-card:hover {
+    border-color: rgba(212,175,55,0.45);
+    transform: translateY(-5px) scale(1.005);
+    box-shadow:
+        var(--shadow-luxury),
+        0 0 0 1px rgba(212,175,55,0.08),
+        var(--shadow-gold);
+}
+
+.bento-card:hover::before {
+    transform: translateX(200%);
+    transition: transform 0.7s ease;
+}
+
+.bento-card:hover::after {
+    opacity: 0.06;
+}
+
+/* ───────────────────────────────────────────────
+   NAVBAR — entrance + active indicator glow
+─────────────────────────────────────────────── */
+nav {
+    animation: navSlideIn 0.6s var(--spring) both;
+}
+
+
+@keyframes navSlideIn {
+    from { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Active nav item pill glow */
+.nav-active-indicator {
+    box-shadow: 0 0 12px rgba(212,175,55,0.7);
+    animation: pillPulse 2.5s ease-in-out infinite;
+}
+@keyframes pillPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(212,175,55,0.5); }
+    50%       { box-shadow: 0 0 20px rgba(212,175,55,0.9); }
+}
+
+/* Icon magnetic bounce */
+.nav-icon-hover {
+    transition: transform 0.35s var(--bounce), color 0.25s ease;
+}
+.nav-icon-hover:hover {
+    transform: scale(1.15) translateY(-2px);
+}
+
+/* ───────────────────────────────────────────────
+   STAGGERED FADE-IN — for card grids
+─────────────────────────────────────────────── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-fade-in {
+    animation: fadeInUp 0.7s var(--ease-out) both;
+}
+
+/* Stagger siblings */
+.stagger-children > * {
+    opacity: 0;
+    animation: fadeInUp 0.6s var(--ease-out) both;
+}
+.stagger-children > *:nth-child(1)  { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2)  { animation-delay: 0.12s; }
+.stagger-children > *:nth-child(3)  { animation-delay: 0.19s; }
+.stagger-children > *:nth-child(4)  { animation-delay: 0.26s; }
+.stagger-children > *:nth-child(5)  { animation-delay: 0.33s; }
+.stagger-children > *:nth-child(6)  { animation-delay: 0.40s; }
+
+/* ───────────────────────────────────────────────
+   HEADER SECTION — cascade animation
+─────────────────────────────────────────────── */
+.header-greeting  { animation: fadeInUp 0.55s 0.05s var(--ease-out) both; }
+.header-title     { animation: fadeInUp 0.65s 0.12s var(--ease-out) both; }
+.header-subtitle  { animation: fadeInUp 0.65s 0.20s var(--ease-out) both; }
+.header-clock     { animation: fadeInUp 0.65s 0.08s var(--ease-out) both; }
+
+/* ───────────────────────────────────────────────
+   LOADING SKELETON — shimmer wave
+─────────────────────────────────────────────── */
+@keyframes shimmerWave {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.08) 50%,
+        rgba(255,255,255,0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmerWave 1.6s ease-in-out infinite;
+    border-radius: 12px;
+}
+
+/* ───────────────────────────────────────────────
+   GOLD PULSE — "NOW" badge and accent dots
+─────────────────────────────────────────────── */
+@keyframes goldPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(212,175,55,0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(212,175,55,0);
+        transform: scale(1.1);
+    }
+}
+.pulse-gold {
+    animation: goldPulse 2.2s ease-in-out infinite;
+}
+
+/* ───────────────────────────────────────────────
+   FLOATING ELEMENT — subtle levitate
+─────────────────────────────────────────────── */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
+}
+.float-slow { animation: float 5s ease-in-out infinite; }
+.float-fast { animation: float 3s ease-in-out infinite; }
+
+/* ───────────────────────────────────────────────
+   BACKGROUND AURORA — ambient moving gradient
+─────────────────────────────────────────────── */
+@keyframes aurora {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+.aurora-bg {
+    background: var(--aura-bg-gradient);
+    background-size: 300% 300%;
+    animation: aurora 12s ease infinite;
+    transition: background 2s ease-in-out;
+}
+
+/* ───────────────────────────────────────────────
+   TYPEWRITER CURSOR — for AI messages
+─────────────────────────────────────────────── */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+.cursor-blink::after {
+    content: '|';
+    color: var(--accent-gold);
+    animation: blink 0.9s step-end infinite;
+    margin-left: 2px;
+}
+
+/* ───────────────────────────────────────────────
+   PROGRESS BAR — animated fill + glow
+─────────────────────────────────────────────── */
+@keyframes progressFill {
+    from { width: 0; }
+}
+.progress-bar-animated {
+    animation: progressFill 1.2s var(--ease-out) both;
+    position: relative;
+    overflow: hidden;
+}
+.progress-bar-animated::after {
+    content: '';
+    position: absolute;
+    top: 0; right: -4px;
+    width: 8px; height: 100%;
+    background: rgba(255,255,255,0.4);
+    filter: blur(3px);
+    border-radius: 50%;
+}
+
+/* ───────────────────────────────────────────────
+   BUTTON PRESS — spring press effect
+─────────────────────────────────────────────── */
+.btn-spring {
+    transition: transform 0.2s var(--bounce), box-shadow 0.25s ease;
+    will-change: transform;
+}
+.btn-spring:hover  { transform: translateY(-2px) scale(1.03); }
+.btn-spring:active { transform: translateY(0) scale(0.97); }
+
+/* Gold button */
+.btn-gold {
+    background: var(--accent-gold);
+    color: oklch(15% 0.02 260);
+    border: none;
+    box-shadow: 0 4px 20px rgba(212,175,55,0.25);
+    transition:
+        transform 0.25s var(--bounce),
+        box-shadow 0.25s ease,
+        filter 0.2s ease;
+}
+.btn-gold:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 8px 32px rgba(212,175,55,0.45);
+    filter: brightness(1.08);
+}
+.btn-gold:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 2px 8px rgba(212,175,55,0.2);
+}
+
+/* ───────────────────────────────────────────────
+   ICON BOUNCE — nav and action icons
+─────────────────────────────────────────────── */
+@keyframes iconBounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25) rotate(-5deg); }
+    70%  { transform: scale(0.95) rotate(3deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+.icon-bounce:hover i,
+.icon-bounce:hover svg {
+    animation: iconBounce 0.45s var(--spring) both;
+}
+
+/* ───────────────────────────────────────────────
+   MODAL — scale + blur backdrop
+─────────────────────────────────────────────── */
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.88) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes backdropIn {
+    from { opacity: 0; backdrop-filter: blur(0); }
+    to   { opacity: 1; backdrop-filter: blur(12px); }
+}
+.modal-backdrop {
+    animation: backdropIn 0.3s ease both;
+}
+.modal-panel {
+    animation: modalIn 0.45s var(--spring) both;
+}
+
+/* ───────────────────────────────────────────────
+   CHAT MESSAGE — slide in from direction
+─────────────────────────────────────────────── */
+@keyframes msgFromLeft {
+    from { opacity: 0; transform: translateX(-20px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes msgFromRight {
+    from { opacity: 0; transform: translateX(20px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.msg-ai   { animation: msgFromLeft  0.4s var(--spring) both; }
+.msg-user { animation: msgFromRight 0.4s var(--spring) both; }
+
+/* ───────────────────────────────────────────────
+   THINKING DOTS — AI loading
+─────────────────────────────────────────────── */
+@keyframes dot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40%            { transform: scale(1);   opacity: 1; }
+}
+.thinking-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    display: inline-block;
+    animation: dot 1.4s ease-in-out infinite;
+}
+.thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* ───────────────────────────────────────────────
+   AI AURA INDICATOR — small glowing orb
+─────────────────────────────────────────────── */
+@keyframes auraBreathe {
+    0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 8px var(--aura-primary); }
+    50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 16px var(--aura-primary), 0 0 32px var(--aura-glow); }
+}
+.ai-aura-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--aura-primary);
+    animation: auraBreathe 3s ease-in-out infinite;
+}
+.ai-aura-indicator.thinking {
+    animation: auraBreathe 1s ease-in-out infinite;
+    background: #fff;
+}
+
+/* ───────────────────────────────────────────────
+   DAY CHIP (slider) — spring scale on select
+─────────────────────────────────────────────── */
+@keyframes chipSelect {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.18); }
+    100% { transform: scale(1.05); }
+}
+.chip-selected {
+    animation: chipSelect 0.35s var(--bounce) both;
+}
+
+/* ───────────────────────────────────────────────
+   SCHEDULE EVENT ROW — stagger slide in
+─────────────────────────────────────────────── */
+@keyframes eventRow {
+    from { opacity: 0; transform: translateX(-16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.event-row {
+    animation: eventRow 0.4s var(--spring) both;
+}
+.event-row:nth-child(1) { animation-delay: 0.04s; }
+.event-row:nth-child(2) { animation-delay: 0.10s; }
+.event-row:nth-child(3) { animation-delay: 0.16s; }
+.event-row:nth-child(4) { animation-delay: 0.22s; }
+.event-row:nth-child(5) { animation-delay: 0.28s; }
+
+/* ───────────────────────────────────────────────
+   INPUT FOCUS GLOW
+─────────────────────────────────────────────── */
+.input-glow {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.input-glow:focus {
+    border-color: rgba(212,175,55,0.5) !important;
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.12), 0 0 20px rgba(212,175,55,0.08);
+    outline: none;
+}
+
+/* ───────────────────────────────────────────────
+   GOAL PROGRESS CIRCLE — animated ring
+─────────────────────────────────────────────── */
+@keyframes ringFill {
+    from { stroke-dashoffset: 251; }
+}
+.progress-ring-circle {
+    animation: ringFill 1.4s var(--ease-out) both;
+    transform-origin: center;
+    transform: rotate(-90deg);
+}
+
+/* ───────────────────────────────────────────────
+   TYPOGRAPHY
+─────────────────────────────────────────────── */
+h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+}
+h2 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+.text-gold { color: var(--accent-gold); }
+
+/* ───────────────────────────────────────────────
+   RESPONSIVE
+─────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────
+   RESPONSIVE
+   Mobile-first philosophy for key layout elements
+─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .app-container {
+        flex-direction: column;
+    }
+    
+    .bento-grid {
+        grid-template-columns: repeat(6, 1fr);
+        padding: 16px;
+        grid-gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .bento-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .bento-card {
+        padding: 24px;
+    }
+    
+    h1 {
+        font-size: 2.2rem;
+    }
+}
+
+/* ───────────────────────────────────────────────
+   SAFE AREA FOR MOBILE NAV
+─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    body {
+        padding-bottom: 80px; /* Space for bottom nav */
+    }
+}
+
+
+/* ───────────────────────────────────────────────
+   WILL-CHANGE HINT — performance opt
+─────────────────────────────────────────────── */
+.bento-card,
+.btn-spring,
+.btn-gold {
+    will-change: transform;
+}
+
+/* ───────────────────────────────────────────────
+   FOCUS MODE SPECIFIC
+   Cinematic immersive effects
+─────────────────────────────────────────────── */
+.focus-pulse-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--aura-primary) 0%, transparent 70%);
+    opacity: 0;
+    filter: blur(80px);
+    transition: opacity 2s ease;
+    pointer-events: none;
+}
+.focus-pulse-glow.active {
+    opacity: 0.15;
+    animation: activeFocusPulse 8s ease-in-out infinite;
+}
+@keyframes activeFocusPulse {
+    0%, 100% { transform: scale(1); opacity: 0.15; }
+    50%       { transform: scale(1.4); opacity: 0.35; }
+}
+
+@keyframes breathingAura {
+    0%, 100% { 
+        transform: scale(1);
+        filter: blur(40px) brightness(1);
+        box-shadow: 0 0 40px var(--aura-primary), inset 0 0 20px var(--aura-primary);
+    }
+    50% { 
+        transform: scale(1.05);
+        filter: blur(50px) brightness(1.2);
+        box-shadow: 0 0 80px var(--aura-primary), inset 0 0 40px var(--aura-primary);
+    }
+}
+
+.breathing-aura {
+    animation: breathingAura 4s ease-in-out infinite;
+}
+
+@keyframes textFloat {
+    0%, 100% { transform: translateY(0); opacity: 0.8; }
+    50% { transform: translateY(-5px); opacity: 1; }
+}
+
+.focus-quote {
+    animation: textFloat 5s ease-in-out infinite;
+    transition: color 1s ease;
+}
+
+.focus-timer-text {
+    text-shadow: 0 0 40px var(--aura-glow);
+}
+
+/* ───────────────────────────────────────────────
+   HABIT HEATMAP
+─────────────────────────────────────────────── */
+.habit-heatmap-container {
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ───────────────────────────────────────────────
+   WELLNESS LOGS
+─────────────────────────────────────────────── */
+.wellness-pill {
+    transition: all 0.3s var(--spring);
+}
+.wellness-pill:hover {
+    background: var(--accent-gold);
+    color: var(--bg-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--aura-glow);
+}
+/* ───────────────────────────────────────────────
+   HEALTH & WELLNESS DASHBOARD
+   Premium stats and progress indicators
+─────────────────────────────────────────────── */
+.health-stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.4s var(--spring);
+}
+.health-stat-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--card-accent, var(--accent-gold));
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px -10px var(--card-accent-glow, var(--aura-glow));
+}
+
+.macro-pill {
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--pill-bg);
+    color: var(--pill-color);
+    border: 1px solid var(--pill-border);
+}
+
+.progress-circle-container {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.progress-circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 8;
+}
+.progress-circle-fill {
+    fill: none;
+    stroke: var(--accent-gold);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s var(--ease-out);
+    filter: drop-shadow(0 0 8px var(--aura-glow));
+}
+
+.health-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.health-value {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+.health-unit {
+    font-size: 9px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-top: -2px;
+}

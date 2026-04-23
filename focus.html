@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Mode | Aura LifeOS</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { gold: 'var(--aura-primary)', midnight: '#0A0C10' }
+                }
+            }
+        }
+
+        const applyTheme = () => {
+            const hour = new Date().getHours();
+            const root = document.documentElement;
+            if (hour >= 6 && hour < 12) {
+                root.style.setProperty('--aura-primary', 'oklch(75% 0.15 85)');
+                root.style.setProperty('--aura-glow', 'rgba(212, 175, 55, 0.3)');
+                root.style.setProperty('--aura-bg-gradient', 'linear-gradient(135deg, oklch(05% 0.02 260) 0%, oklch(10% 0.04 80) 50%, oklch(05% 0.02 260) 100%)');
+            } else if (hour >= 12 && hour < 17) {
+                root.style.setProperty('--aura-primary', 'oklch(75% 0.12 210)');
+                root.style.setProperty('--aura-glow', 'rgba(55, 180, 212, 0.3)');
+                root.style.setProperty('--aura-bg-gradient', 'linear-gradient(135deg, oklch(05% 0.02 260) 0%, oklch(10% 0.04 210) 50%, oklch(05% 0.02 260) 100%)');
+            } else {
+                root.style.setProperty('--aura-primary', 'oklch(70% 0.18 320)');
+                root.style.setProperty('--aura-glow', 'rgba(212, 55, 180, 0.3)');
+                root.style.setProperty('--aura-bg-gradient', 'linear-gradient(135deg, oklch(05% 0.03 260) 0%, oklch(08% 0.06 320) 50%, oklch(05% 0.03 260) 100%)');
+            }
+        };
+        applyTheme();
+    </script>
+</head>
+<body class="aurora-bg">
+    <div id="root"></div>
+
+    <script type="text/babel" src="js/api/api-client.js?v=2"></script>
+    <script type="text/babel" src="js/components/Navbar.js?v=2"></script>
+    <script type="text/babel" src="js/components/BentoCard.js?v=2"></script>
+    <script type="text/babel" src="js/pages/focus.js?v=2"></script>
+</body>
+</html>
