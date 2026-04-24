@@ -181,25 +181,30 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-10">
-            <div className="absolute inset-0 bg-midnight/90 backdrop-blur-xl" onClick={onClose} />
+        <div className="fixed inset-0 z-[150] flex items-end lg:items-center justify-center lg:p-10">
+            <div className="absolute inset-0 bg-[#08090d]/90 backdrop-blur-xl" onClick={onClose} />
             
-            <div className="relative w-full max-w-4xl bg-zinc-900/50 border border-white/10 rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl flex flex-col md:flex-row h-full max-h-[90vh] md:max-h-[85vh] animate-modal-in">
+            <div className="relative w-full lg:max-w-4xl rounded-t-[24px] lg:rounded-[28px] overflow-hidden shadow-2xl flex flex-col lg:flex-row h-[92vh] lg:h-auto lg:max-h-[85vh] modal-sheet lg:modal-panel"
+                style={{ background: 'rgba(16,18,24,0.98)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 {/* Left: Input Section */}
-                <div className="w-full md:w-1/2 h-[45vh] md:h-auto bg-black/40 border-b md:border-b-0 md:border-r border-white/5 relative flex flex-col items-center justify-center shrink-0">
+                <div className="w-full lg:w-1/2 h-[40vh] lg:h-auto relative flex flex-col items-center justify-center shrink-0"
+                    style={{ background: 'rgba(0,0,0,0.3)', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
                     
                     {/* Toggle Buttons */}
                     {!isCameraActive && !preview && (
-                        <div className="absolute top-6 left-6 right-6 flex bg-white/5 p-1 rounded-xl z-20">
+                        <div className="absolute top-5 left-5 right-5 flex p-1 rounded-xl z-20"
+                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }}>
                             <button 
                                 onClick={() => setInputMode('camera')}
-                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${inputMode === 'camera' ? 'bg-gold text-midnight' : 'text-white/40 hover:text-white'}`}
+                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${inputMode === 'camera' ? 'text-[#08090d]' : 'text-white/40 hover:text-white'}`}
+                                style={inputMode === 'camera' ? { background: 'var(--aura-primary)' } : {}}
                             >
                                 Camera / Upload
                             </button>
                             <button 
                                 onClick={() => setInputMode('text')}
-                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${inputMode === 'text' ? 'bg-gold text-midnight' : 'text-white/40 hover:text-white'}`}
+                                className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${inputMode === 'text' ? 'text-[#08090d]' : 'text-white/40 hover:text-white'}`}
+                                style={inputMode === 'text' ? { background: 'var(--aura-primary)' } : {}}
                             >
                                 Manual Text
                             </button>
@@ -322,7 +327,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
                 </div>
 
                 {/* Right: Analysis Section */}
-                <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col min-h-0">
+                <div className="w-full lg:w-1/2 p-5 lg:p-10 flex flex-col min-h-0">
                     <div className="flex justify-between items-center mb-6 md:mb-10">
                         <h4 className="text-gold font-bold uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2">
                             {SafeIcon && <SafeIcon name="Sparkles" className="w-3 h-3" />}

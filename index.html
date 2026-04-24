@@ -2,15 +2,17 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Aura LifeOS | Dashboard</title>
+    <meta name="description" content="Aura LifeOS — ระบบจัดการชีวิตอัจฉริยะ ตารางเรียน สุขภาพ การเงิน เป้าหมาย">
     
     <!-- PWA Support -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aura LifeOS">
     <link rel="apple-touch-icon" href="icon.png">
-    <meta name="theme-color" content="#D4AF37">
+    <meta name="theme-color" content="#050608">
     
     <!-- Libraries -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
@@ -29,42 +31,36 @@
                 extend: {
                     colors: {
                         gold: 'var(--aura-primary)',
-                        midnight: '#0A0C10',
+                        midnight: '#050608',
+                        secondary: 'rgba(255,255,255,0.4)',
                     }
                 }
             }
         }
 
-        // Dynamic Theme Engine
+        // Aurora Glass Theme Engine
         const applyTheme = () => {
             const hour = new Date().getHours();
             const root = document.documentElement;
             
             if (hour >= 6 && hour < 12) {
-                // Morning: Gold
-                root.style.setProperty('--aura-primary', 'oklch(75% 0.15 85)');
-                root.style.setProperty('--aura-glow', 'rgba(212, 175, 55, 0.3)');
-                root.style.setProperty('--aura-bg-gradient', 'linear-gradient(135deg, oklch(15% 0.02 260) 0%, oklch(20% 0.04 80) 50%, oklch(15% 0.02 260) 100%)');
+                root.style.setProperty('--aura-primary', 'oklch(80% 0.15 85)');
+                root.style.setProperty('--aura-glow', 'rgba(212, 175, 55, 0.25)');
             } else if (hour >= 12 && hour < 17) {
-                // Afternoon: Cyan/Blue
-                root.style.setProperty('--aura-primary', 'oklch(75% 0.12 210)');
-                root.style.setProperty('--aura-glow', 'rgba(55, 180, 212, 0.3)');
-                root.style.setProperty('--aura-bg-gradient', 'linear-gradient(135deg, oklch(15% 0.02 260) 0%, oklch(20% 0.04 210) 50%, oklch(15% 0.02 260) 100%)');
+                root.style.setProperty('--aura-primary', 'oklch(78% 0.15 200)');
+                root.style.setProperty('--aura-glow', 'rgba(55, 180, 212, 0.25)');
             } else {
-                // Evening/Night: Purple/Pink
-                root.style.setProperty('--aura-primary', 'oklch(70% 0.18 320)');
-                root.style.setProperty('--aura-glow', 'rgba(212, 55, 180, 0.3)');
-                root.style.setProperty('--aura-bg-gradient', 'linear-gradient(135deg, oklch(12% 0.03 260) 0%, oklch(18% 0.06 320) 50%, oklch(12% 0.03 260) 100%)');
+                root.style.setProperty('--aura-primary', 'oklch(70% 0.22 300)');
+                root.style.setProperty('--aura-glow', 'rgba(167, 139, 250, 0.25)');
             }
         };
         applyTheme();
-        // Check every 15 mins
         setInterval(applyTheme, 15 * 60 * 1000);
     </script>
 </head>
 <body>
     <div id="root">
-        <div style="padding:24px; color: rgba(255,255,255,0.55); font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;">
+        <div style="padding:24px; color: rgba(255,255,255,0.55); font: 14px/1.5 'Inter', system-ui, sans-serif;">
             กำลังโหลด Aura LifeOS...
         </div>
     </div>
@@ -88,14 +84,14 @@
                     'position:fixed',
                     'inset:0',
                     'z-index:999999',
-                    'background:rgba(10,12,16,0.92)',
-                    'backdrop-filter:blur(12px)',
-                    '-webkit-backdrop-filter:blur(12px)',
+                    'background:rgba(8,9,13,0.95)',
+                    'backdrop-filter:blur(16px)',
+                    '-webkit-backdrop-filter:blur(16px)',
                     'color:rgba(255,255,255,0.9)',
                     'padding:24px',
                     'display:none',
                     'overflow:auto',
-                    'font:14px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+                    "font:14px/1.6 'Inter', system-ui, sans-serif"
                 ].join(';');
                 document.body.appendChild(el);
                 return el;
@@ -187,41 +183,43 @@
         })();
     </script>
 
-    <script type="text/babel" src="js/api/api-client.js?v=2"></script>
-    <script type="text/babel" src="js/utils/voice-engine.js?v=2"></script>
-    <script type="text/babel" src="js/components/Navbar.js?v=2"></script>
-    <script type="text/babel" src="js/components/BentoCard.js?v=2"></script>
-    <script type="text/babel" src="js/components/HabitHeatmap.js?v=2"></script>
-    <script type="text/babel" src="js/components/FocusOverlay.js?v=2"></script>
-    <script type="text/babel" src="js/components/JournalModal.js?v=2"></script>
-    <script type="text/babel" src="js/components/ResourceSaver.js?v=2"></script>
-    <script type="text/babel" src="js/components/MealAnalyzer.js?v=2"></script>
-    <script type="text/babel" src="js/pages/dashboard.js?v=2"></script>
+    <script type="text/babel" src="js/api/api-client.js?v=5"></script>
+    <script type="text/babel" src="js/utils/voice-engine.js?v=5"></script>
+    <script type="text/babel" src="js/components/Navbar.js?v=5"></script>
+    <script type="text/babel" src="js/components/BentoCard.js?v=5"></script>
+    <script type="text/babel" src="js/components/HabitHeatmap.js?v=5"></script>
+    <script type="text/babel" src="js/components/FocusOverlay.js?v=5"></script>
+    <script type="text/babel" src="js/components/JournalModal.js?v=5"></script>
+    <script type="text/babel" src="js/components/ResourceSaver.js?v=5"></script>
+    <script type="text/babel" src="js/components/MealAnalyzer.js?v=5"></script>
+    <script type="text/babel" src="js/pages/dashboard.js?v=5"></script>
     
     <script type="text/babel">
         // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Clear any existing workers first to be safe
                 navigator.serviceWorker.getRegistrations().then(regs => {
                     for(let reg of regs) { reg.unregister(); }
                 });
 
-                navigator.serviceWorker.register('sw.js?v=2')
+                navigator.serviceWorker.register('sw.js?v=3')
                     .then(reg => console.log('SW Registered'))
                     .catch(err => console.log('SW Error', err));
             });
         }
 
-        // Global Initialization if needed
+        // Scroll effect for nav
         window.addEventListener('scroll', () => {
-            const nav = document.querySelector('nav');
-            if (window.scrollY > 20) {
-                nav?.classList.add('glass-active');
-            } else {
-                nav?.classList.remove('glass-active');
-            }
+            const navs = document.querySelectorAll('nav');
+            navs.forEach(nav => {
+                if (window.scrollY > 20) {
+                    nav.classList.add('glass-active');
+                } else {
+                    nav.classList.remove('glass-active');
+                }
+            });
         });
     </script>
+
 </body>
 </html>

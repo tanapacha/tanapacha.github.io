@@ -154,7 +154,7 @@ const AIAssistant = () => {
     };
 
     return (
-        <div className="app-container lg:pl-24">
+        <div className="app-container lg:pt-20">
             <Navbar />
             
             <main className="flex-1 h-screen flex flex-col lg:flex-row bg-midnight overflow-hidden">

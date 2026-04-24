@@ -1,26 +1,19 @@
 const { useRef, useEffect: useEffectBento, useState: useStateBento } = React;
 
 /**
- * SafeIcon Component
- * Prevents Lucide from crashing React during re-renders by using a ref
- * and managing the icon lifecycle outside of React's virtual DOM.
+ * SafeIcon — React-safe Lucide icon renderer
  */
 const SafeIcon = ({ name, className = "" }) => {
     const iconRef = useRef(null);
 
     useEffectBento(() => {
         if (iconRef.current && window.lucide) {
-            // Create a disposable container for Lucide
-            iconRef.current.innerHTML = ''; 
+            iconRef.current.innerHTML = '';
             const i = document.createElement('i');
             i.dataset.lucide = name;
             i.className = className;
             iconRef.current.appendChild(i);
-            
-            // Tell Lucide to only look at this specific element
-            window.lucide.createIcons({
-                elements: [i]
-            });
+            window.lucide.createIcons({ elements: [i] });
         }
     }, [name, className]);
 
@@ -29,13 +22,22 @@ const SafeIcon = ({ name, className = "" }) => {
 
 window.SafeIcon = SafeIcon;
 
-window.SafeIcon = SafeIcon;
+// Updated Premium Category color mapping (OKLCH based)
+const categoryColors = {
+    gold:    { bg: 'rgba(212,175,55,0.08)', border: 'rgba(212,175,55,0.25)', text: '#D4AF37', glow: 'rgba(212,175,55,0.15)' },
+    blue:    { bg: 'rgba(55,140,220,0.08)', border: 'rgba(55,140,220,0.25)', text: '#378CDC', glow: 'rgba(55,140,220,0.15)' },
+    emerald: { bg: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.25)', text: '#34D399', glow: 'rgba(52,211,153,0.15)' },
+    violet:  { bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.25)', text: '#A78BFA', glow: 'rgba(167,139,250,0.15)' },
+    rose:    { bg: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.25)', text: '#FB7185', glow: 'rgba(251,113,133,0.15)' },
+    cyan:    { bg: 'rgba(34,211,238,0.08)', border: 'rgba(34,211,238,0.25)', text: '#22D3EE', glow: 'rgba(34,211,238,0.15)' },
+    orange:  { bg: 'rgba(251,146,60,0.08)', border: 'rgba(251,146,60,0.25)', text: '#FB923C', glow: 'rgba(251,146,60,0.15)' },
+    default: { bg: 'rgba(255,255,255,0.03)', border: 'rgba(255,255,255,0.08)', text: 'rgba(255,255,255,0.4)', glow: 'transparent' },
+};
 
-const BentoCard = ({ title, subtitle, children, className = "", icon = null, gold = false, delay = 0, expandable = true, style = {} }) => {
+const BentoCard = ({ title, subtitle, children, className = "", icon = null, gold = false, accent = null, delay = 0, style = {}, isLoading = false }) => {
     const cardRef = useRef(null);
-    const [isExpanded, setIsExpanded] = useStateBento(false);
 
-    // Scroll-reveal via IntersectionObserver
+    // Scroll-reveal
     useEffectBento(() => {
         const el = cardRef.current;
         if (!el) return;
@@ -47,21 +49,20 @@ const BentoCard = ({ title, subtitle, children, className = "", icon = null, gol
                     observer.unobserve(el);
                 }
             },
-            { threshold: 0.08 }
+            { threshold: 0.05 }
         );
 
-        // Start paused, play on reveal
-        el.style.animation = `fadeInUp 0.65s cubic-bezier(0.16,1,0.3,1) ${delay}s both`;
+        el.style.animation = `fadeInUp 0.8s cubic-bezier(0.2,1,0.2,1) ${delay}s both`;
         el.style.animationPlayState = 'paused';
 
         observer.observe(el);
         return () => observer.disconnect();
     }, [delay]);
 
-    // Subtle mouse-tracking tilt
+    // Very Subtle mouse tilt
     useEffectBento(() => {
         const el = cardRef.current;
-        if (!el) return;
+        if (!el || window.innerWidth < 1024) return;
 
         const onMouseMove = (e) => {
             const rect = el.getBoundingClientRect();
@@ -69,100 +70,86 @@ const BentoCard = ({ title, subtitle, children, className = "", icon = null, gol
             const y = e.clientY - rect.top;
             const cx = rect.width / 2;
             const cy = rect.height / 2;
-            const rotX = ((y - cy) / cy) * -4;
-            const rotY = ((x - cx) / cx) * 4;
-            el.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-5px) scale(1.005)`;
+            const rotX = ((y - cy) / cy) * -1.5; // Reduced from 2
+            const rotY = ((x - cx) / cx) * 1.5; // Reduced from 2
+            el.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
         };
 
         const onMouseLeave = () => {
             el.style.transform = '';
-            el.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1), box-shadow 0.45s cubic-bezier(0.22,1,0.36,1), border-color 0.35s ease';
-        };
-
-        const onMouseEnter = () => {
-            el.style.transition = 'transform 0.1s ease, box-shadow 0.3s ease, border-color 0.3s ease';
+            el.style.transition = 'all 0.6s cubic-bezier(0.2,1,0.2,1)';
         };
 
         el.addEventListener('mousemove', onMouseMove);
         el.addEventListener('mouseleave', onMouseLeave);
-        el.addEventListener('mouseenter', onMouseEnter);
 
         return () => {
             el.removeEventListener('mousemove', onMouseMove);
             el.removeEventListener('mouseleave', onMouseLeave);
-            el.removeEventListener('mouseenter', onMouseEnter);
         };
     }, []);
 
-    const toggleExpand = () => {
-        if (!expandable) return;
-        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
-        setIsExpanded(!isExpanded);
-    };
+    const colorKey = gold ? 'gold' : (accent || 'default');
+    const colors = categoryColors[colorKey] || categoryColors.default;
+
+    if (isLoading) {
+        return (
+            <div className={`bento-card p-6 flex flex-col gap-4 ${className}`}>
+                <div className="flex items-center justify-between">
+                    <div className="space-y-2 flex-1">
+                        <div className="h-2 w-16 bg-white/5 rounded-full animate-pulse" />
+                        <div className="h-5 w-32 bg-white/10 rounded-lg animate-pulse" />
+                    </div>
+                    <div className="w-10 h-10 bg-white/5 rounded-xl animate-pulse" />
+                </div>
+                <div className="flex-1 space-y-3">
+                    <div className="h-20 bg-white/5 rounded-2xl animate-pulse" />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <>
-            {isExpanded && (
-                <div 
-                    className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm"
-                    onClick={toggleExpand}
-                />
-            )}
-            <div
-                ref={cardRef}
-                onClick={toggleExpand}
-                className={`bento-card ${className} ${gold ? 'border-gold/30' : ''} flex flex-col ${isExpanded ? 'expanded' : ''} ${expandable ? 'cursor-pointer' : ''}`}
-                style={{
-                    ...style,
-                    boxShadow: gold && !isExpanded
-                        ? '0 0 0 1px rgba(212,175,55,0.15), 0 10px 40px -10px rgba(0,0,0,0.5)'
-                        : style.boxShadow || undefined,
-                }}
-            >
-            {/* Header row */}
+        <div
+            ref={cardRef}
+            className={`bento-card ${className} flex flex-col p-7`}
+            style={{
+                ...style,
+                borderColor: gold ? colors.border : undefined,
+            }}
+        >
+            {/* Header */}
             <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h3 className="text-[10px] font-semibold text-text-secondary uppercase tracking-[0.15em]">
-                        {subtitle}
-                    </h3>
-                    <h2
-                        className="text-2xl font-semibold mt-1 transition-colors duration-300"
-                        style={{ color: gold ? '#D4AF37' : 'white' }}
-                    >
+                <div className="flex-1 min-w-0">
+                    {subtitle && (
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                            style={{ color: colors.text, opacity: 0.8 }}>
+                            {subtitle}
+                        </p>
+                    )}
+                    <h3 className="text-xl font-bold tracking-tight truncate text-white">
                         {title}
-                    </h2>
+                    </h3>
                 </div>
 
                 {icon && (
-                    <div
-                        className="p-3 rounded-xl transition-all duration-300"
+                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110"
                         style={{
-                            background: gold
-                                ? 'rgba(212,175,55,0.12)'
-                                : 'rgba(255,255,255,0.05)',
-                            color: gold ? '#D4AF37' : 'rgba(255,255,255,0.4)',
-                        }}
-                    >
+                            background: colors.bg,
+                            border: `1px solid ${colors.border}`,
+                            color: colors.text,
+                            boxShadow: `0 8px 20px -5px ${colors.glow}`
+                        }}>
                         <SafeIcon name={icon} className="w-5 h-5" />
                     </div>
                 )}
             </div>
 
             {/* Content */}
-            <div className={`flex-1 relative ${isExpanded ? 'mt-4' : ''}`}>
+            <div className="flex-1 relative">
                 {children}
             </div>
-
-            {isExpanded && (
-                <button 
-                    onClick={(e) => { e.stopPropagation(); toggleExpand(); }}
-                    className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
-                >
-                    <SafeIcon name="X" className="w-5 h-5" />
-                </button>
-            )}
         </div>
-        </>
     );
 };
 

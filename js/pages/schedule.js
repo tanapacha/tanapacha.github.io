@@ -104,7 +104,7 @@ const Schedule = () => {
     };
 
     return (
-        <div className="app-container lg:pl-24">
+        <div className="app-container lg:pt-20">
             <Navbar />
             
             <main className="flex-1 min-h-screen p-6 lg:p-12 bg-midnight">

@@ -752,23 +752,38 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="app-container lg:pl-24">
+        <div className="app-container">
             <Navbar />
 
-            <main className="flex-1 min-h-screen p-6 lg:p-12 bg-midnight">
-                {/* Header */}
-                <header className="mb-10 animate-fade-in">
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 lg:gap-0">
+            <main className="flex-1 min-h-screen pt-4 lg:pt-24 bg-midnight">
+                {/* ═══ Hero Header ═══ */}
+                <header className="relative px-5 lg:px-10 pt-6 pb-8 animate-fade-in overflow-hidden">
+                    {/* Background glow */}
+                    <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[120px] opacity-20 pointer-events-none"
+                        style={{ background: 'var(--aura-primary)' }} />
+                    
+                    <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                         <div>
-                            <p className="text-gold font-medium mb-1 lg:mb-2">{dateString}</p>
-                            <h1 className="text-white leading-tight">{greeting}, <br className="lg:hidden" /><span className="text-gold">Tanapon</span></h1>
-                            <p className="text-text-secondary text-base lg:text-lg mt-2">
-                                วันนี้คุณมี {todayEvents.length} กิจกรรม
-                                และ {goals.filter(g => g.status !== 'สำเร็จ').length} เป้าหมายที่ต้องทำ
-                            </p>
+                            <p className="text-[11px] font-bold uppercase tracking-[0.25em] mb-3" style={{ color: 'var(--text-tertiary)' }}>{dateString}</p>
+                            <h1 className="text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight">
+                                {greeting},<br/>
+                                <span className="text-gold">Tanapon</span>
+                            </h1>
                         </div>
-                        <div className="lg:text-right w-full lg:w-auto border-t border-white/5 lg:border-none pt-4 lg:pt-0">
-                            <h2 className="text-3xl lg:text-5xl font-light text-white">{timeString}</h2>
+                        <div className="flex items-center gap-4 flex-wrap">
+                            {/* Status pills */}
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="text-xs font-semibold text-white/60">{todayEvents.length} กิจกรรม</span>
+                            </div>
+                            <div className="px-4 py-2 rounded-2xl border backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                                <span className="text-xs font-semibold text-white/60">{goals.filter(g => g.status !== 'สำเร็จ').length} เป้าหมาย</span>
+                            </div>
+                            {/* Large clock */}
+                            <div className="text-4xl lg:text-5xl font-extralight text-white/90 tabular-nums tracking-tighter ml-2"
+                                style={{ textShadow: '0 0 30px var(--aura-glow)' }}>
+                                {timeString}
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -776,28 +791,34 @@ const Dashboard = () => {
                 {/* Bento Grid */}
                 <div className="bento-grid stagger-children flex flex-col md:grid">
 
-                    {/* ── Health Quick Stats (New Row) ── */}
-                    <div className="col-span-12 grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2" style={{ order: order.stats }}>
+                    {/* ── Health Quick Stats (Horizontal Scroll Pills) ── */}
+                    <div className="col-span-12 flex gap-3 overflow-x-auto pb-2 px-1" style={{ order: order.stats, scrollbarWidth: 'none' }}>
                         {[
-                            { label: 'TDEE', value: Math.round(stats.tdee), unit: 'KCAL/DAY', icon: 'Flame', color: '85', glow: 'rgba(212,175,55,0.4)' },
-                            { label: 'BMR', value: Math.round(stats.bmr), unit: 'KCAL/DAY', icon: 'Zap', color: '240', glow: 'rgba(55,180,212,0.4)' },
-                            { label: 'BMI', value: stats.bmi.toFixed(1), unit: 'INDEX', icon: 'Activity', color: '150', glow: 'rgba(55,212,120,0.4)' },
-                            { label: 'Body Fat', value: stats.bodyFat.toFixed(1) + '%', unit: 'ESTIMATE', icon: 'PieChart', color: '10', glow: 'rgba(212,55,55,0.4)' }
+                            { label: 'TDEE', value: Math.round(stats.tdee), unit: 'kcal', icon: 'Flame', color: '#D4AF37', bg: 'rgba(212,175,55,0.06)', border: 'rgba(212,175,55,0.15)' },
+                            { label: 'BMR', value: Math.round(stats.bmr), unit: 'kcal', icon: 'Zap', color: '#22D3EE', bg: 'rgba(34,211,238,0.06)', border: 'rgba(34,211,238,0.15)' },
+                            { label: 'BMI', value: stats.bmi.toFixed(1), unit: 'index', icon: 'Activity', color: '#34D399', bg: 'rgba(52,211,153,0.06)', border: 'rgba(52,211,153,0.15)' },
+                            { label: 'Body Fat', value: stats.bodyFat.toFixed(1) + '%', unit: 'est.', icon: 'PieChart', color: '#FB7185', bg: 'rgba(251,113,133,0.06)', border: 'rgba(251,113,133,0.15)' }
                         ].map((s, idx) => (
-                            <div key={idx} className="health-stat-card" style={{ '--card-accent': `oklch(75% 0.15 ${s.color})`, '--card-accent-glow': s.glow }}>
-                                <i data-lucide={s.icon} className="w-5 h-5 mb-1" style={{ color: `oklch(75% 0.15 ${s.color})` }}></i>
-                                <span className="health-label">{s.label}</span>
-                                <span className="health-value">{s.value}</span>
-                                <span className="health-unit">{s.unit}</span>
+                            <div key={idx} className="flex-shrink-0 flex items-center gap-3 px-5 py-4 rounded-2xl border transition-all duration-400 hover:scale-[1.03] hover:shadow-lg backdrop-blur-sm" 
+                                style={{ background: s.bg, borderColor: s.border, minWidth: '180px' }}>
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${s.color}15` }}>
+                                    <i data-lucide={s.icon} className="w-5 h-5" style={{ color: s.color }}></i>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: s.color }}>{s.label}</p>
+                                    <p className="text-xl font-bold text-white leading-tight">{s.value} <span className="text-[10px] font-normal text-white/30">{s.unit}</span></p>
+                                </div>
                             </div>
                         ))}
                     </div>
+
 
                     {/* ── Nutrition Hub (New Large Card) ── */}
                     <BentoCard
                         title="เป้าหมายโภชนาการ"
                         subtitle="Nutrition Progress"
                         icon="Target"
+                        accent="emerald"
                         className="col-span-12 lg:col-span-8"
                         style={{ order: order.nutrition }}
                     >
@@ -851,6 +872,7 @@ const Dashboard = () => {
                         title={scheduleLabel}
                         subtitle="Schedule"
                         icon="Clock"
+                        accent="blue"
                         className="col-span-12 lg:col-span-4 lg:row-span-2"
                         style={{ order: order.schedule }}
                     >
@@ -983,6 +1005,7 @@ const Dashboard = () => {
                         title={currentClass ? "กำลังสอนอยู่" : "คาบสอนถัดไป"}
                         subtitle="Teaching Session"
                         icon="GraduationCap"
+                        accent="violet"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.teaching }}
                     >
@@ -1029,6 +1052,7 @@ const Dashboard = () => {
                         title="พลังงาน & ความรู้สึก"
                         subtitle="Burnout Prevention"
                         icon="Activity"
+                        accent="rose"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.mood }}
                     >
@@ -1102,6 +1126,7 @@ const Dashboard = () => {
                         title="Aura Consistency"
                         subtitle="Habit Tracker"
                         icon="Zap"
+                        accent="gold"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.habit }}
                     >
@@ -1187,6 +1212,7 @@ const Dashboard = () => {
                         title="เป้าหมาย"
                         subtitle="Daily Goals"
                         icon="Target"
+                        accent="cyan"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.goals }}
                     >
@@ -1234,7 +1260,8 @@ const Dashboard = () => {
                     <BentoCard
                         title="น้ำและการนอน"
                         subtitle="Wellness Monitor"
-                        icon="Activity"
+                        icon="Droplets"
+                        accent="cyan"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.wellness }}
                     >
@@ -1303,6 +1330,7 @@ const Dashboard = () => {
                         title="รายการอาหารวันนี้"
                         subtitle="Meal Logs"
                         icon="Coffee"
+                        accent="orange"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.mealLogs }}
                     >
@@ -1373,6 +1401,7 @@ const Dashboard = () => {
                         title="สรุปการเงินวันนี้"
                         subtitle="Daily Finance"
                         icon="Wallet"
+                        accent="emerald"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.finance }}
                     >
@@ -1414,6 +1443,7 @@ const Dashboard = () => {
                         title="Digital Garden"
                         subtitle="Resource Saver"
                         icon="BookOpen"
+                        accent="violet"
                         className="col-span-12 lg:col-span-4"
                         style={{ order: order.garden }}
                     >
@@ -1426,35 +1456,34 @@ const Dashboard = () => {
                     </BentoCard>
 
                     {/* ── Quick Actions ── */}
-                    <div className="col-span-12 grid grid-cols-2 lg:grid-cols-5 gap-6" style={{ order: order.quickActions }}>
+                    <div className="col-span-12 grid grid-cols-3 lg:grid-cols-6 gap-3" style={{ order: order.quickActions }}>
                         {[
-                            { label: 'Focus', icon: 'Zap', color: 'bg-gold', onClick: () => setIsFocusOpen(true), textClass: 'text-midnight' },
-                            { label: 'เพิ่มงาน', icon: 'Plus', color: 'bg-white/10 border border-white/5', href: `schedule.html?date=${selectedDateStr}`, textClass: 'text-white' },
-                            { label: 'การเงิน', icon: 'Wallet', color: 'bg-white/10 border border-white/5', href: 'finance.html', textClass: 'text-white' },
-                            { label: 'เป้าหมาย', icon: 'Target', color: 'bg-white/10 border border-white/5', href: 'goals.html', textClass: 'text-white' },
-                            { label: 'บันทึก Aura', icon: 'PenTool', color: 'bg-white/10 border border-white/5', onClick: () => setIsJournalOpen(true), textClass: 'text-white' },
-                            { label: 'คุยกับ AI', icon: 'MessageSquare', color: 'bg-white/10 border border-white/5', href: 'ai-assistant.html', textClass: 'text-white' },
-                        ].map((btn, i) => (
-                            btn.onClick ? (
-                                <button
+                            { label: 'Focus', icon: 'Zap', onClick: () => setIsFocusOpen(true), accent: '#D4AF37' },
+                            { label: 'เพิ่มงาน', icon: 'Plus', href: `schedule.html?date=${selectedDateStr}`, accent: '#FB923C' },
+                            { label: 'การเงิน', icon: 'Wallet', href: 'finance.html', accent: '#34D399' },
+                            { label: 'เป้าหมาย', icon: 'Target', href: 'goals.html', accent: '#22D3EE' },
+                            { label: 'บันทึก', icon: 'PenTool', onClick: () => setIsJournalOpen(true), accent: '#A78BFA' },
+                            { label: 'AI', icon: 'Sparkles', href: 'ai-assistant.html', accent: '#D4AF37' },
+                        ].map((btn, i) => {
+                            const El = btn.onClick ? 'button' : 'a';
+                            return (
+                                <El
+                                    key={i}
                                     onClick={btn.onClick}
-                                    key={i}
-                                    className={`flex items-center justify-center gap-3 p-6 rounded-3xl ${btn.color} hover:scale-105 transition-transform duration-300`}
-                                >
-                                    <i data-lucide={btn.icon} className={`w-5 h-5 ${btn.textClass}`}></i>
-                                    <span className={`font-medium ${btn.textClass}`}>{btn.label}</span>
-                                </button>
-                            ) : (
-                                <a
                                     href={btn.href}
-                                    key={i}
-                                    className={`flex items-center justify-center gap-3 p-6 rounded-3xl ${btn.color} hover:scale-105 transition-transform duration-300`}
+                                    className="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.03] active:scale-95"
+                                    style={{ 
+                                        background: 'rgba(255,255,255,0.02)', 
+                                        borderColor: 'rgba(255,255,255,0.05)',
+                                    }}
                                 >
-                                    <i data-lucide={btn.icon} className={`w-5 h-5 ${btn.textClass}`}></i>
-                                    <span className={`font-medium ${btn.textClass}`}>{btn.label}</span>
-                                </a>
-                            )
-                        ))}
+                                    <div className="p-2.5 rounded-xl" style={{ background: `${btn.accent}12` }}>
+                                        <i data-lucide={btn.icon} className="w-5 h-5" style={{ color: btn.accent, strokeWidth: 1.8 }}></i>
+                                    </div>
+                                    <span className="text-xs font-medium text-white/70">{btn.label}</span>
+                                </El>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -1474,35 +1503,53 @@ const Dashboard = () => {
                 />
                 {/* Water Intake Modal */}
                 {isWaterModalOpen && (
-                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-6">
-                        <div className="absolute inset-0 bg-midnight/80 backdrop-blur-md" onClick={() => setIsWaterModalOpen(false)} />
-                        <div className="relative bg-zinc-900 border border-white/10 p-8 rounded-[40px] w-full max-w-sm shadow-2xl animate-modal-in">
-                            <h3 className="text-xl text-white font-medium mb-6">บันทึกปริมาณน้ำ</h3>
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-3 gap-3">
+                    <div className="fixed inset-0 z-[120] flex items-end lg:items-center justify-center lg:p-6">
+                        <div className="absolute inset-0 bg-[#08090d]/85 backdrop-blur-xl" onClick={() => setIsWaterModalOpen(false)} />
+                        <div className="relative w-full lg:max-w-sm lg:rounded-[28px] rounded-t-[24px] p-6 lg:p-8 modal-sheet lg:modal-panel shadow-2xl"
+                            style={{ background: 'rgba(16,18,24,0.97)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-xl" style={{ background: 'rgba(34,211,238,0.08)' }}>
+                                        <i data-lucide="Droplets" className="w-4 h-4" style={{ color: '#22D3EE' }}></i>
+                                    </div>
+                                    <h3 className="text-lg text-white font-semibold tracking-tight">บันทึกน้ำ</h3>
+                                </div>
+                                <button onClick={() => setIsWaterModalOpen(false)} className="p-2 rounded-xl hover:bg-white/5 transition-all">
+                                    <i data-lucide="X" className="w-4 h-4 text-white/30"></i>
+                                </button>
+                            </div>
+                            <div className="space-y-5">
+                                <div className="grid grid-cols-3 gap-2">
                                     {[250, 500, 750].map(v => (
                                         <button 
                                             key={v}
                                             onClick={() => setCustomWaterVol(v)}
-                                            className={`py-3 rounded-2xl border transition-all text-xs font-bold ${customWaterVol === v ? 'border-[#37b4d4] bg-[#37b4d4]/20 text-[#37b4d4]' : 'border-white/5 bg-white/5 text-white/40'}`}
+                                            className="py-3 rounded-xl border transition-all text-xs font-bold"
+                                            style={{ 
+                                                borderColor: customWaterVol === v ? 'rgba(34,211,238,0.3)' : 'rgba(255,255,255,0.05)',
+                                                background: customWaterVol === v ? 'rgba(34,211,238,0.08)' : 'rgba(255,255,255,0.02)',
+                                                color: customWaterVol === v ? '#22D3EE' : 'rgba(255,255,255,0.4)'
+                                            }}
                                         >
                                             {v}ml
                                         </button>
                                     ))}
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] text-white/30 uppercase tracking-widest pl-1">กำหนดเอง (ml)</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-widest pl-1" style={{ color: 'var(--text-tertiary)' }}>กำหนดเอง (ml)</label>
                                     <input 
                                         type="number" 
                                         value={customWaterVol}
                                         onChange={(e) => setCustomWaterVol(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-[#37b4d4]/50"
+                                        className="w-full p-3.5 rounded-xl text-white outline-none transition-all input-glow"
+                                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
                                     />
                                 </div>
                                 <button 
                                     onClick={() => logWater(customWaterVol)}
                                     disabled={isSavingWater}
-                                    className="w-full py-4 bg-[#37b4d4] text-midnight font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                    className="w-full py-3.5 font-semibold rounded-xl btn-spring transition-all disabled:opacity-50 text-sm"
+                                    style={{ background: '#22D3EE', color: '#08090d' }}
                                 >
                                     {isSavingWater ? 'กำลังบันทึก...' : 'ยืนยัน'}
                                 </button>

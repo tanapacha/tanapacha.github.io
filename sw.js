@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-lifeos-v2';
+const CACHE_NAME = 'aura-lifeos-v4';
 const ASSETS = [
   '/',
   '/index.html',

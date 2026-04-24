@@ -447,7 +447,7 @@ const HealthPage = () => {
     const SafeIcon = window.SafeIcon;
 
     return (
-        <div className="min-h-screen bg-midnight text-white pb-32 lg:pb-12 lg:pl-24">
+        <div className="min-h-screen bg-midnight text-white pb-32 lg:pb-12 lg:pt-20">
             {Navbar && <Navbar />}
             
             <main className="max-w-7xl mx-auto px-6 py-12">
