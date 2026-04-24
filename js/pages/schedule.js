@@ -48,7 +48,7 @@ const Schedule = () => {
             const startDate = new Date(`${selectedDate}T${cleanStart}:00`);
             let endDate = new Date(`${selectedDate}T${cleanEnd}:00`);
 
-            if (endDate <= startDate) {
+            if (endDate < startDate) {
                 endDate.setDate(endDate.getDate() + 1);
             }
 
@@ -153,32 +153,54 @@ const Schedule = () => {
                                     </div>
                                 ) : tasks.map((task, idx) => {
                                     const startTime = new Date(task.start);
-                                    const endTime = new Date(task.end);
+                                    let endTime = new Date(task.end);
+                                    
+                                    // Fix for existing bugged data: if exactly 24 hours, treat as 0 duration
+                                    if (endTime - startTime === 24 * 60 * 60 * 1000) {
+                                        endTime = new Date(startTime);
+                                    }
+
                                     const startOffset = startTime.getHours() * 100 + (startTime.getMinutes() / 60) * 100;
-                                    const duration = (endTime - startTime) / (1000 * 60 * 60);
+                                    let duration = (endTime - startTime) / (1000 * 60 * 60);
+                                    
+                                    // Cap visual duration to not overflow the 24h timeline
+                                    const startHourFloat = startTime.getHours() + startTime.getMinutes() / 60;
+                                    if (startHourFloat + duration > 24) {
+                                        duration = 24 - startHourFloat;
+                                    }
+                                    
+                                    const isShort = duration < 0.25;
 
                                     return (
                                         <motion.div 
                                             initial={{ opacity: 0, x: -10, scale: 0.95 }}
                                             animate={{ opacity: 1, x: 0, scale: 1 }}
                                             key={task.id || idx}
-                                            className="absolute left-2 right-4 p-3 md:p-4 rounded-[14px] shadow-xl flex flex-col justify-center overflow-hidden group cursor-pointer backdrop-blur-md"
+                                            className={`absolute left-2 right-4 ${isShort ? 'px-3 py-1' : 'p-3 md:p-4'} rounded-[14px] shadow-xl flex flex-col justify-start overflow-hidden group cursor-pointer backdrop-blur-md`}
                                             style={{ 
                                                 top: `${startOffset + 2}px`, 
-                                                height: `${Math.max(45, duration * 100 - 4)}px`,
+                                                height: `${Math.max(isShort ? 28 : 45, duration * 100 - 4)}px`,
                                                 zIndex: 10 + idx,
                                                 background: 'linear-gradient(145deg, rgba(212,175,55,0.08), rgba(212,175,55,0.01))',
                                                 border: '1px solid rgba(212,175,55,0.1)',
                                                 borderLeft: '4px solid #D4AF37'
                                             }}
                                         >
-                                            <div className="flex justify-between items-start gap-4">
-                                                <div className="flex-1">
-                                                    <h4 className="text-white text-xs md:text-base font-medium leading-snug line-clamp-2 md:line-clamp-1 group-hover:text-gold transition-colors">{task.title}</h4>
-                                                    <span className="text-[10px] md:text-xs text-gold/70 mt-1 flex items-center gap-1 font-light tracking-wide">
-                                                        <i data-lucide="Clock" className="w-[10px] h-[10px] md:w-3 md:h-3" />
-                                                        {startTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
+                                            <div className={`flex justify-between ${isShort ? 'items-center' : 'items-start'} gap-4`}>
+                                                <div className={`flex-1 ${isShort ? 'flex items-center gap-3' : ''}`}>
+                                                    <h4 className={`text-white font-medium leading-snug line-clamp-1 group-hover:text-gold transition-colors ${isShort ? 'text-xs md:text-sm' : 'text-xs md:text-base'}`}>{task.title}</h4>
+                                                    {!isShort && (
+                                                        <span className="text-[10px] md:text-xs text-gold/70 mt-1 flex items-center gap-1 font-light tracking-wide">
+                                                            <i data-lucide="Clock" className="w-[10px] h-[10px] md:w-3 md:h-3" />
+                                                            {startTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    )}
+                                                    {isShort && (
+                                                        <span className="text-[10px] text-gold/70 font-light tracking-wide flex items-center gap-1">
+                                                            <i data-lucide="Clock" className="w-[10px] h-[10px]" />
+                                                            {startTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <button 
                                                     onClick={(e) => {

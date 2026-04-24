@@ -247,6 +247,8 @@ const Dashboard = () => {
     const [isWaterModalOpen, setIsWaterModalOpen] = useState(false);
     const [customWaterVol, setCustomWaterVol] = useState(250);
     const [isSavingWater, setIsSavingWater] = useState(false);
+    const [isNightstandOpen, setIsNightstandOpen] = useState(false);
+    const NightstandMode = window.NightstandMode;
 
     // Performance Optimization for Slider
     const [localEnergy, setLocalEnergy] = useState(50);
@@ -766,6 +768,13 @@ const Dashboard = () => {
 
     return (
         <div className="app-container">
+            {isNightstandOpen && NightstandMode && (
+                <NightstandMode
+                    onClose={() => setIsNightstandOpen(false)}
+                    todayEvents={todayEvents}
+                    todayTimetableClasses={todayClasses}
+                />
+            )}
             <Navbar />
 
             <main className="flex-1 min-h-screen pt-4 lg:pt-20">
@@ -789,6 +798,21 @@ const Dashboard = () => {
                             <div className="text-2xl lg:text-3xl font-light tabular-nums tracking-tight ml-1" style={{ color: 'var(--text-secondary)' }}>
                                 {timeString}
                             </div>
+                            <button
+                                onClick={() => setIsNightstandOpen(true)}
+                                title="โหมดหัวเตียง (Nightstand)"
+                                style={{
+                                    width: 36, height: 36, borderRadius: 10,
+                                    background: 'var(--bg-card)', border: '1px solid var(--border)',
+                                    color: 'var(--text-secondary)', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 16, transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-subtle)'; e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--border-active)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-card)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                            >
+                                🌙
+                            </button>
                         </div>
                     </div>
                 </header>
@@ -1587,7 +1611,8 @@ const mountApp = () => {
         FocusOverlay: window.FocusOverlay,
         JournalModal: window.JournalModal,
         ResourceSaver: window.ResourceSaver,
-        MealAnalyzer: window.MealAnalyzer
+        MealAnalyzer: window.MealAnalyzer,
+        NightstandMode: window.NightstandMode
     };
 
     const missing = Object.entries(required)
