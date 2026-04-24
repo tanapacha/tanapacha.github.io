@@ -30,28 +30,33 @@
             theme: {
                 extend: {
                     colors: {
-                        gold: 'var(--aura-primary)',
-                        midnight: '#050608',
-                        secondary: 'rgba(255,255,255,0.4)',
+                        gold: 'var(--accent)',
+                        midnight: '#09090b',
+                        accent: 'var(--accent)',
                     }
                 }
             }
         }
 
-        // Aurora Glass Theme Engine
+        // Clean Theme Engine — subtle time-based accent shift
         const applyTheme = () => {
-            const hour = new Date().getHours();
-            const root = document.documentElement;
-            
-            if (hour >= 6 && hour < 12) {
-                root.style.setProperty('--aura-primary', 'oklch(80% 0.15 85)');
-                root.style.setProperty('--aura-glow', 'rgba(212, 175, 55, 0.25)');
-            } else if (hour >= 12 && hour < 17) {
-                root.style.setProperty('--aura-primary', 'oklch(78% 0.15 200)');
-                root.style.setProperty('--aura-glow', 'rgba(55, 180, 212, 0.25)');
+            const h = new Date().getHours();
+            const r = document.documentElement;
+            if (h >= 6 && h < 12) {
+                r.style.setProperty('--accent', '#818cf8');
+                r.style.setProperty('--accent-glow', 'rgba(129,140,248,0.15)');
+                r.style.setProperty('--aura-primary', '#818cf8');
+                r.style.setProperty('--aura-glow', 'rgba(129,140,248,0.15)');
+            } else if (h >= 12 && h < 17) {
+                r.style.setProperty('--accent', '#67e8f9');
+                r.style.setProperty('--accent-glow', 'rgba(103,232,249,0.15)');
+                r.style.setProperty('--aura-primary', '#67e8f9');
+                r.style.setProperty('--aura-glow', 'rgba(103,232,249,0.15)');
             } else {
-                root.style.setProperty('--aura-primary', 'oklch(70% 0.22 300)');
-                root.style.setProperty('--aura-glow', 'rgba(167, 139, 250, 0.25)');
+                r.style.setProperty('--accent', '#a78bfa');
+                r.style.setProperty('--accent-glow', 'rgba(167,139,250,0.15)');
+                r.style.setProperty('--aura-primary', '#a78bfa');
+                r.style.setProperty('--aura-glow', 'rgba(167,139,250,0.15)');
             }
         };
         applyTheme();

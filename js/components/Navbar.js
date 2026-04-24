@@ -6,7 +6,7 @@ const Navbar = () => {
         { name: 'ตารางสอน', icon: 'GraduationCap', href: 'timetable.html' },
         { name: 'สุขภาพ', icon: 'Heart', href: 'health.html' },
         { name: 'การเงิน', icon: 'Wallet', href: 'finance.html' },
-        { name: 'ผู้ช่วย AI', icon: 'Sparkles', href: 'ai-assistant.html' },
+        { name: 'AI', icon: 'Sparkles', href: 'ai-assistant.html' },
     ];
 
     const moreItems = [
@@ -23,98 +23,88 @@ const Navbar = () => {
     const moreRef = useRef(null);
 
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        const fn = () => setScrolled(window.scrollY > 10);
+        window.addEventListener('scroll', fn, { passive: true });
+        return () => window.removeEventListener('scroll', fn);
     }, []);
 
     useEffect(() => {
-        const handler = (e) => {
-            if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false);
-        };
-        document.addEventListener('click', handler);
-        return () => document.removeEventListener('click', handler);
+        const fn = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false); };
+        document.addEventListener('click', fn);
+        return () => document.removeEventListener('click', fn);
     }, []);
 
-    useEffect(() => {
-        if (window.lucide) window.lucide.createIcons();
-    }, [moreOpen]);
+    useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [moreOpen]);
 
-    const isActive = (href) => {
-        return currentPath.includes(href) || (href === 'index.html' && (currentPath.endsWith('/') || currentPath.endsWith('index.html')));
-    };
-
-    const triggerHaptic = () => {
-        if (window.navigator?.vibrate) window.navigator.vibrate(10);
-    };
+    const isActive = (href) => currentPath.includes(href) || (href === 'index.html' && (currentPath.endsWith('/') || currentPath.endsWith('index.html')));
 
     return (
         <>
-            {/* ═══ Desktop Top Nav ═══ */}
-            <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 hidden lg:block ${scrolled ? 'py-3 nav-blur shadow-2xl' : 'py-6 bg-transparent'}`}>
-                <div className="max-w-7xl mx-auto px-10 flex items-center justify-between">
+            {/* ═══ Desktop ═══ */}
+            <nav className={`fixed top-0 left-0 right-0 z-[100] hidden lg:block transition-all duration-300 ${scrolled ? 'nav-blur py-3' : 'py-5 bg-transparent'}`}>
+                <div className="max-w-[1400px] mx-auto px-8 flex items-center justify-between">
                     {/* Logo */}
-                    <a href="index.html" className="flex items-center gap-3 group" onClick={triggerHaptic}>
-                        <div className="w-10 h-10 rounded-[10px] overflow-hidden transition-all duration-500 group-hover:rotate-[5deg] group-hover:scale-110"
-                            style={{ boxShadow: '0 0 20px var(--aura-glow)' }}>
-                            <img src="icon.png" alt="Aura Logo" className="w-full h-full object-cover" />
+                    <a href="index.html" className="flex items-center gap-3 group">
+                        <div className="w-8 h-8 rounded-lg overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                            <img src="icon.png" alt="Aura" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-lg font-bold tracking-tighter text-white">Aura <span className="text-secondary font-medium">LifeOS</span></span>
+                        <span className="text-[15px] font-semibold tracking-tight text-white/90">Aura</span>
                     </a>
 
-                    {/* Nav Items */}
-                    <div className="flex items-center gap-2 p-1.5 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-md">
-                        {[...mainItems, ...moreItems].slice(0, 7).map((item) => {
+                    {/* Center Nav */}
+                    <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
+                        {[...mainItems, ...moreItems].slice(0, 7).map(item => {
                             const active = isActive(item.href);
                             return (
-                                <a key={item.name} href={item.href} onClick={triggerHaptic}
-                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2
-                                        ${active ? 'bg-white/10 text-white shadow-inner' : 'text-white/40 hover:text-white/80 hover:bg-white/5'}`}>
-                                    <i data-lucide={item.icon} className={`w-4 h-4 ${active ? 'text-gold' : ''}`} />
+                                <a key={item.name} href={item.href}
+                                    className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 flex items-center gap-1.5
+                                        ${active
+                                            ? 'bg-white/10 text-white'
+                                            : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04]'
+                                        }`}>
+                                    <i data-lucide={item.icon} className="w-3.5 h-3.5" style={{ strokeWidth: active ? 2.2 : 1.8 }} />
                                     <span>{item.name}</span>
                                 </a>
                             );
                         })}
                     </div>
 
-                    {/* Profile/Settings */}
-                    <div className="flex items-center gap-4">
-                        <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
-                            <i data-lucide="Bell" className="w-5 h-5 text-white/50" />
-                        </button>
-                        <div className="w-10 h-10 rounded-full border-2 border-gold/30 p-0.5">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aura" className="w-full h-full rounded-full bg-midnight" alt="User" />
-                        </div>
+                    {/* Right */}
+                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/6 flex items-center justify-center cursor-pointer hover:bg-white/10 transition-colors">
+                        <i data-lucide="User" className="w-3.5 h-3.5 text-white/40" />
                     </div>
                 </div>
             </nav>
 
-            {/* ═══ Mobile Bottom Tab Bar ═══ */}
-            <div className="lg:hidden bottom-nav safe-padding">
-                {mainItems.map((item) => {
+            {/* ═══ Mobile Bottom Bar ═══ */}
+            <div className="lg:hidden bottom-nav">
+                {mainItems.map(item => {
                     const active = isActive(item.href);
                     return (
-                        <a key={item.name} href={item.href} onClick={triggerHaptic}
-                            className={`relative flex flex-col items-center gap-1 py-1 transition-all duration-300 ${active ? 'scale-110' : 'opacity-40'}`}>
-                            <i data-lucide={item.icon} className={`w-6 h-6 ${active ? 'text-gold' : 'text-white'}`} style={{ strokeWidth: active ? 2.5 : 2 }} />
-                            <span className={`text-[10px] font-bold ${active ? 'text-white' : 'text-white/50'}`}>{item.name}</span>
-                            {active && <div className="absolute -bottom-2 w-1 h-1 bg-gold rounded-full shadow-[0_0_8px_var(--aura-primary)]" />}
+                        <a key={item.name} href={item.href}
+                            className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all duration-200
+                                ${active ? '' : 'opacity-35'}`}>
+                            <i data-lucide={item.icon} className={`w-5 h-5 ${active ? 'text-accent' : 'text-white'}`}
+                                style={{ strokeWidth: active ? 2.2 : 1.8, color: active ? 'var(--accent)' : undefined }} />
+                            <span className={`text-[10px] font-medium ${active ? 'text-white' : 'text-white/50'}`}>{item.name}</span>
                         </a>
                     );
                 })}
-                
-                {/* More Button */}
-                <button ref={moreRef} onClick={() => { setMoreOpen(!moreOpen); triggerHaptic(); }}
-                    className={`flex flex-col items-center gap-1 py-1 transition-all duration-300 ${moreOpen ? 'scale-110' : 'opacity-40'}`}>
-                    <i data-lucide={moreOpen ? "X" : "MoreHorizontal"} className="w-6 h-6 text-white" />
-                    <span className="text-[10px] font-bold text-white/50">เพิ่มเติม</span>
-                    
+
+                {/* More */}
+                <button ref={moreRef} onClick={() => setMoreOpen(!moreOpen)}
+                    className={`relative flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all duration-200 ${moreOpen ? '' : 'opacity-35'}`}>
+                    <i data-lucide={moreOpen ? 'X' : 'MoreHorizontal'} className="w-5 h-5 text-white" style={{ strokeWidth: 1.8 }} />
+                    <span className="text-[10px] font-medium text-white/50">เพิ่มเติม</span>
+
                     {moreOpen && (
-                        <div className="absolute bottom-20 right-0 w-56 bg-[#11141d]/95 backdrop-blur-2xl border border-white/10 rounded-[24px] p-2 shadow-2xl animate-fade-in flex flex-col gap-1">
+                        <div className="absolute bottom-16 right-0 w-52 p-1.5 rounded-2xl shadow-lg animate-fade-in"
+                            style={{ background:'rgba(24,24,27,0.98)', border:'1px solid rgba(255,255,255,0.08)', backdropFilter:'blur(20px)' }}>
                             {moreItems.map(item => (
-                                <a key={item.name} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-white/70 hover:text-white transition-all">
-                                    <i data-lucide={item.icon} className="w-4 h-4" />
-                                    <span className="text-sm font-semibold">{item.name}</span>
+                                <a key={item.name} href={item.href}
+                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all">
+                                    <i data-lucide={item.icon} className="w-4 h-4" style={{ strokeWidth: 1.8 }} />
+                                    <span className="text-[13px] font-medium">{item.name}</span>
                                 </a>
                             ))}
                         </div>

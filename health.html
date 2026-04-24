@@ -19,8 +19,9 @@
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <script>
-        tailwind.config={theme:{extend:{colors:{gold:'var(--aura-primary)',midnight:'#050608',secondary:'rgba(255,255,255,0.4)'}}}};
-        const applyTheme=()=>{const h=new Date().getHours(),r=document.documentElement;if(h>=6&&h<12){r.style.setProperty('--aura-primary','oklch(80% 0.15 85)');r.style.setProperty('--aura-glow','rgba(212,175,55,0.25)')}else if(h>=12&&h<17){r.style.setProperty('--aura-primary','oklch(78% 0.15 200)');r.style.setProperty('--aura-glow','rgba(55,180,212,0.25)')}else{r.style.setProperty('--aura-primary','oklch(70% 0.22 300)');r.style.setProperty('--aura-glow','rgba(167,139,250,0.25)')}};applyTheme();
+        tailwind.config={theme:{extend:{colors:{gold:'var(--accent)',midnight:'#09090b',accent:'var(--accent)'}}}};
+                tailwind.config={theme:{extend:{colors:{gold:'var(--accent)',midnight:'#09090b',accent:'var(--accent)'}}}};
+        const applyTheme=()=>{const h=new Date().getHours(),r=document.documentElement;if(h>=6&&h<12){r.style.setProperty('--accent','#818cf8');r.style.setProperty('--accent-glow','rgba(129,140,248,0.15)');r.style.setProperty('--aura-primary','#818cf8');r.style.setProperty('--aura-glow','rgba(129,140,248,0.15)')}else if(h>=12&&h<17){r.style.setProperty('--accent','#67e8f9');r.style.setProperty('--accent-glow','rgba(103,232,249,0.15)');r.style.setProperty('--aura-primary','#67e8f9');r.style.setProperty('--aura-glow','rgba(103,232,249,0.15)')}else{r.style.setProperty('--accent','#a78bfa');r.style.setProperty('--accent-glow','rgba(167,139,250,0.15)');r.style.setProperty('--aura-primary','#a78bfa');r.style.setProperty('--aura-glow','rgba(167,139,250,0.15)')}};applyTheme();
     </script>
 </head>
 <body>
@@ -29,6 +30,7 @@
     <script type="text/babel" src="js/components/Navbar.js?v=6"></script>
     <script type="text/babel" src="js/components/BentoCard.js?v=6"></script>
     <script type="text/babel" src="js/components/MealAnalyzer.js?v=6"></script>
+    <script type="text/babel" src="js/components/ExerciseLogger.js?v=6"></script>
     <script type="text/babel" src="js/pages/health.js?v=6"></script>
     <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'))}</script>
 </body>

@@ -610,7 +610,7 @@ const Dashboard = () => {
     };
 
     const calculateStats = () => {
-        const { weight = 70, height = 170, age = 25, gender = 'male', activityLevel = 1.2 } = settings || {};
+        const { weight = 70, height = 170, age = 25, gender = 'male', activityLevel = 1.2, fitnessGoal = 'maintain' } = settings || {};
         const bmi = weight / ((height / 100) ** 2) || 0;
         let bmr = (10 * weight) + (6.25 * height) - (5 * age);
         bmr = gender === 'male' ? bmr + 5 : bmr - 161;
@@ -618,17 +618,30 @@ const Dashboard = () => {
         const bodyFat = gender === 'male' 
             ? (1.20 * bmi) + (0.23 * age) - 16.2
             : (1.20 * bmi) + (0.23 * age) - 5.4;
-        return { bmi, bmr, tdee, bodyFat };
+            
+        let targetCalories = tdee;
+        if (fitnessGoal === 'lose') targetCalories = tdee - 500;
+        if (fitnessGoal === 'gain') targetCalories = tdee + 300;
+
+        return { bmi, bmr, tdee, targetCalories, bodyFat };
     };
 
     const stats = calculateStats();
-    const todayNutri = nutrition.filter(n => n?.date && String(n.date).startsWith(toDateStr(today)));
-    const nutritionTotals = todayNutri.reduce((acc, curr) => ({
+    const todayNutriAll = nutrition.filter(n => n?.date && String(n.date).startsWith(toDateStr(today)));
+    
+    // Split Food and Exercise
+    const todayFood = todayNutriAll.filter(n => parseFloat(n.calories) > 0);
+    const todayExercise = todayNutriAll.filter(n => parseFloat(n.calories) <= 0 || (n.mealName && n.mealName.includes('[EXERCISE]')));
+
+    const nutritionTotals = todayFood.reduce((acc, curr) => ({
         cals: acc.cals + (parseFloat(curr.calories) || 0),
         p: acc.p + (parseFloat(curr.protein) || 0),
         c: acc.c + (parseFloat(curr.carbs) || 0),
         f: acc.f + (parseFloat(curr.fat) || 0)
     }), { cals: 0, p: 0, c: 0, f: 0 });
+
+    const exerciseCals = todayExercise.reduce((sum, curr) => sum + Math.abs(parseFloat(curr.calories) || 0), 0);
+    const netCalories = nutritionTotals.cals - exerciseCals;
 
     const wellnessStats = (() => {
         const todayStr = toDateStr(today);
@@ -755,33 +768,25 @@ const Dashboard = () => {
         <div className="app-container">
             <Navbar />
 
-            <main className="flex-1 min-h-screen pt-4 lg:pt-24 bg-midnight">
-                {/* ═══ Hero Header ═══ */}
-                <header className="relative px-5 lg:px-10 pt-6 pb-8 animate-fade-in overflow-hidden">
-                    {/* Background glow */}
-                    <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[120px] opacity-20 pointer-events-none"
-                        style={{ background: 'var(--aura-primary)' }} />
-                    
-                    <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+            <main className="flex-1 min-h-screen pt-4 lg:pt-20">
+                {/* ── Header ── */}
+                <header className="max-w-[1400px] mx-auto px-6 lg:px-8 pt-6 pb-6 animate-fade-in">
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                         <div>
-                            <p className="text-[11px] font-bold uppercase tracking-[0.25em] mb-3" style={{ color: 'var(--text-tertiary)' }}>{dateString}</p>
-                            <h1 className="text-4xl lg:text-5xl font-bold text-white leading-[1.1] tracking-tight">
-                                {greeting},<br/>
-                                <span className="text-gold">Tanapon</span>
+                            <p className="text-[11px] font-medium uppercase tracking-[0.15em] mb-1.5" style={{ color: 'var(--text-tertiary)' }}>{dateString}</p>
+                            <h1 className="text-white leading-tight">
+                                {greeting}, <span style={{ color: 'var(--accent)' }}>Tanapon</span>
                             </h1>
                         </div>
-                        <div className="flex items-center gap-4 flex-wrap">
-                            {/* Status pills */}
-                            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)' }}>
-                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-xs font-semibold text-white/60">{todayEvents.length} กิจกรรม</span>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--green)' }} />
+                                <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{todayEvents.length} กิจกรรม</span>
                             </div>
-                            <div className="px-4 py-2 rounded-2xl border backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)' }}>
-                                <span className="text-xs font-semibold text-white/60">{goals.filter(g => g.status !== 'สำเร็จ').length} เป้าหมาย</span>
+                            <div className="px-3 py-1.5 rounded-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                                <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{goals.filter(g => g.status !== 'สำเร็จ').length} เป้าหมาย</span>
                             </div>
-                            {/* Large clock */}
-                            <div className="text-4xl lg:text-5xl font-extralight text-white/90 tabular-nums tracking-tighter ml-2"
-                                style={{ textShadow: '0 0 30px var(--aura-glow)' }}>
+                            <div className="text-2xl lg:text-3xl font-light tabular-nums tracking-tight ml-1" style={{ color: 'var(--text-secondary)' }}>
                                 {timeString}
                             </div>
                         </div>
@@ -791,22 +796,23 @@ const Dashboard = () => {
                 {/* Bento Grid */}
                 <div className="bento-grid stagger-children flex flex-col md:grid">
 
-                    {/* ── Health Quick Stats (Horizontal Scroll Pills) ── */}
-                    <div className="col-span-12 flex gap-3 overflow-x-auto pb-2 px-1" style={{ order: order.stats, scrollbarWidth: 'none' }}>
+                    {/* ── Health Quick Stats ── */}
+                    <div className="col-span-12 grid grid-cols-2 lg:grid-cols-4 gap-3" style={{ order: order.stats }}>
                         {[
-                            { label: 'TDEE', value: Math.round(stats.tdee), unit: 'kcal', icon: 'Flame', color: '#D4AF37', bg: 'rgba(212,175,55,0.06)', border: 'rgba(212,175,55,0.15)' },
-                            { label: 'BMR', value: Math.round(stats.bmr), unit: 'kcal', icon: 'Zap', color: '#22D3EE', bg: 'rgba(34,211,238,0.06)', border: 'rgba(34,211,238,0.15)' },
-                            { label: 'BMI', value: stats.bmi.toFixed(1), unit: 'index', icon: 'Activity', color: '#34D399', bg: 'rgba(52,211,153,0.06)', border: 'rgba(52,211,153,0.15)' },
-                            { label: 'Body Fat', value: stats.bodyFat.toFixed(1) + '%', unit: 'est.', icon: 'PieChart', color: '#FB7185', bg: 'rgba(251,113,133,0.06)', border: 'rgba(251,113,133,0.15)' }
+                            { label: 'Target', value: Math.round(stats.targetCalories), unit: 'kcal', icon: 'Target', color: 'var(--amber)' },
+                            { label: 'TDEE', value: Math.round(stats.tdee), unit: 'kcal', icon: 'Flame', color: 'var(--blue)' },
+                            { label: 'BMI', value: stats.bmi.toFixed(1), unit: 'index', icon: 'Activity', color: 'var(--green)' },
+                            { label: 'Body Fat', value: stats.bodyFat.toFixed(1) + '%', unit: 'est.', icon: 'PieChart', color: 'var(--rose)' }
                         ].map((s, idx) => (
-                            <div key={idx} className="flex-shrink-0 flex items-center gap-3 px-5 py-4 rounded-2xl border transition-all duration-400 hover:scale-[1.03] hover:shadow-lg backdrop-blur-sm" 
-                                style={{ background: s.bg, borderColor: s.border, minWidth: '180px' }}>
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${s.color}15` }}>
-                                    <i data-lucide={s.icon} className="w-5 h-5" style={{ color: s.color }}></i>
+                            <div key={idx} className="flex items-center gap-3 p-4 rounded-xl transition-all duration-200 hover:bg-white/[0.04]" 
+                                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                                    style={{ background: `color-mix(in srgb, ${s.color} 12%, transparent)` }}>
+                                    <i data-lucide={s.icon} className="w-4 h-4" style={{ color: s.color, strokeWidth: 1.8 }}></i>
                                 </div>
                                 <div>
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.15em]" style={{ color: s.color }}>{s.label}</p>
-                                    <p className="text-xl font-bold text-white leading-tight">{s.value} <span className="text-[10px] font-normal text-white/30">{s.unit}</span></p>
+                                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: 'var(--text-tertiary)' }}>{s.label}</p>
+                                    <p className="text-lg font-semibold text-white leading-tight">{s.value} <span className="text-[10px] font-normal" style={{ color: 'var(--text-tertiary)' }}>{s.unit}</span></p>
                                 </div>
                             </div>
                         ))}
@@ -832,23 +838,24 @@ const Dashboard = () => {
                                         cx="70" cy="70" r="64" 
                                         style={{ 
                                             strokeDasharray: 402, 
-                                            strokeDashoffset: 402 - (402 * Math.min(nutritionTotals.cals / (stats.tdee || 1), 1))
+                                            strokeDashoffset: 402 - (402 * Math.min(Math.max(netCalories, 0) / (stats.targetCalories || 1), 1))
                                         }} 
                                     />
                                 </svg>
                                 <div className="absolute flex flex-col items-center">
-                                    <span className="text-3xl font-bold text-white">{Math.round(nutritionTotals.cals)}</span>
-                                    <span className="text-[10px] text-white/30 uppercase tracking-widest">Consumed</span>
+                                    <span className="text-3xl font-bold text-white">{Math.round(netCalories)}</span>
+                                    <span className="text-[10px] text-white/30 uppercase tracking-widest">Net Cals</span>
                                 </div>
                             </div>
 
                             {/* Info */}
                             <div className="flex-1 space-y-4">
                                 <h3 className="text-xl md:text-2xl font-medium text-white">
-                                    วันนี้คุณทานไปแล้ว {Math.round((nutritionTotals.cals / (stats.tdee || 1)) * 100)}% ของเป้าหมาย TDEE
+                                    วันนี้คุณใช้โควต้าไปแล้ว {Math.round((Math.max(netCalories, 0) / (stats.targetCalories || 1)) * 100)}% ของเป้าหมาย
                                 </h3>
                                 <p className="text-sm text-white/50 leading-relaxed max-w-md">
-                                    ตามข้อมูล ร่างกายของคุณ คุณควรบริโภคประมาณ {Math.round(stats.tdee)} แคลอรี่ เพื่อรักษาน้ำหนัก คุณยังมีพื้นที่เหลือสำหรับมื้อจุกจิกอีกนิดหน่อยครับ
+                                    แคลอรี่สุทธิ (กินไป {Math.round(nutritionTotals.cals)} ลบ เผาผลาญ {Math.round(exerciseCals)}) คือ {Math.round(netCalories)} kcal<br/>
+                                    เป้าหมายของคุณคือ {Math.round(stats.targetCalories)} kcal
                                 </p>
                                 
                                 {/* Macro Pills */}

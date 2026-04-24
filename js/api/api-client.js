@@ -328,59 +328,93 @@ const gasClient = {
 
     /**
      * Call Gemini AI via Google Apps Script (Unified)
+     * With Auto-Fallback mechanism if a model is full or rate-limited
      */
     async callAI(prompt, context = "", modelName = "", image = null) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for AI
-        
-        try {
-            console.log("Calling Unified AI (GAS)...", { prompt, modelName, hasImage: !!image });
-            const response = await fetch(GAS_WEB_APP_URL, {
-                method: 'POST',
-                signal: controller.signal,
-                body: JSON.stringify({
-                    action: 'callAI',
-                    message: prompt,
-                    context: context,
-                    modelName: modelName,
-                    image: image
-                })
-            });
+        // Fallback sequence if the selected model fails due to quota/rate-limits
+        const fallbackModels = [
+            modelName, // Start with the requested model
+            "gemini-2.0-flash-lite", // Extremely fast and usually always available
+            "gemini-flash-latest", // Standard stable model
+            "gemini-2.5-pro", // If flash fails, maybe pro has different quota
+            "gemini-1.5-flash-8b" // Absolute last resort
+        ];
+
+        // Remove duplicates and keep only truthy values
+        const modelsToTry = [...new Set(fallbackModels.filter(Boolean))];
+
+        for (let i = 0; i < modelsToTry.length; i++) {
+            const currentModel = modelsToTry[i];
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for AI
             
-            clearTimeout(timeoutId);
-            
-            let data;
-            const responseText = await response.text();
             try {
-                data = JSON.parse(responseText);
-            } catch (e) {
-                console.error("Non-JSON response from server:", responseText);
-                return "⚠️ เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง (Non-JSON) กรุณาตรวจสอบการตั้งค่า Apps Script หรือลองใหม่อีกครั้งครับ";
+                console.log(`Calling Unified AI (GAS)... Model: ${currentModel}, Attempt: ${i+1}/${modelsToTry.length}`, { hasImage: !!image });
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        action: 'callAI',
+                        message: prompt,
+                        context: context,
+                        modelName: currentModel,
+                        image: image
+                    })
+                });
+                
+                clearTimeout(timeoutId);
+                
+                let data;
+                const responseText = await response.text();
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    console.error("Non-JSON response from server:", responseText);
+                    if (i === modelsToTry.length - 1) return "⚠️ เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง (Non-JSON) กรุณาตรวจสอบการตั้งค่า Apps Script หรือลองใหม่อีกครั้งครับ";
+                    continue; // Try next model
+                }
+                
+                if (data.error) {
+                    const isRateLimit = data.error.toLowerCase().match(/429|exhausted|quota|overloaded|too many requests/);
+                    if (isRateLimit && i < modelsToTry.length - 1) {
+                        console.warn(`[Aura AI] Model ${currentModel} is full/rate-limited. Auto-switching to next model...`);
+                        continue; // Try next model in the fallback list
+                    }
+                    if (i === modelsToTry.length - 1) return data.error; // Return error if all models fail
+                }
+                
+                let reply = data.reply;
+                if (data.actionPerformed) {
+                    reply += `\n\n✨ [Aura Action]: ${data.actionPerformed}`;
+                }
+                
+                // If it switched models, append a subtle note
+                if (i > 0) {
+                    reply += `\n\n*(⚡ Aura System: โมเดลหลักเต็มชั่วคราว ระบบได้สลับไปใช้ ${currentModel} อัตโนมัติเพื่อความต่อเนื่องครับ)*`;
+                }
+                
+                return reply;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.error("Error calling Unified AI:", error);
+                
+                if (i < modelsToTry.length - 1) {
+                    console.warn(`[Aura AI] Request failed for ${currentModel}. Retrying with next model...`);
+                    continue; // Network error or timeout, try next model
+                }
+                
+                if (error.name === 'AbortError') {
+                    return "การเชื่อมต่อกับ 'สมอง Aura' ใช้เวลานานเกินไป (Timeout) โปรดลองใหม่อีกครั้งบนเครือข่ายที่เสถียรกว่านี้ครับ";
+                }
+                return "⚠️ ไม่สามารถติดต่อ 'สมอง Aura' ได้ครับ โปรดตรวจสอบการตั้งค่า Apps Script หรือ CORS policy";
             }
-            
-            if (data.error) {
-                return data.error;
-            }
-            
-            let reply = data.reply;
-            if (data.actionPerformed) {
-                reply += `\n\n✨ [Aura Action]: ${data.actionPerformed}`;
-            }
-            
-            return reply;
-        } catch (error) {
-            console.error("Error calling Unified AI:", error);
-            if (error.name === 'AbortError') {
-                return "การเชื่อมต่อกับ 'สมอง Aura' ใช้เวลานานเกินไป (Timeout) โปรดลองใหม่อีกครั้งบนเครือข่ายที่เสถียรกว่านี้ครับ";
-            }
-            return "⚠️ ไม่สามารถติดต่อ 'สมอง Aura' ได้ครับ โปรดตรวจสอบการตั้งค่า Apps Script หรือ CORS policy";
         }
     },
 
     /**
      * Nutrition & Meals
      */
-    async addNutritionLog(nutritionData) {
+    async addNutrition(nutritionData) {
         try {
             this._cache = {}; // Clear cache on update
             const response = await fetch(GAS_WEB_APP_URL, {
@@ -426,6 +460,24 @@ const gasClient = {
 [ACTION:ADD_NUTRITION|ชื่ออาหาร|แคลอรี่|โปรตีน|คาร์บ|ไขมัน]`;
 
         return await this.callAI(prompt, "วิเคราะห์โภชนาการจากข้อความ", "gemini-flash-latest");
+    },
+
+    /**
+     * Specialized Workout Analysis
+     * @param {string} base64Image - Base64 string of the workout image (Strava/Watch)
+     */
+    async analyzeWorkoutImage(base64Image) {
+        const prompt = `ในฐานะ Aura AI (ผู้เชี่ยวชาญด้านวิทยาศาสตร์การกีฬาและฟิตเนส) ช่วยวิเคราะห์รูปภาพหน้าจอการออกกำลังกายนี้ (เช่น จาก Strava, Apple Watch, Garmin) ทีครับ:
+1. ประเภทการออกกำลังกาย (เช่น วิ่ง, ปั่นจักรยาน, เวทเทรนนิ่ง)
+2. ระยะเวลา (นาที)
+3. พลังงานที่เผาผลาญ (Active Calories kcal)
+4. ระยะทาง (ถ้ามี) หรืออัตราการเต้นหัวใจเฉลี่ย (ถ้ามี)
+5. คำชื่นชมหรือวิเคราะห์ผลดีต่อร่างกายสั้นๆ แบบปลุกใจ
+
+กรุณาตอบกลับเป็นภาษาไทยที่กระชับ และใช้ Smart Action เพื่อบันทึกข้อมูลดังนี้ (โปรดใช้ prefix [EXERCISE] ตรงชื่อกิจกรรม และใส่แคลอรี่เป็น ค่าติดลบ เสมอ เช่น -300):
+[ACTION:ADD_NUTRITION|[EXERCISE] ชื่อกิจกรรม|-แคลอรี่|0|0|0]`;
+
+        return await this.callAI(prompt, "วิเคราะห์การออกกำลังกายจากรูปภาพ", "gemini-flash-latest", base64Image);
     },
 
     /**

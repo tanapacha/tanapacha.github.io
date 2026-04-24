@@ -50,7 +50,7 @@ const HealthPage = () => {
             return `${year}-${month}-${day}`;
         } catch (e) { return String(d).split('T')[0]; }
     };
-
+    
     const [nutrition, setNutrition] = useState([]);
     const [wellness, setWellness] = useState(loadFromCache() || []);
     const [settings, setSettings] = useState({ 
@@ -59,10 +59,12 @@ const HealthPage = () => {
         age: 25,
         weight: 70,
         height: 170,
-        activityLevel: 1.2
+        activityLevel: 1.2,
+        fitnessGoal: 'maintain' // 'lose', 'maintain', 'gain'
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isMealAnalyzerOpen, setIsMealAnalyzerOpen] = useState(false);
+    const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
     const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
     const [healthAdvice, setHealthAdvice] = useState(null);
     const [isSavingGoal, setIsSavingGoal] = useState(false);
@@ -87,11 +89,7 @@ const HealthPage = () => {
                         const serverData = data.wellness || [];
                         const todayStr = toDateStr(new Date());
                         
-                        // Trust server as the definitive source of truth.
-                        // We only merge local data if it's "Today" and strictly higher than server,
-                        // BUT ONLY if today actually exists in the server data (to prevent phantom entries after a reset).
                         let finalData = [...serverData];
-                        
                         const localToday = prev.find(p => normalizeDate(p.date) === todayStr);
                         const serverTodayIdx = finalData.findIndex(s => normalizeDate(s.date) === todayStr);
                         
@@ -100,8 +98,6 @@ const HealthPage = () => {
                                 finalData[serverTodayIdx] = { ...finalData[serverTodayIdx], water: localToday.water };
                             }
                         }
-                        // Note: If today is in local but NOT in server, we no longer push it.
-                        // This allows the UI to reflect a cleared/reset sheet (0 water) correctly.
                         
                         const sortedData = finalData.sort((a, b) => new Date(b.date) - new Date(a.date));
                         saveToCache(sortedData);
@@ -116,7 +112,8 @@ const HealthPage = () => {
                         age: parseInt(data.settings.age) || 25,
                         weight: parseFloat(data.settings.weight) || 70,
                         height: parseFloat(data.settings.height) || 170,
-                        activityLevel: parseFloat(data.settings.activityLevel) || 1.2
+                        activityLevel: parseFloat(data.settings.activityLevel) || 1.2,
+                        fitnessGoal: data.settings.fitnessGoal || 'maintain'
                     };
                     setSettings(s);
                     setTempProfile(s);
@@ -135,7 +132,7 @@ const HealthPage = () => {
     const handleSaveProfile = async () => {
         setIsSavingGoal(true);
         try {
-            const keys = ['gender', 'age', 'weight', 'height', 'activityLevel', 'waterGoal'];
+            const keys = ['gender', 'age', 'weight', 'height', 'activityLevel', 'waterGoal', 'fitnessGoal'];
             for (const key of keys) {
                 if (tempProfile[key] !== settings[key]) {
                     await window.gasClient.updateSetting(key, tempProfile[key]);
@@ -152,7 +149,7 @@ const HealthPage = () => {
 
     // --- Calculations ---
     const calculateStats = () => {
-        const { weight = 70, height = 170, age = 25, gender = 'male', activityLevel = 1.2 } = settings || {};
+        const { weight = 70, height = 170, age = 25, gender = 'male', activityLevel = 1.2, fitnessGoal = 'maintain' } = settings || {};
         
         // BMI
         const bmi = weight / ((height / 100) ** 2) || 0;
@@ -164,12 +161,17 @@ const HealthPage = () => {
         // TDEE
         const tdee = bmr * activityLevel;
         
-        // Body Fat % (BMI-based estimate)
+        // Body Fat % (BMI-based estimate modified by gender)
         const bodyFat = gender === 'male' 
             ? (1.20 * bmi) + (0.23 * age) - 16.2
             : (1.20 * bmi) + (0.23 * age) - 5.4;
             
-        return { bmi, bmr, tdee, bodyFat };
+        // Target Calories based on Fitness Goal
+        let targetCalories = tdee;
+        if (fitnessGoal === 'lose') targetCalories = tdee - 500;
+        if (fitnessGoal === 'gain') targetCalories = tdee + 300;
+            
+        return { bmi, bmr, tdee, targetCalories, bodyFat };
     };
 
     const handleDataChange = async () => {
@@ -324,12 +326,43 @@ const HealthPage = () => {
 
     const wellnessStats = getWellnessStats();
 
+    const stats = calculateStats();
+
+    const todayNutriAll = (nutrition || []).filter(n => n && n.date && typeof n.date === 'string' && n.date.startsWith(toDateStr(today)));
+    
+    // Separate Food and Exercise
+    const todayFood = todayNutriAll.filter(n => parseFloat(n.calories) > 0);
+    const todayExercise = todayNutriAll.filter(n => parseFloat(n.calories) <= 0 || (n.mealName && n.mealName.includes('[EXERCISE]')));
+
+    const foodTotals = todayFood.reduce((acc, curr) => ({
+        cals: acc.cals + (parseFloat(curr.calories) || 0),
+        p: acc.p + (parseFloat(curr.protein) || 0),
+        c: acc.c + (parseFloat(curr.carbs) || 0),
+        f: acc.f + (parseFloat(curr.fat) || 0)
+    }), { cals: 0, p: 0, c: 0, f: 0 });
+
+    const exerciseTotals = todayExercise.reduce((acc, curr) => ({
+        cals: acc.cals + Math.abs(parseFloat(curr.calories) || 0)
+    }), { cals: 0 });
+
+    const netCalories = foodTotals.cals - exerciseTotals.cals;
+
+    const todayWellness = wellness.find(w => w && w.date && typeof w.date === 'string' && w.date.startsWith(toDateStr(today))) || { water: 0, sleepHours: 0 };
+    // We use aggregated wellnessStats for the view
+    const currentWater = wellnessViewMode === 'day' ? wellnessStats.water : wellnessStats.avgWater;
+    const currentSleep = wellnessViewMode === 'day' ? wellnessStats.sleep : wellnessStats.avgSleep;
+    const waterProgress = Math.min((currentWater / (settings.waterGoal || 2000)) * 100, 100) || 0;
+
     const generateAIInsight = async () => {
         setIsAIAnalyzing(true);
         try {
-            const mealList = todayNutri.length > 0 
-                ? todayNutri.map(m => `- ${m.mealName}: ${m.calories}kcal (P:${m.protein}g, C:${m.carbs}g, F:${m.fat}g)`).join('\n')
+            const mealList = todayFood.length > 0 
+                ? todayFood.map(m => `- ${m.mealName}: ${m.calories}kcal (P:${m.protein}g, C:${m.carbs}g, F:${m.fat}g)`).join('\n')
                 : 'ยังไม่ได้บันทึกรายการอาหารในวันนี้';
+                
+            const exerciseList = todayExercise.length > 0
+                ? todayExercise.map(e => `- ${e.mealName.replace('[EXERCISE]', '').trim()}: เผาผลาญ ${Math.abs(e.calories)}kcal`).join('\n')
+                : 'ไม่ได้บันทึกการออกกำลังกาย';
                 
             const hydrationStatus = wellnessStats.water > 0 
                 ? `${wellnessStats.water} / ${settings.waterGoal} ml`
@@ -339,37 +372,42 @@ const HealthPage = () => {
                 ? `${wellnessStats.sleep} ชั่วโมง`
                 : 'ยังไม่ได้บันทึกการนอน';
 
-            const prompt = `ในฐานะ Aura AI (เพื่อนคู่คิดด้านสุขภาพที่คอยดูแลและให้กำลังใจ) 
-            ช่วยวิเคราะห์ภาพรวมความเฮลตี้ของฉันในวันนี้ให้หน่อยครับ อยากให้ช่วยแนะนำอย่างอบอุ่นและเป็นกันเอง:
+            const prompt = `ในฐานะ Aura AI (Top-tier Bio-hacking & Fitness Expert) 
+            ช่วยวิเคราะห์ภาพรวมความเฮลตี้ของฉันในวันนี้ให้หน่อยครับ อยากให้ช่วยแนะนำอย่างลึกซึ้ง อิงวิทยาศาสตร์การกีฬาและโภชนาการ แต่พูดคุยเป็นกันเอง:
             
-            [Bio-Data ข้อมูลสุขภาพวันนี้]
+            [Bio-Data ข้อมูลร่างกาย]
+            - เป้าหมาย (Fitness Goal): ${settings.fitnessGoal === 'lose' ? 'ลดน้ำหนัก (Caloric Deficit)' : settings.fitnessGoal === 'gain' ? 'เพิ่มกล้ามเนื้อ (Caloric Surplus)' : 'รักษาน้ำหนัก (Maintenance)'}
+            - BMR: ${Math.round(stats.bmr)} kcal, TDEE: ${Math.round(stats.tdee)} kcal
+            - Target Calories ประจำวัน: ${Math.round(stats.targetCalories)} kcal
+            - Body Fat % โดยประมาณ: ${stats.bodyFat.toFixed(1)}%
+
+            [Status ประจำวัน]
             1. อาหารและโภชนาการ (Metabolic Intake):
-               - พลังงานรับเข้า: ${Math.round(totals.cals)} / ${Math.round(stats.tdee)} kcal
-               - Macro Ratio: P:${Math.round(totals.p)}g, C:${Math.round(totals.c)}g, F:${Math.round(totals.f)}g
-               - รายการอาหาร:\n${mealList}
+               - กินเข้ามา: ${Math.round(foodTotals.cals)} kcal
+               - เผาผลาญจากการออกกำลังกาย: ${Math.round(exerciseTotals.cals)} kcal
+               - Net Calories สุทธิ: ${Math.round(netCalories)} / ${Math.round(stats.targetCalories)} kcal
+               - Macro Ratio (ที่กินเข้ามา): P:${Math.round(foodTotals.p)}g, C:${Math.round(foodTotals.c)}g, F:${Math.round(foodTotals.f)}g
+               - อาหาร:\n${mealList}
+               - การออกกำลังกาย:\n${exerciseList}
                
-            2. การรักษาความชุ่มชื้น (Cellular Hydration): 
-               - ปริมาณ: ${hydrationStatus} (เป้าหมาย: ${settings.waterGoal} ml)
-               
-            3. การฟื้นฟูร่างกาย (Circadian Recovery):
-               - ระยะเวลา: ${sleepStatus} (ควรนอนให้ครบ 7-8 ชั่วโมงนะครับ)
-            
-            TDEE Target: ${Math.round(stats.tdee)} kcal
+            2. Cellular Hydration & Recovery: 
+               - ดื่มน้ำ: ${hydrationStatus}
+               - การนอน: ${sleepStatus}
             
             [Your Mission]
-            1. วิเคราะห์ด้วยความห่วงใย ผสมผสานความรู้ทางวิทยาศาสตร์ (เช่น พูดถึงสมดุลฮอร์โมน หรือการฟื้นฟูเซลล์) แต่เล่าให้น่าฟังและมีพลังบวก
-            2. ให้คะแนน "Wellness Sync Score" 0-100% เพื่อเป็นกำลังใจในการดูแลตัวเอง
-            3. ให้คำแนะนำ 3 ข้อ ที่ทำตามได้ง่ายและเป็นประโยชน์ต่อร่างกายจริงๆ
+            1. วิเคราะห์ด้วยความห่วงใย ผสมผสานความรู้ทางวิทยาศาสตร์ (เช่น พูดถึง Net Calories ต่อเป้าหมาย, การฟื้นฟูเซลล์ หรือการสะสมไขมัน)
+            2. ให้คะแนน "Aura Elite Score" 0-100% (ประเมินว่าทำได้ตามเป้าหมาย (Fitness Goal) แค่ไหน)
+            3. ให้คำแนะนำเชิงลึก 3 ข้อ ที่ทำได้จริงในสถานการณ์ตอนนี้
             
             ตอบกลับเป็น JSON เท่านั้น:
             {
-               "analysis": "บทวิเคราะห์ที่ชาญฉลาดและสนุกสนาน (ผสมศัพท์การแพทย์แต่เล่าให้เข้าใจง่าย)",
-               "wellnessSyncScore": 0-100,
-               "advice": ["คำแนะนำแนววิทยาศาสตร์ข้อที่ 1", "คำแนะนำแนววิทยาศาสตร์ข้อที่ 2", "คำแนะนำแนววิทยาศาสตร์ข้อที่ 3"],
-               "verdict": "ประโยคสรุปเท่ๆ ที่มีคลาสเรื่องสุขภาพ"
+               "analysis": "บทวิเคราะห์แบบผู้เชี่ยวชาญ (วิทยาศาสตร์ + ให้กำลังใจ)",
+               "disciplineScore": 0-100,
+               "advice": ["ข้อ 1", "ข้อ 2", "ข้อ 3"],
+               "verdict": "ประโยคสรุปสั้นๆ เท่ๆ"
             }`;
             
-            const responseText = await window.gasClient.callAI(prompt, "Health Analysis", "gemini-flash-latest");
+            const responseText = await window.gasClient.callAI(prompt, "Health Analysis", "gemini-3.1-pro-preview");
             
             // Check for error messages returned by callAI
             if (typeof responseText === 'string' && responseText.includes('⚠️')) {
@@ -377,19 +415,12 @@ const HealthPage = () => {
             }
 
             try {
-                // Try to find JSON in the response
                 const jsonMatch = responseText.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     const data = JSON.parse(jsonMatch[0]);
                     setHealthAdvice(data);
                 } else {
-                    // Fallback for plain text response
-                    setHealthAdvice({
-                        analysis: responseText,
-                        disciplineScore: 70, // Default fallback
-                        advice: ["กินนํ้าให้ครบ 2 ลิตร", "นอนก่อนเที่ยงคืน", "รักษาความสม่ำเสมอ"],
-                        verdict: "วินัยสร้างได้ แค่เริ่มทำวันนี้"
-                    });
+                    throw new Error("Invalid JSON format");
                 }
             } catch (e) {
                 console.error("Parse error:", e);
@@ -400,7 +431,7 @@ const HealthPage = () => {
             setHealthAdvice({
                 analysis: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI",
                 disciplineScore: null,
-                advice: ["ตรวจสอบการเชื่อมต่อ", "ลองใหม่อีกครั้ง", "เช็คสถานะ API"],
+                advice: ["ตรวจสอบการเชื่อมต่อ", "ลองใหม่อีกครั้ง"],
                 verdict: "Aura AI พบปัญหาชั่วคราว"
             });
         } finally {
@@ -408,25 +439,10 @@ const HealthPage = () => {
         }
     };
 
-    const stats = calculateStats();
-
-    const todayNutri = (nutrition || []).filter(n => n.date && typeof n.date === 'string' && n.date.startsWith(toDateStr(today)));
-    const totals = todayNutri.reduce((acc, curr) => ({
-        cals: acc.cals + (parseFloat(curr.calories) || 0),
-        p: acc.p + (parseFloat(curr.protein) || 0),
-        c: acc.c + (parseFloat(curr.carbs) || 0),
-        f: acc.f + (parseFloat(curr.fat) || 0)
-    }), { cals: 0, p: 0, c: 0, f: 0 });
-
-    const todayWellness = wellness.find(w => w.date && typeof w.date === 'string' && w.date.startsWith(toDateStr(today))) || { water: 0, sleepHours: 0 };
-    // We use aggregated wellnessStats for the view
-    const currentWater = wellnessViewMode === 'day' ? wellnessStats.water : wellnessStats.avgWater;
-    const currentSleep = wellnessViewMode === 'day' ? wellnessStats.sleep : wellnessStats.avgSleep;
-    const waterProgress = Math.min((currentWater / settings.waterGoal) * 100, 100);
-
     // --- Elite Grade Logic ---
     const calculateEliteGrade = () => {
-        const calRatio = totals.cals > 0 ? Math.max(0, 1 - (Math.abs(totals.cals - stats.tdee) / stats.tdee)) : 0;
+        // Evaluate based on Target Calories instead of TDEE
+        const calRatio = foodTotals.cals > 0 ? Math.max(0, 1 - (Math.abs(netCalories - stats.targetCalories) / stats.targetCalories)) : 0;
         const waterRatio = Math.min(currentWater / settings.waterGoal, 1);
         const sleepRatio = Math.min(currentSleep / 8, 1);
         
@@ -526,8 +542,8 @@ const HealthPage = () => {
                                                     {SafeIcon && <SafeIcon name="Flame" className="w-5 h-5" />}
                                                 </div>
                                                 <div>
-                                                    <div className="text-xs text-white/20 font-bold uppercase tracking-widest">Calories</div>
-                                                    <div className="text-lg font-medium">{Math.round(totals.cals)} <span className="text-[10px] opacity-20">kcal</span></div>
+                                                    <div className="text-xs text-white/20 font-bold uppercase tracking-widest">Net Calories</div>
+                                                    <div className="text-lg font-medium">{Math.round(netCalories)} <span className="text-[10px] opacity-20">/ {Math.round(stats.targetCalories)}</span></div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
@@ -546,7 +562,6 @@ const HealthPage = () => {
                         </div>
                     )}
                     
-                    {/* ── Aura AI Analysis Section ── */}
                     {/* ── Aura AI Analysis Section (Redesigned) ── */}
                     {BentoCard && (
                         <div className="col-span-12">
@@ -568,7 +583,7 @@ const HealthPage = () => {
                                                     </div>
                                                     <div>
                                                         <h4 className="text-lg font-medium text-white">กำลังวิเคราะห์ข้อมูลสุขภาพ...</h4>
-                                                        <p className="text-xs text-white/40">Gemini กำลังประมวลผลพฤติกรรมวันนี้ของคุณ</p>
+                                                        <p className="text-xs text-white/40">Gemini 3.1 กำลังประมวลผลพฤติกรรมวันนี้ของคุณ</p>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-3 pl-16">
@@ -586,7 +601,7 @@ const HealthPage = () => {
                                                     <h3 className="text-3xl font-light text-white mb-3">ต้องการวินัยที่ <span className="text-gold">เข้มข้น</span> ขึ้นไหม?</h3>
                                                     <p className="text-white/40 text-base max-w-xl leading-relaxed">
                                                         ให้ AI ช่วยประเมินการกิน การดื่มน้ำ และการนอนของคุณ 
-                                                        เราจะวัดผลเป็นคะแนนวินัย (Discipline Score) พร้อมคำแนะนำที่ตรงจุดที่สุด
+                                                        เราจะวัดผลเป็นคะแนนวินัย (Aura Elite Score) พร้อมคำแนะนำที่ตรงจุดที่สุด
                                                     </p>
                                                 </div>
                                                 <button 
@@ -625,7 +640,7 @@ const HealthPage = () => {
                                             </div>
                                             
                                             <div className="relative">
-                                                <div className="text-[10px] text-gold font-black uppercase tracking-[.4em] mb-4">Discipline Score</div>
+                                                <div className="text-[10px] text-gold font-black uppercase tracking-[.4em] mb-4">Aura Elite Score</div>
                                                 <div className="text-8xl font-thin text-white mb-2 leading-none">
                                                     {healthAdvice?.disciplineScore || '--'}<span className="text-xl opacity-20 ml-1">%</span>
                                                 </div>
@@ -675,8 +690,8 @@ const HealthPage = () => {
                     >
                         <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
                             {[
-                                { label: 'TDEE', value: Math.round(stats.tdee), unit: 'kcal/day', color: 'text-gold', bg: 'bg-gold/10', icon: 'Flame' },
-                                { label: 'BMR', value: Math.round(stats.bmr), unit: 'kcal/day', color: 'text-blue-400', bg: 'bg-blue-400/10', icon: 'Zap' },
+                                { label: 'Target', value: Math.round(stats.targetCalories), unit: 'kcal/day', color: 'text-gold', bg: 'bg-gold/10', icon: 'Target' },
+                                { label: 'TDEE', value: Math.round(stats.tdee), unit: 'kcal/day', color: 'text-blue-400', bg: 'bg-blue-400/10', icon: 'Flame' },
                                 { label: 'BMI', value: stats.bmi.toFixed(1), unit: 'Index', color: 'text-green-400', bg: 'bg-green-400/10', icon: 'Activity' },
                                 { label: 'Body Fat', value: stats.bodyFat.toFixed(1) + '%', unit: 'Estimate', color: 'text-red-500', bg: 'bg-red-500/10', icon: 'PieChart' }
                             ].map((item, idx) => (
@@ -696,23 +711,26 @@ const HealthPage = () => {
                                 <div className="relative w-48 h-48 flex items-center justify-center">
                                     <svg className="w-full h-full transform -rotate-90">
                                         <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/5" />
-                                        <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={502} strokeDashoffset={502 - (502 * Math.min(totals.cals/stats.tdee, 1.2))} className="text-gold transition-all duration-1000" />
+                                        <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={502} strokeDashoffset={502 - (502 * Math.min(Math.max(netCalories, 0)/stats.targetCalories, 1.2))} className="text-gold transition-all duration-1000" />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-4xl font-bold">{Math.round(totals.cals)}</span>
-                                        <span className="text-xs text-white/40 uppercase">Consumed</span>
+                                        <span className="text-4xl font-bold">{Math.round(netCalories)}</span>
+                                        <span className="text-xs text-white/40 uppercase">Net Cals</span>
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-6">
-                                    <h3 className="text-2xl font-light">วันนี้คุณทานไปแล้ว {Math.round((totals.cals / stats.tdee) * 100)}% ของเป้าหมาย TDEE</h3>
+                                    <h3 className="text-2xl font-light">วันนี้คุณได้รับพลังงานสุทธิ {Math.round((Math.max(netCalories, 0) / stats.targetCalories) * 100) || 0}% ของเป้าหมาย</h3>
                                     <p className="text-white/40 text-sm leading-relaxed">
-                                        ตามข้อมูล ร่างกายของคุณ คุณควรบริโภคประมาณ <strong>{Math.round(stats.tdee)} แคลอรี่</strong> เพื่อรักษาน้ำหนัก 
-                                        {totals.cals > stats.tdee ? " ตอนนี้คุณทานเกินค่า TDEE แล้ว ระวังน้ำหนักขึ้นนะครับ!" : " คุณยังมีพื้นที่เหลือสำหรับมื้อจุกจิกอีกนิดหน่อยครับ"}
+                                        เป้าหมายของคุณคือ <strong>{settings?.profile?.fitnessGoal === 'lose' ? 'ลดน้ำหนัก' : settings?.profile?.fitnessGoal === 'gain' ? 'เพิ่มกล้ามเนื้อ' : 'รักษาน้ำหนัก'}</strong> 
+                                        คุณควรมีพลังงานสุทธิ (Net Cals) ประมาณ <strong>{Math.round(stats.targetCalories)} แคลอรี่/วัน</strong> 
+                                        {netCalories > stats.targetCalories ? 
+                                            " ตอนนี้แคลอรี่สุทธิเกินเป้าหมายแล้ว ลองออกกำลังกายเพิ่มดูนะครับ!" : 
+                                            " คุณยังสามารถทานเพิ่มได้อีก " + Math.round(stats.targetCalories - netCalories) + " แคลอรี่"}
                                     </p>
                                     <div className="flex gap-4">
-                                        <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[10px] text-blue-400 font-bold uppercase">P: {Math.round(totals.p)}g</div>
-                                        <div className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-[10px] text-green-400 font-bold uppercase">C: {Math.round(totals.c)}g</div>
-                                        <div className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] text-red-400 font-bold uppercase">F: {Math.round(totals.f)}g</div>
+                                        <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[10px] text-blue-400 font-bold uppercase">P: {Math.round(foodTotals.p)}g</div>
+                                        <div className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-[10px] text-green-400 font-bold uppercase">C: {Math.round(foodTotals.c)}g</div>
+                                        <div className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] text-red-400 font-bold uppercase">F: {Math.round(foodTotals.f)}g</div>
                                     </div>
                                 </div>
                             </div>
@@ -790,14 +808,28 @@ const HealthPage = () => {
                                 <select 
                                     value={tempProfile.activityLevel}
                                     onChange={(e) => setTempProfile({...tempProfile, activityLevel: parseFloat(e.target.value)})}
-                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all cursor-pointer appearance-none"
-                                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
+                                    className="w-full bg-white/5 border border-[#37b4d4]/10 p-4 rounded-2xl text-white outline-none focus:border-[#37b4d4]/50 focus:ring-1 focus:ring-[#37b4d4]/20 transition-all font-medium appearance-none"
                                 >
-                                    <option value="1.2" className="bg-zinc-900 text-white">นั่งทำงานเฉยๆ (Sedentary)</option>
-                                    <option value="1.375" className="bg-zinc-900 text-white">ออกกำลัง 1-3 วัน/สัปดาห์</option>
-                                    <option value="1.55" className="bg-zinc-900 text-white">ออกกำลัง 3-5 วัน/สัปดาห์</option>
-                                    <option value="1.725" className="bg-zinc-900 text-white">ออกกำลังหนัก 6-7 วัน</option>
+                                    <option value="1.2" className="bg-zinc-900 text-white">นั่งทำงานเป็นหลัก/ไม่ออกกำลังกาย</option>
+                                    <option value="1.375" className="bg-zinc-900 text-white">ออกกำลังกายเบาๆ (1-3 วัน/สัปดาห์)</option>
+                                    <option value="1.55" className="bg-zinc-900 text-white">ออกกำลังกายปานกลาง (3-5 วัน/สัปดาห์)</option>
+                                    <option value="1.725" className="bg-zinc-900 text-white">ออกกำลังกายหนัก (6-7 วัน/สัปดาห์)</option>
                                     <option value="1.9" className="bg-zinc-900 text-white">นักกีฬา/งานออกแรงหนักมาก</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] text-gold font-bold uppercase tracking-widest flex items-center gap-2">
+                                    {SafeIcon && <SafeIcon name="Target" className="w-3 h-3" />} เป้าหมาย (Fitness Goal)
+                                </label>
+                                <select 
+                                    value={tempProfile.fitnessGoal}
+                                    onChange={(e) => setTempProfile({...tempProfile, fitnessGoal: e.target.value})}
+                                    className="w-full bg-white/5 border border-gold/10 p-4 rounded-2xl text-white outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all font-medium appearance-none"
+                                >
+                                    <option value="lose" className="bg-zinc-900 text-white">ลดน้ำหนัก (-500 kcal)</option>
+                                    <option value="maintain" className="bg-zinc-900 text-white">รักษาน้ำหนัก</option>
+                                    <option value="gain" className="bg-zinc-900 text-white">เพิ่มกล้ามเนื้อ (+300 kcal)</option>
                                 </select>
                             </div>
 
@@ -825,36 +857,63 @@ const HealthPage = () => {
 
                     {/* ── Meal History ── */}
                     {BentoCard && <BentoCard
-                        title="ประวัติมื้ออาหารวันนี้"
-                        subtitle="Today's Meal Records"
-                        icon="Utensils"
+                        title="ประวัติกิจกรรมวันนี้"
+                        subtitle="Today's Logs"
+                        icon="List"
                         className="col-span-12 lg:col-span-8"
                     >
+                        <div className="flex gap-4 mb-6">
+                            <button 
+                                onClick={() => setIsMealAnalyzerOpen(true)}
+                                className="flex-1 py-4 bg-white/5 hover:bg-gold/10 border border-white/10 hover:border-gold/30 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-3 text-xs uppercase tracking-widest group"
+                            >
+                                {SafeIcon && <SafeIcon name="Camera" className="w-4 h-4 text-white/40 group-hover:text-gold transition-colors" />}
+                                สแกนอาหาร
+                            </button>
+                            <button 
+                                onClick={() => setIsExerciseModalOpen(true)}
+                                className="flex-1 py-4 bg-white/5 hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/30 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-3 text-xs uppercase tracking-widest group"
+                            >
+                                {SafeIcon && <SafeIcon name="Activity" className="w-4 h-4 text-white/40 group-hover:text-orange-400 transition-colors" />}
+                                บันทึกออกกำลังกาย
+                            </button>
+                        </div>
+                        
                         <div className="mt-6 space-y-3">
-                            {todayNutri.length === 0 ? (
-                                <div className="py-20 text-center text-white/10 italic">ยังไม่มีข้อมูลมื้ออาหาร</div>
+                            {todayNutriAll.length === 0 ? (
+                                <div className="py-20 text-center text-white/10 italic">ยังไม่มีข้อมูลกิจกรรมวันนี้</div>
                             ) : (
-                                todayNutri.map((meal, idx) => (
-                                    <div key={idx} className="p-5 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-between group hover:bg-gold/5 hover:border-gold/20 transition-all">
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-gold group-hover:scale-110 transition-transform">
-                                                {SafeIcon && <SafeIcon name="Flame" className="w-6 h-6" />}
+                                todayNutriAll.map((meal, idx) => {
+                                    const isExercise = (meal.mealName && meal.mealName.includes('[EXERCISE]')) || parseFloat(meal.calories) < 0;
+                                    const displayName = meal.mealName ? meal.mealName.replace('[EXERCISE]', '').trim() : 'ไม่ระบุชื่อ';
+                                    const cals = Math.abs(parseFloat(meal.calories));
+                                    
+                                    return (
+                                        <div key={idx} className="p-5 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-all">
+                                            <div className="flex items-center gap-5">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ${isExercise ? 'bg-orange-500/10 text-orange-400' : 'bg-gold/10 text-gold'}`}>
+                                                    {SafeIcon && <SafeIcon name={isExercise ? "Activity" : "Flame"} className="w-6 h-6" />}
+                                                </div>
+                                                <div>
+                                                    <h5 className="text-white font-medium">{displayName}</h5>
+                                                    <p className="text-[10px] text-white/30 uppercase tracking-widest">{new Date(meal.date).toLocaleTimeString('th-TH')}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h5 className="text-white font-medium">{meal.mealName}</h5>
-                                                <p className="text-[10px] text-white/30 uppercase tracking-widest">{new Date(meal.date).toLocaleTimeString('th-TH')}</p>
+                                            <div className="text-right">
+                                                <span className={`text-xl font-light ${isExercise ? 'text-orange-400' : 'text-white'}`}>
+                                                    {isExercise ? '-' : '+'}{cals} <span className="text-[10px] opacity-40">kcal</span>
+                                                </span>
+                                                {!isExercise && (
+                                                    <div className="flex gap-3 mt-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                        <span className="text-[8px] font-bold">P: {meal.protein}g</span>
+                                                        <span className="text-[8px] font-bold">C: {meal.carbs}g</span>
+                                                        <span className="text-[8px] font-bold">F: {meal.fat}g</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <span className="text-xl font-light text-white">{meal.calories} <span className="text-[10px] opacity-40">kcal</span></span>
-                                            <div className="flex gap-3 mt-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                <span className="text-[8px] font-bold">P: {meal.protein}g</span>
-                                                <span className="text-[8px] font-bold">C: {meal.carbs}g</span>
-                                                <span className="text-[8px] font-bold">F: {meal.fat}g</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
+                                    )
+                                })
                             )}
                         </div>
                     </BentoCard>}
@@ -1093,6 +1152,14 @@ const HealthPage = () => {
                     onSave={handleDataChange}
                 />
             )}
+
+            {window.ExerciseLogger && (
+                <window.ExerciseLogger 
+                    isOpen={isExerciseModalOpen}
+                    onClose={() => setIsExerciseModalOpen(false)}
+                    onSave={handleDataChange}
+                />
+            )}
         </div>
     );
 };
@@ -1106,11 +1173,18 @@ const mountApp = () => {
     const hasNavbar = !!window.Navbar;
     const hasBento = !!window.BentoCard;
     const hasMeal = !!window.MealAnalyzer;
+    const hasExercise = !!window.ExerciseLogger;
     const hasSafeIcon = !!window.SafeIcon;
 
-    if (hasNavbar && hasBento && hasMeal && hasSafeIcon) {
+    if (hasNavbar && hasBento && hasMeal && hasExercise && hasSafeIcon) {
         ReactDOM.createRoot(root).render(<HealthPage />);
     } else {
+        // If some components aren't ready, log which ones are missing to help debug
+        if (!hasNavbar) console.warn("Waiting for Navbar...");
+        if (!hasBento) console.warn("Waiting for BentoCard...");
+        if (!hasMeal) console.warn("Waiting for MealAnalyzer...");
+        if (!hasExercise) console.warn("Waiting for ExerciseLogger...");
+        if (!hasSafeIcon) console.warn("Waiting for SafeIcon...");
         setTimeout(mountApp, 100);
     }
 };

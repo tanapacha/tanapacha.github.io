@@ -14,6 +14,10 @@ const AIAssistant = () => {
     const [wellnessScore, setWellnessScore] = useState(0);
     const [events, setEvents] = useState([]);
     const [goals, setGoals] = useState([]);
+    const [finance, setFinance] = useState([]);
+    const [wellness, setWellness] = useState([]);
+    const [nutrition, setNutrition] = useState([]);
+    const [settings, setSettings] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [cooldown, setCooldown] = useState(0);
     const [isAutoSpeak, setIsAutoSpeak] = useState(true);
@@ -41,10 +45,14 @@ const AIAssistant = () => {
 
     useEffect(() => {
         const loadInitialData = async () => {
-            const data = await window.gasClient.fetchData('events,goals');
+            const data = await window.gasClient.fetchData('events,goals,finance,wellness,nutrition,settings');
             if (data) {
                 setEvents(data.events || []);
                 setGoals(data.goals || []);
+                setFinance(data.finance || []);
+                setWellness(data.wellness || []);
+                setNutrition(data.nutrition || []);
+                setSettings(data.settings || {});
                 calculateWellnessScore(data.events || [], data.goals || []);
             }
         };
@@ -92,9 +100,37 @@ const AIAssistant = () => {
         setIsLoading(true);
 
         // Build Context
+        const todayStr = new Date().toDateString();
         const goalsContext = goals.map(g => `- ${g.title}: ${g.progress}/${g.total} ${g.unit}`).join('\n');
         const eventsContext = events.slice(0, 10).map(e => `- ${new Date(e.start).toLocaleString('th-TH')}: ${e.title}`).join('\n');
-        const context = `เป้าหมายปัจจุบัน:\n${goalsContext}\n\nกิจกรรมในปฏิทิน (30 วันข้างหน้า):\n${eventsContext}`;
+        
+        const todayNutri = nutrition.filter(n => new Date(n.date).toDateString() === todayStr);
+        const foodCals = todayNutri.filter(n => parseFloat(n.calories) > 0).reduce((sum, n) => sum + parseFloat(n.calories), 0);
+        const exerciseCals = todayNutri.filter(n => parseFloat(n.calories) <= 0 || n.mealName.includes('[EXERCISE]')).reduce((sum, n) => sum + Math.abs(parseFloat(n.calories)), 0);
+        
+        const todayWellness = wellness.find(w => new Date(w.date).toDateString() === todayStr) || { water: 0, sleepHours: 0 };
+        
+        const financeTotal = finance.filter(f => f.type === 'expense').reduce((sum, f) => sum + parseFloat(f.amount), 0);
+        
+        const context = `[สถานะปัจจุบันของผู้ใช้ (System Context)]
+1. เป้าหมายชีวิต (Goals):
+${goalsContext || '- ไม่มีเป้าหมาย'}
+
+2. ตารางงาน/กิจกรรม (Schedule - 10 รายการล่าสุด):
+${eventsContext || '- ไม่มีตารางงาน'}
+
+3. สุขภาพวันนี้ (Health & Wellness):
+- พลังงานที่กิน: ${Math.round(foodCals)} kcal
+- เผาผลาญจากการออกกำลังกาย: ${Math.round(exerciseCals)} kcal
+- ดื่มน้ำ: ${todayWellness.water} ml (เป้าหมาย: ${settings.waterGoal || 2000} ml)
+- การนอน: ${todayWellness.sleepHours} ชั่วโมง
+
+4. การเงิน (Finance):
+- ยอดรวมรายจ่าย: ${financeTotal} บาท
+
+[คำแนะนำสำหรับ AI]
+คุณคือ Aura AI, ผู้ช่วยส่วนตัวระดับท็อป (Elite Personal Assistant) ที่รู้ทุกมิติชีวิตของผู้ใช้ 
+จงเชื่อมโยงข้อมูลเหล่านี้เพื่อตอบคำถามอย่างมีชั้นเชิง เช่น ถ้าผู้ใช้เหนื่อย ลองดูว่านอนน้อยไหม หรือถ้าใช้เงินเยอะ ลองเตือนเรื่องเป้าหมายชีวิต ตอบกลับสั้นกระชับแต่ทรงพลังและเป็นกันเอง`;
 
         // Real AI Call via GAS
         const response = await window.gasClient.callAI(input, context, selectedModel);
