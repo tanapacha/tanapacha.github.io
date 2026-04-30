@@ -28,19 +28,36 @@ const Finance = () => {
     const [aiInput, setAiInput] = useState('');
     const [isAiProcessing, setIsAiProcessing] = useState(false);
 
+    // Debt Management State
+    const [debts, setDebts] = useState([]);
+    const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [selectedDebt, setSelectedDebt] = useState(null);
+    const [newDebt, setNewDebt] = useState({ name: '', amount: '', date: new Date().toISOString().slice(0, 10) });
+    const [paymentAmount, setPaymentAmount] = useState('');
+
+    useEffect(() => {
+        localStorage.setItem('aura_debts', JSON.stringify(debts));
+    }, [debts]);
+
     const loadFinances = async (silent = false) => {
         if (!silent) setIsLoading(true);
-        // Optimization: Only fetch finance data
-        const data = await window.gasClient.fetchData("finance");
-        if (data && data.finance) {
-            // Pre-parsing dates once during load to avoid new Date() in every filter loop
-            const mapped = data.finance.map(tx => ({
-                ...tx,
-                dateObj: new Date(tx.date) 
-            }));
-            // Sort freshest first
-            mapped.sort((a,b) => b.dateObj - a.dateObj);
-            setTransactions(mapped);
+        // Optimization: Only fetch finance data and debts
+        const data = await window.gasClient.fetchData("finance,debts");
+        if (data) {
+            if (data.finance) {
+                // Pre-parsing dates once during load to avoid new Date() in every filter loop
+                const mapped = data.finance.map(tx => ({
+                    ...tx,
+                    dateObj: new Date(tx.date) 
+                }));
+                // Sort freshest first
+                mapped.sort((a,b) => b.dateObj - a.dateObj);
+                setTransactions(mapped);
+            }
+            if (data.debts) {
+                setDebts(data.debts);
+            }
         }
         setIsLoading(false);
         if (window.lucide) setTimeout(() => window.lucide.createIcons(), 100);
@@ -159,6 +176,65 @@ const Finance = () => {
         else if (filterPeriod === 'weekly') newD.setDate(newD.getDate() + (amount * 7));
         else if (filterPeriod === 'monthly') newD.setMonth(newD.getMonth() + amount);
         setCurrentDate(newD);
+    };
+
+    // Debt Handlers
+    const handleAddDebt = async () => {
+        if (!newDebt.name || !newDebt.amount) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+        setIsSaving(true);
+        const res = await window.gasClient.addDebt({
+            name: newDebt.name,
+            amount: parseFloat(newDebt.amount)
+        });
+        
+        if (res.status === 'success') {
+            await loadFinances(true);
+            setNewDebt({ name: '', amount: '', date: new Date().toISOString().slice(0, 10) });
+            setIsDebtModalOpen(false);
+        } else {
+            alert("บันทึกลูกหนี้ไม่สำเร็จ");
+        }
+        setIsSaving(false);
+    };
+
+    const handleAddPayment = async () => {
+        if (!paymentAmount || !selectedDebt) return;
+        const amount = parseFloat(paymentAmount);
+        if (amount > selectedDebt.remainingAmount) return alert("ยอดชำระเกินกว่ายอดคงเหลือ");
+
+        setIsSaving(true);
+        const res = await window.gasClient.updateDebt(selectedDebt.id, amount);
+        
+        if (res.status === 'success') {
+            // Integrate with main finances as income
+            await window.gasClient.addTransaction({
+                type: 'income',
+                amount: amount,
+                category: 'อื่นๆ',
+                note: `รับชำระหนี้จาก ${selectedDebt.name}`,
+                date: new Date().toISOString().slice(0, 10) + "T12:00:00"
+            });
+
+            await loadFinances(true);
+            setIsPaymentModalOpen(false);
+            setPaymentAmount('');
+            setSelectedDebt(null);
+            alert(`บันทึกการรับชำระเงินจาก ${selectedDebt.name} เรียบร้อยแล้ว`);
+        } else {
+            alert("บันทึกการชำระเงินไม่สำเร็จ");
+        }
+        setIsSaving(false);
+    };
+
+    const handleDeleteDebt = async (id) => {
+        if (confirm("คุณต้องการลบรายการลูกหนี้นี้ใช่หรือไม่? (ข้อมูลการชำระเงินเดิมในบัญชีจะไม่ถูกลบ)")) {
+            const res = await window.gasClient.deleteDebt(id);
+            if (res.status === 'success') {
+                await loadFinances(true);
+            } else {
+                alert("ลบลูกหนี้ไม่สำเร็จ");
+            }
+        }
     };
 
     const formatPeriodLabel = () => {
@@ -298,6 +374,64 @@ const Finance = () => {
                                 "การบันทึกรายจ่ายสม่ำเสมอ เป็นจุดเริ่มต้นของการมีอิสรภาพทางการเงิน ลองตั้งเป้าหมายการออมจากหน้า <a href="goals.html" className="text-gold hover:underline">Goals</a> ด้วยสิครับ"
                             </p>
                         </BentoCard>
+
+                        <BentoCard title="ระบบจัดการลูกหนี้" subtitle="Debt Management" icon="Users">
+                            <div className="mt-4 space-y-4">
+                                <button 
+                                    onClick={() => setIsDebtModalOpen(true)}
+                                    className="w-full py-3 bg-white/5 border border-dashed border-white/20 rounded-2xl text-white/60 hover:text-white hover:border-gold/50 transition-all text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                                >
+                                    <i data-lucide="UserPlus" className="w-4 h-4" /> เพิ่มลูกหนี้
+                                </button>
+
+                                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                                    {debts.length === 0 ? (
+                                        <p className="text-center py-10 text-white/10 italic text-xs">ไม่มีรายการลูกหนี้</p>
+                                    ) : (
+                                        debts.map(debt => (
+                                            <div key={debt.id} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 group hover:bg-white/[0.05] transition-all">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <h5 className="text-white font-bold">{debt.name}</h5>
+                                                        <p className="text-[10px] text-white/30">{new Date(debt.date).toLocaleDateString('th-TH')}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className={`text-sm font-bold ${debt.status === 'cleared' ? 'text-green-400' : 'text-gold'}`}>
+                                                            ฿{debt.remainingAmount.toLocaleString()}
+                                                        </p>
+                                                        <p className="text-[8px] text-white/20 uppercase">คงเหลือ / ฿{debt.totalAmount.toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden mb-3">
+                                                    <div 
+                                                        className={`h-full transition-all duration-1000 ${debt.status === 'cleared' ? 'bg-green-500' : 'bg-gold'}`}
+                                                        style={{ width: `${((debt.totalAmount - debt.remainingAmount) / debt.totalAmount) * 100}%` }}
+                                                    />
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    {debt.status !== 'cleared' && (
+                                                        <button 
+                                                            onClick={() => { setSelectedDebt(debt); setIsPaymentModalOpen(true); }}
+                                                            className="flex-1 py-2 bg-gold/10 hover:bg-gold text-gold hover:text-midnight rounded-xl text-[10px] font-bold transition-all"
+                                                        >
+                                                            รับชำระเงิน
+                                                        </button>
+                                                    )}
+                                                    <button 
+                                                        onClick={() => handleDeleteDebt(debt.id)}
+                                                        className="p-2 bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 rounded-xl transition-all"
+                                                    >
+                                                        <i data-lucide="Trash2" className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </BentoCard>
                     </div>
 
                 </div>
@@ -353,6 +487,65 @@ const Finance = () => {
                                     {isSaving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
                                 </button>
                             </form>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Add Debt Modal */}
+                {isDebtModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-midnight/80 backdrop-blur-md">
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#111318] border border-white/10 p-8 rounded-[32px] w-full max-w-md shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl text-white font-semibold">บันทึกคนติดเงิน</h2>
+                                <button onClick={() => setIsDebtModalOpen(false)} className="text-white/20 hover:text-white"><i data-lucide="X" className="w-6 h-6"/></button>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] text-white/40 uppercase tracking-widest pl-1">ชื่อลูกหนี้</label>
+                                    <input type="text" className="w-full bg-white/5 border border-white/5 p-4 rounded-xl text-white focus:border-gold/50 outline-none" placeholder="ระบุชื่อ..." value={newDebt.name} onChange={e=>setNewDebt({...newDebt, name: e.target.value})}/>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] text-white/40 uppercase tracking-widest pl-1">จำนวนเงิน</label>
+                                    <input type="number" className="w-full bg-white/5 border border-white/5 p-4 rounded-xl text-white focus:border-gold/50 outline-none" placeholder="0.00" value={newDebt.amount} onChange={e=>setNewDebt({...newDebt, amount: e.target.value})}/>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] text-white/40 uppercase tracking-widest pl-1">วันที่กู้ยืม</label>
+                                    <input type="date" className="w-full bg-white/5 border border-white/5 p-4 rounded-xl text-white focus:border-gold/50 outline-none" value={newDebt.date} onChange={e=>setNewDebt({...newDebt, date: e.target.value})} style={{colorScheme:'dark'}}/>
+                                </div>
+                                <button onClick={handleAddDebt} className="w-full py-4 bg-gold text-midnight font-bold rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                    บันทึกข้อมูล
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Payment Modal */}
+                {isPaymentModalOpen && selectedDebt && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-midnight/80 backdrop-blur-md">
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#111318] border border-white/10 p-8 rounded-[32px] w-full max-w-md shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h2 className="text-2xl text-white font-semibold">รับชำระเงิน</h2>
+                                    <p className="text-xs text-white/40">จากคุณ {selectedDebt.name}</p>
+                                </div>
+                                <button onClick={() => setIsPaymentModalOpen(false)} className="text-white/20 hover:text-white"><i data-lucide="X" className="w-6 h-6"/></button>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="p-4 bg-gold/5 border border-gold/10 rounded-2xl mb-4">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-[10px] text-gold uppercase tracking-widest font-bold">ยอดค้างชำระทั้งหมด</span>
+                                        <span className="text-xl text-gold font-bold">฿{selectedDebt.remainingAmount.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] text-white/40 uppercase tracking-widest pl-1">จำนวนเงินที่ได้รับ</label>
+                                    <input type="number" className="w-full bg-white/5 border border-white/5 p-4 rounded-xl text-white focus:border-gold/50 outline-none text-2xl font-bold" placeholder="0.00" value={paymentAmount} onChange={e=>setPaymentAmount(e.target.value)}/>
+                                </div>
+                                <button onClick={handleAddPayment} className="w-full py-4 bg-gold text-midnight font-bold rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                    ยืนยันการรับเงิน
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}

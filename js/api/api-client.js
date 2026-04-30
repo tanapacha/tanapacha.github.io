@@ -431,35 +431,39 @@ const gasClient = {
     /**
      * Specialized Food Analysis
      * @param {string} base64Image - Base64 string of the food image
+     * @param {string} condiments - Additional condiments specified by user
      */
-    async analyzeMealImage(base64Image) {
-        const prompt = `ในฐานะ Aura AI (ที่ปรึกษาสุขภาพสาย Bio-hacking ที่ช่ำชองทฤษฏีแต่คุยสนุก) ช่วยวิเคราะห์สารอาหารในรูปภาพนี้อย่างละเอียดทีครับ:
-1. ชื่อรายการอาหาร
-2. ประมาณการ Metabolic Energy (แคลอรี่ kcal)
+    async analyzeMealImage(base64Image, condiments = "") {
+        const condimentsPrompt = condiments ? `\n(ข้อมูลเครื่องปรุงเพิ่มเติมจากผู้ใช้: ${condiments})` : "";
+        const prompt = `ในฐานะ Aura AI (ที่ปรึกษาสุขภาพสาย Bio-hacking ที่ช่ำชองทฤษฏีแต่คุยสนุก) ช่วยวิเคราะห์สารอาหารในรูปภาพนี้อย่างละเอียดทีครับ:${condimentsPrompt}
+1. ชื่อรายการอาหาร (รวมเครื่องปรุงที่ระบุ)
+2. ประมาณการ Metabolic Energy (แคลอรี่ kcal) โดยคำนวณแยกและรวมวัตถุดิบและเครื่องปรุงทั้งหมดอย่างแม่นยำที่สุด
 3. ประมาณการ Macronutrients: โปรตีน (g), คาร์โบไฮเดรต (g), ไขมัน (g)
-4. วิเคราะห์ด้วยทฤษฎีการแพทย์หรือการทำงานของร่างกาย (เช่น ผลต่อระดับน้ำตาลหรือการซ่อมแซมกล้ามเนื้อ) แบบว้าวๆ และเป็นกันเอง
+4. วิเคราะห์ด้วยทฤษฎีการแพทย์หรือการทำงานของร่างกายแบบ Bio-hacking เชิงลึก (เช่น Glycemic Index ของอาหารจานนี้, การตอบสนองของ Insulin, ปริมาณกรดไขมัน/โซเดียมจากเครื่องปรุง, และผลต่อ Microbiome หรือการอักเสบในร่างกาย) พร้อมคำแนะนำแบบว้าวๆ และเป็นกันเอง
 
-กรุณาตอบกลับเป็นภาษาไทยที่กระชับ และใช้ Smart Action เพื่อบันทึกข้อมูลดังนี้:
+กรุณาตอบกลับเป็นภาษาไทยที่อ่านง่าย และใช้ Smart Action เพื่อบันทึกข้อมูลดังนี้:
 [ACTION:ADD_NUTRITION|ชื่ออาหาร|แคลอรี่|โปรตีน|คาร์บ|ไขมัน]`;
 
-        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากรูปภาพ", "gemini-flash-latest", base64Image);
+        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากรูปภาพ", "gemini-2.5-pro", base64Image);
     },
 
     /**
      * Specialized Food Analysis from Text
      * @param {string} foodText - Description of the food
+     * @param {string} condiments - Additional condiments specified by user
      */
-    async analyzeMealText(foodText) {
-        const prompt = `ในฐานะ Aura AI (ที่ปรึกษาสุขภาพสาย Bio-hacking) ช่วยวิเคราะห์สารอาหารจากเมนูที่ฉันพิมพ์บอกนี้ทีครับ: "${foodText}"
-1. ชื่อรายการอาหาร
-2. ประมาณการ Metabolic Energy (แคลอรี่ kcal)
+    async analyzeMealText(foodText, condiments = "") {
+        const condimentsPrompt = condiments ? `\n(ข้อมูลเครื่องปรุงเพิ่มเติมจากผู้ใช้: ${condiments})` : "";
+        const prompt = `ในฐานะ Aura AI (ที่ปรึกษาสุขภาพสาย Bio-hacking เชิงลึก) ช่วยวิเคราะห์สารอาหารจากเมนูที่ฉันพิมพ์บอกนี้ทีครับ: "${foodText}"${condimentsPrompt}
+1. ชื่อรายการอาหาร (รวมรายละเอียดเครื่องปรุง)
+2. ประมาณการ Metabolic Energy (แคลอรี่ kcal) โดยประเมินเจาะจงถึงปริมาณเครื่องปรุงหรือวัตถุดิบแฝง
 3. ประมาณการ Macronutrients: โปรตีน (g), คาร์โบไฮเดรต (g), ไขมัน (g)
-4. วิเคราะห์สั้นๆ ว่าดีต่อร่างกายอย่างไร (เช่น ดัชนีน้ไตาลต่ำ หรือช่วยสร้างกล้ามเนื้อ)
+4. วิเคราะห์ Bio-hacking เชิงลึกสั้นๆ (เช่น ผลต่อดัชนีน้ำตาล, การหลั่งฮอร์โมน, หรือสัดส่วนสารอาหารที่จะส่งผลต่อการซ่อมแซมร่างกาย)
 
 กรุณาตอบกลับเป็นภาษาไทยที่กระชับ และใช้ Smart Action เพื่อบันทึกข้อมูลดังนี้:
 [ACTION:ADD_NUTRITION|ชื่ออาหาร|แคลอรี่|โปรตีน|คาร์บ|ไขมัน]`;
 
-        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากข้อความ", "gemini-flash-latest");
+        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากข้อความ", "gemini-2.5-pro");
     },
 
     /**
@@ -492,6 +496,48 @@ const gasClient = {
             return await response.json();
         } catch (error) {
             console.error("Error updating setting:", error);
+            return { status: "error" };
+        }
+    },
+
+    /**
+     * Debt Management
+     */
+    async addDebt(debtData) {
+        try {
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'addDebt', data: debtData })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Error adding debt:", error);
+            return { status: "error" };
+        }
+    },
+
+    async updateDebt(debtId, paymentAmount) {
+        try {
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'updateDebt', id: debtId, paymentAmount: paymentAmount })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Error updating debt:", error);
+            return { status: "error" };
+        }
+    },
+
+    async deleteDebt(debtId) {
+        try {
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'deleteDebt', id: debtId })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Error deleting debt:", error);
             return { status: "error" };
         }
     }

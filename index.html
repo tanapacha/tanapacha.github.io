@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Aura LifeOS | Dashboard</title>
     <meta name="description" content="Aura LifeOS — ระบบจัดการชีวิตอัจฉริยะ ตารางเรียน สุขภาพ การเงิน เป้าหมาย">
-    
-    <!-- PWA Support -->
+
+
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Aura LifeOS">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="theme-color" content="#050608">
-    
-    <!-- Libraries -->
+
+
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-    
-    <!-- Custom CSS -->
+
+
     <link rel="stylesheet" href="css/styles.css">
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -38,7 +39,7 @@
             }
         }
 
-        // Clean Theme Engine — subtle time-based accent shift
+
         const applyTheme = () => {
             const h = new Date().getHours();
             const r = document.documentElement;
@@ -63,6 +64,7 @@
         setInterval(applyTheme, 15 * 60 * 1000);
     </script>
 </head>
+
 <body>
     <div id="root">
         <div style="padding:24px; color: rgba(255,255,255,0.55); font: 14px/1.5 'Inter', system-ui, sans-serif;">
@@ -199,13 +201,13 @@
     <script type="text/babel" src="js/components/MealAnalyzer.js?v=5"></script>
     <script type="text/babel" src="js/components/NightstandMode.js?v=1"></script>
     <script type="text/babel" src="js/pages/dashboard.js?v=5"></script>
-    
+
     <script type="text/babel">
-        // Register Service Worker for PWA
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.getRegistrations().then(regs => {
-                    for(let reg of regs) { reg.unregister(); }
+                    for (let reg of regs) { reg.unregister(); }
                 });
 
                 navigator.serviceWorker.register('sw.js?v=3')
@@ -214,7 +216,7 @@
             });
         }
 
-        // Scroll effect for nav
+
         window.addEventListener('scroll', () => {
             const navs = document.querySelectorAll('nav');
             navs.forEach(nav => {
@@ -228,4 +230,5 @@
     </script>
 
 </body>
+
 </html>

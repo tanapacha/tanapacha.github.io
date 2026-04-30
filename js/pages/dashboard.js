@@ -22,6 +22,33 @@ const greetingFor = (h) => {
     return 'สวัสดีตอนเย็น';
 };
 
+// Robust Date Matching Helper for GAS Data
+const isSameDay = (gasDate, targetDateStr) => {
+    if (!gasDate || !targetDateStr) return false;
+    const s = String(gasDate);
+    
+    // 1. Direct match (YYYY-MM-DD)
+    if (s.startsWith(targetDateStr)) return true;
+    
+    // 2. ISO / UTC mismatch fallback
+    try {
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return false;
+        // Format to YYYY-MM-DD using local time
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const localFormat = `${y}-${m}-${day}`;
+        const match = localFormat === targetDateStr;
+        if (!match && targetDateStr === toDateStr(new Date())) {
+             // Silently log only if it's supposed to be today but failing
+             // console.log(`[Aura Date Debug] No match: ${s} (as ${localFormat}) vs ${targetDateStr}`);
+        }
+        return match;
+    } catch (e) { return false; }
+};
+
+
 class DashboardErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
@@ -282,40 +309,40 @@ const Dashboard = () => {
             // 1. Aura Turbo: Fast Cache Loading (Skip if silent)
             if (!silent) {
                 const cached = localStorage.getItem(CACHE_KEY);
+                console.log("[Aura Debug] Checking Cache...", cached ? "Found" : "Empty");
                 if (cached) {
                     try {
                         const parsed = JSON.parse(cached);
-                        console.log("Aura Turbo: Applying Cache...");
+                        console.log("[Aura Debug] Applying Cache Data:", Object.keys(parsed));
                         applyLoadedData(parsed);
                         setIsLoading(false); // Immediate interaction
-                    } catch (e) { console.error("Cache error", e); }
+                    } catch (e) { console.error("[Aura Debug] Cache error", e); }
                 } else {
                     setIsLoading(true);
                 }
             }
 
+
             // 2. Priority Loading: Fetch Crucial Data First
-            const crucialSheets = "events,timetable,mood,wellness,nutrition,settings";
-            const secondarySheets = "goals,finance,habits,habitLogs,journal,resources,focusSessions";
+            // 2. Unified Loading: Fetch All Data at once to prevent sync issues
+            const allSheets = "events,timetable,mood,wellness,nutrition,settings,goals,finance,habits,habitLogs,journal,resources,focusSessions";
 
             try {
-                // Fetch Crucial 
-                const crucialData = await window.gasClient.fetchData(crucialSheets);
-                if (crucialData) {
-                    applyLoadedData(crucialData);
-                    // Background Fetch Secondary
-                    window.gasClient.fetchData(secondarySheets).then(secondaryData => {
-                        if (secondaryData) {
-                            applyLoadedData(secondaryData);
-                            // Store full cache
-                            const fullData = { ...crucialData, ...secondaryData };
-                            localStorage.setItem(CACHE_KEY, JSON.stringify(fullData));
-                        }
-                    });
+                console.log("[Aura Debug] Fetching All Data...");
+                const allData = await window.gasClient.fetchData(allSheets);
+                if (allData) {
+                    console.log("[Aura Debug] Data Received:", Object.keys(allData));
+                    if (allData.error) {
+                        console.error("[Aura Debug] Server Error:", allData.error);
+                    } else {
+                        applyLoadedData(allData);
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(allData));
+                    }
                 }
             } catch (err) {
-                console.error("Fetch error:", err);
+                console.error("[Aura Debug] Fetch error:", err);
             }
+
             
             setIsLoading(false);
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -325,18 +352,24 @@ const Dashboard = () => {
 
         const applyLoadedData = (data) => {
             if (!data) return;
+            console.log("[Aura Debug] applyLoadedData called with keys:", Object.keys(data));
             if (data.events) setAllEvents(data.events);
             if (data.goals) setGoals(data.goals);
-            if (data.finance) setFinances(data.finance);
+            if (data.finance) {
+                console.log("[Aura Debug] Setting Finance:", data.finance.length, "items");
+                setFinances(data.finance);
+            }
             if (data.mood) setMoods(data.mood);
             if (data.wellness) {
+                console.log("[Aura Debug] Setting Wellness:", data.wellness.length, "items");
+
                 setWellness(prev => {
                     const serverData = data.wellness || [];
                     const todayStr = toDateStr(new Date());
                     
                     const finalData = [...serverData];
-                    const localToday = prev.find(p => (p.date ? String(p.date).split('T')[0] : "") === todayStr);
-                    const serverTodayIdx = finalData.findIndex(s => (s.date ? String(s.date).split('T')[0] : "") === todayStr);
+                    const localToday = prev.find(p => isSameDay(p.date, todayStr));
+                    const serverTodayIdx = finalData.findIndex(s => isSameDay(s.date, todayStr));
                     
                     if (localToday && serverTodayIdx !== -1) {
                         if (parseFloat(localToday.water) > parseFloat(finalData[serverTodayIdx].water)) {
@@ -346,6 +379,7 @@ const Dashboard = () => {
                     return finalData.sort((a,b) => new Date(b.date) - new Date(a.date));
                 });
             }
+
             if (data.habits) setHabits(data.habits);
             if (data.habitLogs) setHabitLogs(data.habitLogs);
             if (data.journal) setJournal(data.journal);
@@ -355,14 +389,15 @@ const Dashboard = () => {
                 setNutrition(data.nutrition);
                 fetchNutritionSummary(data.nutrition);
             }
+            let currentNormalizedTimetable = null;
             if (data.timetable) {
-                const normalizedTimetable = (data.timetable || []).map(item => ({
+                currentNormalizedTimetable = (data.timetable || []).map(item => ({
                     ...item,
                     startTime: formatLocalTime(item.startTime),
                     endTime: formatLocalTime(item.endTime)
                 }));
-                setTimetable(normalizedTimetable);
-                fetchMealSuggestion(normalizedTimetable);
+                setTimetable(currentNormalizedTimetable);
+                fetchMealSuggestion(currentNormalizedTimetable);
             }
 
             if (window.lucide) {
@@ -371,12 +406,15 @@ const Dashboard = () => {
 
             // Trigger AI Advice if it hasn't been cached or if we have fresh events
             if (data.events) {
-                const todayEvts = data.events.filter(e => startsWithSafe(e?.start, toDateStr(today)));
+                const todayEvts = data.events.filter(e => isSameDay(e?.start, toDateStr(today)));
                 if (todayEvts.length > 0) fetchAIAdvice(todayEvts);
                 
-                // Trigger Habit Stacking
-                fetchHabitStacking(normalizedTimetable);
+                // Trigger Habit Stacking (Use current normalized or fallback to state)
+                if (currentNormalizedTimetable) {
+                    fetchHabitStacking(currentNormalizedTimetable);
+                }
             }
+
         };
 
         loadContent();
@@ -570,16 +608,16 @@ const Dashboard = () => {
 
     const dateString = currentTime.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' });
 
-    // Finance Calculations for Today
-    const todayFinances = finances.filter(tx => {
-        const txDate = new Date(tx.date);
-        return txDate.toDateString() === today.toDateString();
-    });
+    // Finance Calculations for Selected Date
+    const todayFinances = finances.filter(tx => isSameDay(tx.date, selectedDateStr));
+    console.log("[Aura Debug] todayFinances:", todayFinances.length, "for", selectedDateStr);
     const financeStats = todayFinances.reduce((acc, tx) => {
         if(tx.type === 'income') acc.income += parseFloat(tx.amount);
         if(tx.type === 'expense') acc.expense += parseFloat(tx.amount);
         return acc;
     }, { income: 0, expense: 0 });
+
+
 
     // Timetable Logic
     const todayName = DAYS_TH_MAP[currentTime.getDay()];
@@ -629,7 +667,8 @@ const Dashboard = () => {
     };
 
     const stats = calculateStats();
-    const todayNutriAll = nutrition.filter(n => n?.date && String(n.date).startsWith(toDateStr(today)));
+    const todayNutriAll = nutrition.filter(n => isSameDay(n?.date, selectedDateStr));
+
     
     // Split Food and Exercise
     const todayFood = todayNutriAll.filter(n => parseFloat(n.calories) > 0);
@@ -646,12 +685,15 @@ const Dashboard = () => {
     const netCalories = nutritionTotals.cals - exerciseCals;
 
     const wellnessStats = (() => {
-        const todayStr = toDateStr(today);
-        const filtered = wellness.filter(w => startsWithSafe(w?.date, todayStr));
+        const filtered = wellness.filter(w => isSameDay(w?.date, selectedDateStr));
+        console.log("[Aura Debug] wellnessFiltered:", filtered.length, "for", selectedDateStr);
         const totalWater = filtered.reduce((sum, w) => sum + (parseFloat(w.water) || 0), 0);
+        // Sleep is usually the most recent entry regardless of today's filtered list if we want to show current status
         const latestSleep = (wellness.filter(w => (parseFloat(w.sleepHours) || 0) > 0).sort((a,b) => new Date(b.date) - new Date(a.date))[0]?.sleepHours || 0);
         return { water: totalWater, sleep: latestSleep };
     })();
+
+
 
     const analyzeBurnout = async () => {
         setIsBurnoutAnalyzing(true);
@@ -1300,7 +1342,8 @@ const Dashboard = () => {
                             {/* Water Intake Activity Ring */}
                             <div className="p-4 rounded-xl bg-[#37b4d4]/10 border border-[#37b4d4]/20 flex items-center justify-between">
                                 <div className="flex-1">
-                                    <p className="text-[10px] text-[#37b4d4] font-bold uppercase tracking-widest">Hydration</p>
+                                    <p className="text-[10px] text-[#37b4d4] font-bold uppercase tracking-widest">{isViewingToday ? 'Hydration Today' : 'Hydration'}</p>
+
                                     <h4 className="text-xl font-medium text-white mb-2">
                                         {Math.round(wellnessStats.water)} <span className="text-[10px] opacity-40">ml</span>
                                     </h4>
@@ -1429,7 +1472,8 @@ const Dashboard = () => {
 
                     {/* ── Finance Card ── */}
                     <BentoCard
-                        title="สรุปการเงินวันนี้"
+                        title={isViewingToday ? "สรุปการเงินวันนี้" : `สรุปการเงิน ${selectedDateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}`}
+
                         subtitle="Daily Finance"
                         icon="Wallet"
                         accent="emerald"
@@ -1446,16 +1490,17 @@ const Dashboard = () => {
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center p-4 bg-green-500/10 border border-green-500/20 rounded-2xl backdrop-blur-sm">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] text-green-500/70 font-bold uppercase tracking-widest">รายรับวันนี้</span>
+                                            <span className="text-[10px] text-green-500/70 font-bold uppercase tracking-widest">{isViewingToday ? 'รายรับวันนี้' : 'รายรับ'}</span>
                                             <span className="text-green-400 font-semibold text-xl">฿{financeStats.income.toLocaleString()}</span>
                                         </div>
                                         <i data-lucide="ArrowDownLeft" className="text-green-500 w-5 h-5"/>
                                     </div>
                                     <div className="flex justify-between items-center p-4 bg-red-500/10 border border-red-500/20 rounded-2xl backdrop-blur-sm">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] text-red-500/70 font-bold uppercase tracking-widest">รายจ่ายวันนี้</span>
+                                            <span className="text-[10px] text-red-500/70 font-bold uppercase tracking-widest">{isViewingToday ? 'รายจ่ายวันนี้' : 'รายจ่าย'}</span>
                                             <span className="text-red-400 font-semibold text-xl">฿{financeStats.expense.toLocaleString()}</span>
                                         </div>
+
                                         <i data-lucide="ArrowUpRight" className="text-red-500 w-5 h-5"/>
                                     </div>
                                     <a

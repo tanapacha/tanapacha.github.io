@@ -7,6 +7,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
     const [analysisResult, setAnalysisResult] = useState('');
     const [inputMode, setInputMode] = useState('camera'); // 'camera' or 'text'
     const [mealText, setMealText] = useState('');
+    const [condiments, setCondiments] = useState('');
     const [isCameraActive, setIsCameraActive] = useState(false);
     
     const videoRef = useRef(null);
@@ -21,6 +22,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
             setIsAnalyzing(false);
             setInputMode('camera');
             setMealText('');
+            setCondiments('');
         }
     }, [isOpen]);
 
@@ -74,8 +76,8 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Resize for API (Speed Optimization: 800px is enough for Gemini Flash)
-        const maxDim = 640;
+        // Resize for API (Speed Optimization: 1200px is enough for Gemini Pro)
+        const maxDim = 1200;
         let w = canvas.width;
         let h = canvas.height;
         if (w > h) {
@@ -95,12 +97,9 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         resizeCanvas.height = h;
         resizeCanvas.getContext('2d').drawImage(canvas, 0, 0, w, h);
         
-        const dataUrl = resizeCanvas.toDataURL('image/jpeg', 0.8);
+        const dataUrl = resizeCanvas.toDataURL('image/jpeg', 0.92);
         setPreview(dataUrl);
         stopCamera();
-        
-        // Auto-trigger analysis
-        runAnalysis(dataUrl);
     };
 
     const handleFileUpload = (e) => {
@@ -112,7 +111,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const maxDim = 1024;
+                const maxDim = 1200;
                 let w = img.width;
                 let h = img.height;
                 if (w > h) {
@@ -123,12 +122,9 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
                 canvas.width = w;
                 canvas.height = h;
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
                 setPreview(dataUrl);
                 setInputMode('camera');
-                
-                // Auto-trigger analysis
-                runAnalysis(dataUrl);
             };
             img.src = event.target.result;
         };
@@ -142,7 +138,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         setAnalysisResult('');
         
         try {
-            const result = await window.gasClient.analyzeMealText(mealText);
+            const result = await window.gasClient.analyzeMealText(mealText, condiments);
             setAnalysisResult(result);
             if (onSave && typeof result === 'string' && !result.startsWith('⚠️')) {
                 onSave();
@@ -164,7 +160,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         
         try {
             const base64 = imageToProcess.split(',')[1];
-            const result = await window.gasClient.analyzeMealImage(base64);
+            const result = await window.gasClient.analyzeMealImage(base64, condiments);
             setAnalysisResult(result);
             // Only trigger refresh if result doesn't start with error indicator
             if (onSave && typeof result === 'string' && !result.startsWith('⚠️')) {
@@ -257,7 +253,14 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
                                         value={mealText}
                                         onChange={(e) => setMealText(e.target.value)}
                                         placeholder="ตัวอย่าง: ข้าวมันไก่ผสมไก่ทอด 1 จาน หรือ สลัดผักอกไก่"
-                                        className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-gold/50 transition-all resize-none text-sm"
+                                        className="w-full h-24 bg-white/5 border border-white/10 rounded-2xl p-4 text-white outline-none focus:border-gold/50 transition-all resize-none text-sm"
+                                    />
+                                    <input 
+                                        type="text"
+                                        value={condiments}
+                                        onChange={(e) => setCondiments(e.target.value)}
+                                        placeholder="เครื่องปรุงเพิ่มเติม เช่น น้ำตาล 1 ช้อนชา (ถ้ามี)"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-gold/50 transition-all text-sm"
                                     />
                                     <button 
                                         onClick={handleTextSubmit}
@@ -287,8 +290,8 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
                                 playsInline 
                                 className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 border-[40px] border-black/40 pointer-events-none">
-                                <div className="w-full h-full border border-gold/30 rounded-3xl relative">
+                            <div className="absolute inset-0 border-8 border-black/20 pointer-events-none">
+                                <div className="w-full h-full border border-gold/50 rounded-2xl relative shadow-[inset_0_0_50px_rgba(0,0,0,0.5)]">
                                     <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-gold rounded-tl-xl"></div>
                                     <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-gold rounded-tr-xl"></div>
                                     <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-gold rounded-bl-xl"></div>
@@ -311,14 +314,42 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
                             </div>
                         </div>
                     ) : (
-                        <div className="relative w-full h-full group">
-                            <img src={preview} className="w-full h-full object-cover" alt="Meal Preview" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                        <div className="relative w-full h-full flex flex-col bg-black">
+                            <div className="relative flex-1 group min-h-0">
+                                <img src={preview} className="w-full h-full object-cover" alt="Meal Preview" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                    <button 
+                                        onClick={() => setPreview(null)}
+                                        className="p-4 bg-white/20 backdrop-blur-md rounded-2xl hover:bg-white/30 text-white text-xs font-bold"
+                                    >
+                                        ลบรูปและถ่ายใหม่
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-midnight/90 border-t border-white/5 shrink-0 space-y-3">
+                                <input 
+                                    type="text"
+                                    value={condiments}
+                                    onChange={(e) => setCondiments(e.target.value)}
+                                    placeholder="ระบุเครื่องปรุงเพิ่มเติม เช่น น้ำตาล 2 ช้อนโต๊ะ, ซีอิ๊ว (ถ้ามี)"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-gold/50 transition-all text-sm placeholder-white/30"
+                                />
                                 <button 
-                                    onClick={() => setPreview(null)}
-                                    className="p-4 bg-white/20 backdrop-blur-md rounded-2xl hover:bg-white/30 text-white text-xs font-bold"
+                                    onClick={() => runAnalysis(preview)}
+                                    disabled={isAnalyzing}
+                                    className="w-full py-3 bg-gold text-midnight font-bold rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
-                                    ลบรูปและถ่ายใหม่
+                                    {isAnalyzing ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-midnight/30 border-t-midnight rounded-full animate-spin" />
+                                            กำลังวิเคราะห์...
+                                        </>
+                                    ) : (
+                                        <>
+                                            {SafeIcon && <SafeIcon name="Sparkles" className="w-4 h-4" />}
+                                            วิเคราะห์อาหารด้วย AI
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -376,15 +407,8 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
                                 )}
                             </div>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
-                                <button 
-                                    onClick={runAnalysis}
-                                    disabled={isAnalyzing}
-                                    className="px-10 py-5 bg-gold text-midnight font-bold rounded-2xl shadow-[0_0_40px_rgba(212,175,55,0.3)] hover:scale-105 active:scale-95 transition-all text-lg disabled:opacity-50"
-                                >
-                                    เริ่มการวิเคราะห์ AI
-                                </button>
-                                <p className="text-white/30 text-xs italic">วิเคราะห์ความแม่นยำด้วย Gemini 1.5 Flash</p>
+                            <div className="h-full flex items-center justify-center text-center opacity-20 italic text-sm">
+                                กรุณากดปุ่ม "วิเคราะห์อาหารด้วย AI" เพื่อดูผลลัพธ์
                             </div>
                         )}
                     </div>

@@ -460,6 +460,7 @@ const HealthPage = () => {
     const Navbar = window.Navbar;
     const BentoCard = window.BentoCard;
     const MealAnalyzer = window.MealAnalyzer;
+    const FastingTracker = window.FastingTracker;
     const SafeIcon = window.SafeIcon;
 
     return (
@@ -874,7 +875,6 @@ const HealthPage = () => {
                                 onClick={() => setIsExerciseModalOpen(true)}
                                 className="flex-1 py-4 bg-white/5 hover:bg-orange-500/10 border border-white/10 hover:border-orange-500/30 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-3 text-xs uppercase tracking-widest group"
                             >
-                                {SafeIcon && <SafeIcon name="Activity" className="w-4 h-4 text-white/40 group-hover:text-orange-400 transition-colors" />}
                                 บันทึกออกกำลังกาย
                             </button>
                         </div>
@@ -957,13 +957,9 @@ const HealthPage = () => {
                                                         try {
                                                             setIsLoading(true);
                                                             await window.gasClient.resetWellness();
-                                                            
-                                                            // Clear local state immediately for instant feedback
                                                             setWellness([]);
                                                             setNutrition([]);
                                                             setHealthAdvice(null);
-                                                            
-                                                            // Force refresh from server with force=true
                                                             await loadData(true);
                                                             alert("ล้างข้อมูลวันนี้เรียบร้อยแล้ว!");
                                                         } catch (err) {
@@ -989,7 +985,6 @@ const HealthPage = () => {
                                         />
                                     </div>
 
-                                    {/* Manual Input & Stepper */}
                                     <div className="flex items-center gap-3 mb-4">
                                         <button 
                                             onClick={() => setManualWater(Math.max(0, manualWater - 50))}
@@ -1076,7 +1071,7 @@ const HealthPage = () => {
 
                                     <button 
                                         onClick={() => handleLogSleep(manualSleep)}
-                                        className="w-full py-4 bg-purple-500 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all text-[10px] uppercase tracking-widest"
+                                        className="w-full py-4 bg-purple-500 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-[10px] uppercase tracking-widest"
                                     >
                                         อัปเดตชั่วโมงการนอน
                                     </button>
@@ -1084,7 +1079,6 @@ const HealthPage = () => {
                             </div>
                         ) : (
                             <div className="space-y-10 animate-fade-in py-4">
-                                {/* Analytics Bars */}
                                 <div className="space-y-6">
                                     <div className="flex justify-between items-end">
                                         <div>
@@ -1097,11 +1091,9 @@ const HealthPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Simple Trend Visualizer */}
                                     <div className="h-32 flex items-end gap-1.5 px-2">
                                         {wellnessStats.history.slice(-14).map((h, i) => (
                                             <div key={i} className="flex-1 flex flex-col gap-1 items-center group relative">
-                                                {/* Tooltip */}
                                                 <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-zinc-800 text-[10px] p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 border border-white/10 shadow-xl">
                                                     {h.date}<br/>
                                                     Water: {h.water}ml<br/>
@@ -1142,6 +1134,19 @@ const HealthPage = () => {
                             </div>
                         )}
                     </BentoCard>}
+
+                    {/* ── Fasting Tracker (NEW) ── */}
+                    {BentoCard && FastingTracker && (
+                        <BentoCard 
+                            title="การอดอาหาร" 
+                            subtitle="Fasting Protocol" 
+                            icon="Timer"
+                            className="col-span-12 lg:col-span-4"
+                        >
+                            <FastingTracker />
+                        </BentoCard>
+                    )}
+
                 </div>
             </main>
 
@@ -1174,9 +1179,10 @@ const mountApp = () => {
     const hasBento = !!window.BentoCard;
     const hasMeal = !!window.MealAnalyzer;
     const hasExercise = !!window.ExerciseLogger;
+    const hasFasting = !!window.FastingTracker;
     const hasSafeIcon = !!window.SafeIcon;
 
-    if (hasNavbar && hasBento && hasMeal && hasExercise && hasSafeIcon) {
+    if (hasNavbar && hasBento && hasMeal && hasExercise && hasFasting && hasSafeIcon) {
         ReactDOM.createRoot(root).render(<HealthPage />);
     } else {
         // If some components aren't ready, log which ones are missing to help debug
