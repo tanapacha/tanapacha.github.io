@@ -1668,8 +1668,8 @@ const Dashboard = () => {
                                         {wellnessStats.sleep}h
                                     </span>
                                 </div>
-                                <div className="flex gap-2">
-                                    {[6, 7, 8, 9].map(h => (
+                                <div className="flex flex-wrap gap-2">
+                                    {[4, 6, 7, 8].map(h => (
                                         <button 
                                             key={h}
                                             onClick={async () => {
@@ -1678,7 +1678,7 @@ const Dashboard = () => {
                                                 const d = await window.gasClient.fetchData('wellness', true);
                                                 if (d) setWellness(d.wellness);
                                             }}
-                                            className={`flex-1 py-2 text-[10px] font-bold rounded-lg border transition-all ${wellnessStats.sleep === h ? 'bg-purple-500 border-purple-400 text-white' : 'border-white/5 bg-white/5 text-purple-400/50 hover:border-purple-400'}`}
+                                            className={`flex-1 min-w-[45px] py-2 text-[10px] font-bold rounded-lg border transition-all ${wellnessStats.sleep === h ? 'bg-purple-500 border-purple-400 text-white' : 'border-white/5 bg-white/5 text-purple-400/50 hover:border-purple-400'}`}
                                         >
                                             {h}h
                                         </button>

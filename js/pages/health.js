@@ -1122,12 +1122,12 @@ const HealthPage = () => {
                                         </button>
                                     </div>
 
-                                    <div className="flex gap-2 mb-4">
+                                    <div className="flex flex-wrap gap-2 mb-4">
                                         {[4, 6, 7, 8].map(h => (
                                             <button 
                                                 key={h}
                                                 onClick={() => { setManualSleep(h); handleLogSleep(h); }}
-                                                className="flex-1 py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-300 rounded-xl text-[10px] font-bold transition-all"
+                                                className="flex-1 min-w-[45px] py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-300 rounded-xl text-[10px] font-bold transition-all"
                                             >
                                                 {h}h
                                             </button>
