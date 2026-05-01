@@ -478,6 +478,7 @@ const Dashboard = () => {
     const [burnoutAdvice, setBurnoutAdvice] = useState('');
     const [isEnergyAnalyzing, setIsEnergyAnalyzing] = useState(false);
     const [energyAdvice, setEnergyAdvice] = useState('');
+    const [electricity, setElectricity] = useState([]);
 
     // Helper to extract clean Local Time (HH:mm) from any string format
     const formatLocalTime = (str) => {
@@ -568,7 +569,7 @@ const Dashboard = () => {
 
             // 2. Priority Loading: Fetch Crucial Data First
             // 2. Unified Loading: Fetch All Data at once to prevent sync issues
-            const allSheets = "events,timetable,mood,wellness,nutrition,settings,goals,finance,habits,habitLogs,journal,resources,focusSessions";
+            const allSheets = "events,timetable,mood,wellness,nutrition,settings,goals,finance,habits,habitLogs,journal,resources,focusSessions,electricity";
 
             try {
                 console.log("[Aura Debug] Fetching All Data...");
@@ -627,6 +628,7 @@ const Dashboard = () => {
             if (data.habitLogs) setHabitLogs(data.habitLogs);
             if (data.journal) setJournal(data.journal);
             if (data.resources) setResources(data.resources);
+            if (data.electricity) setElectricity(data.electricity);
             if (data.settings) setSettings(data.settings);
             if (data.nutrition) {
                 setNutrition(data.nutrition);
@@ -1086,6 +1088,7 @@ const Dashboard = () => {
 
     // Contextual Ordering Logic
     const order = {
+        environment: 0.1,
         schedule: isMorning ? 1 : 4,
         teaching: isMorning ? 2 : 5,
         nutrition: isAfternoon ? 1 : 6,
@@ -1097,6 +1100,7 @@ const Dashboard = () => {
         goals: 12,
         habit: 13,
         ai: 14,
+        electricity: 14.5,
         garden: 15,
         quickActions: 16
     };
@@ -1248,6 +1252,22 @@ const Dashboard = () => {
                             </div>
                         </div>
                     </BentoCard>
+                    
+                    {/* ── Environment Card ── */}
+                    <div className="col-span-12 lg:col-span-4" style={{ order: order.environment }}>
+                        <window.EnvironmentWidget />
+                    </div>
+
+                    {/* ── Electricity Card ── */}
+                    <div className="col-span-12 lg:col-span-4" style={{ order: order.electricity }}>
+                        <window.ElectricityTracker 
+                            electricityData={electricity} 
+                            onUpdate={async () => {
+                                const d = await window.gasClient.fetchData('electricity', true);
+                                if (d && d.electricity) setElectricity(d.electricity);
+                            }}
+                        />
+                    </div>
 
                     {/* ── Aura Analytics Card ── */}
                     <BentoCard
@@ -1946,7 +1966,9 @@ const mountApp = () => {
         JournalModal: window.JournalModal,
         ResourceSaver: window.ResourceSaver,
         MealAnalyzer: window.MealAnalyzer,
-        NightstandMode: window.NightstandMode
+        NightstandMode: window.NightstandMode,
+        EnvironmentWidget: window.EnvironmentWidget,
+        ElectricityTracker: window.ElectricityTracker
     };
 
     const missing = Object.entries(required)

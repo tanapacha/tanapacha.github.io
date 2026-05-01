@@ -555,6 +555,47 @@ const gasClient = {
             console.error("Error deleting debt:", error);
             return { status: "error" };
         }
+    },
+
+    /**
+     * Weather & Air Quality (via Open-Meteo)
+     */
+    async fetchWeather(lat, lon) {
+        try {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,weathercode,uv_index`;
+            const response = await fetch(url);
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching weather:", error);
+            return null;
+        }
+    },
+
+    async fetchAirQuality(lat, lon) {
+        try {
+            const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5,pm10,us_aqi`;
+            const response = await fetch(url);
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching air quality:", error);
+            return null;
+        }
+    },
+
+    /**
+     * Electricity tracking
+     */
+    async addElectricity(data) {
+        try {
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'addElectricity', data: data })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Error adding electricity log:", error);
+            return { status: "error" };
+        }
     }
 };
 

@@ -6,6 +6,7 @@ const Navbar = () => {
         { name: 'ตารางสอน', icon: 'GraduationCap', href: 'timetable.html' },
         { name: 'สุขภาพ', icon: 'Heart', href: 'health.html' },
         { name: 'การเงิน', icon: 'Wallet', href: 'finance.html' },
+        { name: 'วิเคราะห์', icon: 'BarChart3', href: 'analytics.html' },
         { name: 'AI', icon: 'Sparkles', href: 'ai-assistant.html' },
     ];
 
@@ -53,7 +54,7 @@ const Navbar = () => {
 
                     {/* Center Nav */}
                     <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
-                        {[...mainItems, ...moreItems].slice(0, 7).map(item => {
+                        {[...mainItems, ...moreItems].slice(0, 8).map(item => {
                             const active = isActive(item.href);
                             return (
                                 <a key={item.name} href={item.href}

@@ -41,16 +41,28 @@ const fmtHHmm = (d) =>
     `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 // ── Wake-up intro: long, slow, gentle — ~30s at rate 0.72 ──
-const wakeUpIntro = () => {
+const wakeUpIntro = (weatherData) => {
     const hour = new Date().getHours();
     let greeting = '';
     if (hour < 6)  greeting = 'ดึกมากเลยนะครับ ขอบคุณที่ไว้วางใจให้ Aura ปลุก';
-    else if (hour < 10) greeting = 'อรุณสวัสดิ์ครับ เช้านี้อากาศน่าจะสดชื่นดีนะครับ';
+    else if (hour < 10) greeting = 'อรุณสวัสดิ์ครับ';
     else if (hour < 12) greeting = 'สวัสดีตอนสายนะครับ วันใหม่มาถึงแล้วครับ';
     else greeting = 'สวัสดีครับ ได้เวลาตื่นแล้วนะครับ';
 
+    let weatherSnippet = '';
+    if (weatherData) {
+        weatherSnippet = `เช้านี้อุณหภูมิอยู่ที่ ${Math.round(weatherData.temp)} องศาเซลเซียส `;
+        if (weatherData.pm25 > 55) {
+            weatherSnippet += `แต่ค่าฝุ่น พีเอ็ม 2.5 ค่อนข้างสูงอยู่ที่ ${Math.round(weatherData.pm25)} อย่าลืมใส่หน้ากากก่อนออกจากบ้านนะครับ `;
+        } else if (weatherData.pm25 > 35) {
+            weatherSnippet += `ค่าฝุ่น พีเอ็ม 2.5 อยู่ในระดับปานกลางครับ `;
+        } else {
+            weatherSnippet += `อากาศสดใสและค่าฝุ่นดีมากครับ `;
+        }
+    }
+
     return (
-        `${greeting} ` +
+        `${greeting} ${weatherSnippet}` +
         `ค่อยๆ ลืมตาขึ้นช้าๆ นะครับ ไม่ต้องรีบ ` +
         `หายใจเข้าลึกๆ สักครั้ง แล้วค่อยๆ ปล่อยออกมา ` +
         `ร่างกายต้องการเวลาสักครู่เพื่อตื่นตัวอย่างเต็มที่ครับ ` +
@@ -82,6 +94,7 @@ const NightstandMode = ({ onClose, todayEvents = [], todayTimetableClasses = [] 
     const [wakeLockActive, setWakeLockActive] = useNS(false);
     const [statusMsg, setStatusMsg] = useNS('');
     const [isListening, setIsListening] = useNS(false);
+    const [weather, setWeather] = useNS(null);
 
     // ── Stable refs (interval reads these without stale closure) ──
     const firedRef = useNSRef(new Set());           // keys already triggered
@@ -167,7 +180,7 @@ const NightstandMode = ({ onClose, todayEvents = [], todayTimetableClasses = [] 
 
         // Phase 1: after chime, speak gentle wake-up intro slowly
         setTimeout(() => {
-            const intro = wakeUpIntro();
+            const intro = wakeUpIntro(weather);
             speak(intro, 0.72, () => {
                 // Phase 2: after intro completes, speak the schedule
                 const nowMins = alarm.hour * 60 + alarm.min;
@@ -231,6 +244,37 @@ const NightstandMode = ({ onClose, todayEvents = [], todayTimetableClasses = [] 
         if (wakeLockRef.current) { wakeLockRef.current.release(); wakeLockRef.current = null; }
         setWakeLockActive(false);
     };
+
+    // ── Fetch Weather ──
+    useNSEffect(() => {
+        const fetchWeather = async () => {
+            const lat = 13.7563, lon = 100.5018; // Default BKK
+            try {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        const [w, a] = await Promise.all([
+                            window.gasClient.fetchWeather(pos.coords.latitude, pos.coords.longitude),
+                            window.gasClient.fetchAirQuality(pos.coords.latitude, pos.coords.longitude)
+                        ]);
+                        if (w && a) {
+                            const h = new Date().getHours();
+                            setWeather({ temp: w.current_weather.temperature, pm25: a.hourly.pm2_5[h] });
+                        }
+                    }, async () => {
+                        const [w, a] = await Promise.all([
+                            window.gasClient.fetchWeather(lat, lon),
+                            window.gasClient.fetchAirQuality(lat, lon)
+                        ]);
+                        if (w && a) {
+                            const h = new Date().getHours();
+                            setWeather({ temp: w.current_weather.temperature, pm25: a.hourly.pm2_5[h] });
+                        }
+                    });
+                }
+            } catch (e) { console.error("Weather fetch error", e); }
+        };
+        fetchWeather();
+    }, []);
 
     // ── SINGLE stable interval — reads state via refs ──
     useNSEffect(() => {
