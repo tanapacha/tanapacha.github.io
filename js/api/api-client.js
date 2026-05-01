@@ -429,6 +429,20 @@ const gasClient = {
         }
     },
 
+    async deleteNutrition(id) {
+        try {
+            this._cache = {}; // Clear cache on update
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'deleteNutrition', id: id })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Error deleting nutrition log:", error);
+            return { status: "error" };
+        }
+    },
+
     /**
      * Specialized Food Analysis
      * @param {string} base64Image - Base64 string of the food image

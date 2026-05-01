@@ -83,7 +83,7 @@ const ExerciseLogger = ({ isOpen, onClose, onSave }) => {
                     }
                 } catch(e){}
             }
-            prompt += `. โปรดประเมินการเผาผลาญแคลอรี่ของฉัน ตอบกลับมาเป็นตัวเลขกิโลแคลอรี่ (kcal) อย่างเดียว ห้ามมีตัวอักษรอื่นเด็ดขาด เช่น 350`;
+            prompt += `. โปรดประเมินการเผาผลาญแคลอรี่ของฉัน ตอบกลับมาเป็นตัวเลขกิโลแคลอรี่ (kcal) อย่างเดียว ห้ามมีตัวอักษรอื่นเด็ดขาด ห้ามใส่แท็ก [ACTION:...] หรือคำสั่งใดๆ ทั้งสิ้น เช่น ตอบแค่ 350`;
 
             const aiResponse = await window.gasClient.callAI(prompt);
             let cals = 300; // default fallback

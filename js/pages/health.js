@@ -223,6 +223,22 @@ const HealthPage = () => {
         }
     };
 
+    const handleDeleteNutrition = async (id) => {
+        if (!id) {
+            alert("ไม่พบ ID ของรายการนี้ ไม่สามารถลบได้ครับ");
+            return;
+        }
+        if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?')) return;
+        
+        try {
+            await window.gasClient.deleteNutrition(id);
+            await loadData(true, true);
+        } catch (error) {
+            console.error("Error deleting nutrition:", error);
+            alert("ลบข้อมูลไม่สำเร็จครับ");
+        }
+    };
+
     const handleLogSleep = async (hours, quality = 'good') => {
         try {
             const localDate = toDateStr(new Date());
@@ -908,17 +924,27 @@ const HealthPage = () => {
                                                     <p className="text-[10px] text-white/30 uppercase tracking-widest">{new Date(meal.date).toLocaleTimeString('th-TH')}</p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <span className={`text-xl font-light ${isExercise ? 'text-orange-400' : 'text-white'}`}>
-                                                    {isExercise ? '-' : '+'}{cals} <span className="text-[10px] opacity-40">kcal</span>
-                                                </span>
-                                                {!isExercise && (
-                                                    <div className="flex gap-3 mt-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                        <span className="text-[8px] font-bold">P: {meal.protein}g</span>
-                                                        <span className="text-[8px] font-bold">C: {meal.carbs}g</span>
-                                                        <span className="text-[8px] font-bold">F: {meal.fat}g</span>
-                                                    </div>
-                                                )}
+                                            <div className="text-right flex items-center gap-4">
+                                                <div className="flex flex-col items-end">
+                                                    <span className={`text-xl font-light ${isExercise ? 'text-orange-400' : 'text-white'}`}>
+                                                        {isExercise ? '-' : '+'}{cals} <span className="text-[10px] opacity-40">kcal</span>
+                                                    </span>
+                                                    {!isExercise && (
+                                                        <div className="flex gap-3 mt-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                            <span className="text-[8px] font-bold">P: {meal.protein}g</span>
+                                                            <span className="text-[8px] font-bold">C: {meal.carbs}g</span>
+                                                            <span className="text-[8px] font-bold">F: {meal.fat}g</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                <button 
+                                                    onClick={() => handleDeleteNutrition(meal.id || meal.row)}
+                                                    className="p-3 rounded-xl bg-white/5 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                                                    title="ลบรายการนี้"
+                                                >
+                                                    {SafeIcon && <SafeIcon name="Trash2" className="w-4 h-4" />}
+                                                </button>
                                             </div>
                                         </div>
                                     )
@@ -1053,6 +1079,24 @@ const HealthPage = () => {
                                         ))}
                                     </div>
 
+                                    {/* Sleep Slider */}
+                                    <div className="px-2 mb-6">
+                                        <input 
+                                            type="range" 
+                                            min="0" 
+                                            max="12" 
+                                            step="0.5" 
+                                            value={manualSleep}
+                                            onChange={(e) => setManualSleep(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                                        />
+                                        <div className="flex justify-between mt-2 text-[8px] text-white/20 font-bold">
+                                            <span>0h</span>
+                                            <span>6h</span>
+                                            <span>12h</span>
+                                        </div>
+                                    </div>
+
                                     <div className="flex items-center gap-3 mb-4">
                                         <button 
                                             onClick={() => setManualSleep(Math.max(0, manualSleep - 0.5))}
@@ -1078,9 +1122,21 @@ const HealthPage = () => {
                                         </button>
                                     </div>
 
+                                    <div className="flex gap-2 mb-4">
+                                        {[4, 6, 7, 8].map(h => (
+                                            <button 
+                                                key={h}
+                                                onClick={() => { setManualSleep(h); handleLogSleep(h); }}
+                                                className="flex-1 py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-300 rounded-xl text-[10px] font-bold transition-all"
+                                            >
+                                                {h}h
+                                            </button>
+                                        ))}
+                                    </div>
+
                                     <button 
                                         onClick={() => handleLogSleep(manualSleep)}
-                                        className="w-full py-4 bg-purple-500 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-[10px] uppercase tracking-widest"
+                                        className="w-full py-4 bg-purple-500 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-[10px] uppercase tracking-widest shadow-[0_4px_15px_rgba(168,85,247,0.3)]"
                                     >
                                         อัปเดตชั่วโมงการนอน
                                     </button>
