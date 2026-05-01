@@ -334,9 +334,7 @@ const gasClient = {
         // Fallback sequence if the selected model fails due to quota/rate-limits
         const fallbackModels = [
             modelName, // Start with the requested model
-            "gemini-2.0-flash-lite", // Extremely fast and usually always available
             "gemini-flash-latest", // Standard stable model
-            "gemini-2.5-pro", // If flash fails, maybe pro has different quota
             "gemini-1.5-flash-8b" // Absolute last resort
         ];
 
@@ -374,16 +372,19 @@ const gasClient = {
                     continue; // Try next model
                 }
                 
-                if (data.error) {
-                    const isRateLimit = data.error.toLowerCase().match(/429|exhausted|quota|overloaded|too many requests/);
+                if (data.error || data.status === "error") {
+                    const errorMsg = data.error || data.message || "เกิดข้อผิดพลาดในการประมวลผลข้อมูลที่ Backend";
+                    const isRateLimit = errorMsg.toLowerCase().match(/429|exhausted|quota|overloaded|too many requests/);
                     if (isRateLimit && i < modelsToTry.length - 1) {
                         console.warn(`[Aura AI] Model ${currentModel} is full/rate-limited. Auto-switching to next model...`);
                         continue; // Try next model in the fallback list
                     }
-                    if (i === modelsToTry.length - 1) return data.error; // Return error if all models fail
+                    return errorMsg.startsWith('⚠️') ? errorMsg : `⚠️ ${errorMsg}`; // Return immediately for any other error!
                 }
                 
                 let reply = data.reply;
+                if (!reply && i === modelsToTry.length - 1) return "⚠️ AI ไม่ได้ตอบกลับข้อมูลโภชนาการที่ต้องการ กรุณาลองถ่ายภาพใหม่ครับ (เซิร์ฟเวอร์อาจทำงานหนัก)";
+
                 if (data.actionPerformed) {
                     reply += `\n\n✨ [Aura Action]: ${data.actionPerformed}`;
                 }
@@ -444,7 +445,7 @@ const gasClient = {
 กรุณาตอบกลับเป็นภาษาไทยที่อ่านง่าย และใช้ Smart Action เพื่อบันทึกข้อมูลดังนี้:
 [ACTION:ADD_NUTRITION|ชื่ออาหาร|แคลอรี่|โปรตีน|คาร์บ|ไขมัน]`;
 
-        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากรูปภาพ", "gemini-2.5-pro", base64Image);
+        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากรูปภาพ", "gemini-flash-latest", base64Image);
     },
 
     /**
@@ -463,7 +464,7 @@ const gasClient = {
 กรุณาตอบกลับเป็นภาษาไทยที่กระชับ และใช้ Smart Action เพื่อบันทึกข้อมูลดังนี้:
 [ACTION:ADD_NUTRITION|ชื่ออาหาร|แคลอรี่|โปรตีน|คาร์บ|ไขมัน]`;
 
-        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากข้อความ", "gemini-2.5-pro");
+        return await this.callAI(prompt, "วิเคราะห์โภชนาการจากข้อความ", "gemini-flash-latest");
     },
 
     /**

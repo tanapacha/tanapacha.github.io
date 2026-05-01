@@ -76,8 +76,8 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // Resize for API (Speed Optimization: 1200px is enough for Gemini Pro)
-        const maxDim = 1200;
+        // Resize for API (Speed Optimization: 800px is enough for Gemini, reduces payload)
+        const maxDim = 800;
         let w = canvas.width;
         let h = canvas.height;
         if (w > h) {
@@ -97,7 +97,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         resizeCanvas.height = h;
         resizeCanvas.getContext('2d').drawImage(canvas, 0, 0, w, h);
         
-        const dataUrl = resizeCanvas.toDataURL('image/jpeg', 0.92);
+        const dataUrl = resizeCanvas.toDataURL('image/jpeg', 0.7);
         setPreview(dataUrl);
         stopCamera();
     };
@@ -122,7 +122,7 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
                 canvas.width = w;
                 canvas.height = h;
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                 setPreview(dataUrl);
                 setInputMode('camera');
             };
@@ -139,8 +139,8 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         
         try {
             const result = await window.gasClient.analyzeMealText(mealText, condiments);
-            setAnalysisResult(result);
-            if (onSave && typeof result === 'string' && !result.startsWith('⚠️')) {
+            setAnalysisResult(result || "AI ไม่สามารถให้ข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง");
+            if (onSave && typeof result === 'string' && result && !result.startsWith('⚠️')) {
                 onSave();
             }
         } catch (err) {
@@ -161,9 +161,9 @@ const MealAnalyzer = ({ isOpen, onClose, onSave }) => {
         try {
             const base64 = imageToProcess.split(',')[1];
             const result = await window.gasClient.analyzeMealImage(base64, condiments);
-            setAnalysisResult(result);
+            setAnalysisResult(result || "AI ไม่สามารถให้ข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง");
             // Only trigger refresh if result doesn't start with error indicator
-            if (onSave && typeof result === 'string' && !result.startsWith('⚠️')) {
+            if (onSave && typeof result === 'string' && result && !result.startsWith('⚠️')) {
                 onSave();
             }
         } catch (err) {

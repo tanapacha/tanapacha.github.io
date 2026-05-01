@@ -64,6 +64,7 @@ const HealthPage = () => {
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isMealAnalyzerOpen, setIsMealAnalyzerOpen] = useState(false);
+    const [isDinnerPlannerOpen, setIsDinnerPlannerOpen] = useState(false);
     const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
     const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
     const [healthAdvice, setHealthAdvice] = useState(null);
@@ -485,14 +486,22 @@ const HealthPage = () => {
                             </button>
                         </div>
                     </div>
-                    
-                    <button 
-                        onClick={() => setIsMealAnalyzerOpen(true)}
-                        className="px-8 py-4 bg-gold text-midnight font-bold rounded-2xl shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                        {SafeIcon && <SafeIcon name="Camera" className="w-5 h-5" />}
-                        สแกนอาหาร
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <button 
+                            onClick={() => setIsDinnerPlannerOpen(true)}
+                            className="px-6 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                        >
+                            {SafeIcon && <SafeIcon name="ChefHat" className="w-5 h-5" />}
+                            Aura Planner (วางแผนมื้อเย็น)
+                        </button>
+                        <button 
+                            onClick={() => setIsMealAnalyzerOpen(true)}
+                            className="px-8 py-4 bg-gold text-midnight font-bold rounded-2xl shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            {SafeIcon && <SafeIcon name="Camera" className="w-5 h-5" />}
+                            สแกนอาหาร
+                        </button>
+                    </div>
                 </header>
 
                 <div className="grid grid-cols-12 gap-8">
@@ -1155,6 +1164,23 @@ const HealthPage = () => {
                     isOpen={isMealAnalyzerOpen}
                     onClose={() => setIsMealAnalyzerOpen(false)}
                     onSave={handleDataChange}
+                />
+            )}
+            
+            {isDinnerPlannerOpen && window.DinnerPlanner && (
+                <window.DinnerPlanner
+                    dailyStats={{
+                        targetCalories: stats.targetCalories,
+                        consumedCalories: foodTotals.cals,
+                        remainingCalories: Math.max(0, stats.targetCalories - netCalories),
+                        targetP: settings.weight * 2,
+                        consumedP: foodTotals.p,
+                        targetC: settings.weight * 3,
+                        consumedC: foodTotals.c,
+                        targetF: settings.weight * 1,
+                        consumedF: foodTotals.f
+                    }}
+                    onClose={() => setIsDinnerPlannerOpen(false)}
                 />
             )}
 

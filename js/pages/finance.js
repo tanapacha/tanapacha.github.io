@@ -40,6 +40,18 @@ const Finance = () => {
         localStorage.setItem('aura_debts', JSON.stringify(debts));
     }, [debts]);
 
+    // Wishlist State
+    const [wishlists, setWishlists] = useState(JSON.parse(localStorage.getItem('aura_wishlists')) || []);
+    const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+    const [newWishlist, setNewWishlist] = useState({ name: '', targetAmount: '' });
+    const [isSavingWishlistOpen, setIsSavingWishlistOpen] = useState(false);
+    const [selectedWishlist, setSelectedWishlist] = useState(null);
+    const [savingAmount, setSavingAmount] = useState('');
+
+    useEffect(() => {
+        localStorage.setItem('aura_wishlists', JSON.stringify(wishlists));
+    }, [wishlists]);
+
     const loadFinances = async (silent = false) => {
         if (!silent) setIsLoading(true);
         // Optimization: Only fetch finance data and debts
@@ -195,6 +207,50 @@ const Finance = () => {
             alert("บันทึกลูกหนี้ไม่สำเร็จ");
         }
         setIsSaving(false);
+    };
+
+    const handleAddWishlist = (e) => {
+        e.preventDefault();
+        const wl = {
+            id: 'wl-' + Date.now(),
+            name: newWishlist.name,
+            targetAmount: parseFloat(newWishlist.targetAmount),
+            savedAmount: 0,
+            date: new Date().toISOString()
+        };
+        setWishlists(prev => [wl, ...prev]);
+        setNewWishlist({ name: '', targetAmount: '' });
+        setIsWishlistModalOpen(false);
+    };
+
+    const handleAddSavings = (e) => {
+        e.preventDefault();
+        const amt = parseFloat(savingAmount);
+        
+        // Add expense transaction to deduct from balance
+        const submitData = {
+            type: 'expense',
+            amount: amt,
+            category: 'อื่นๆ',
+            note: `เก็บเงินออม: ${selectedWishlist.name}`,
+            date: new Date().toISOString().slice(0, 10) + "T12:00:00"
+        };
+        const optimisticTx = { id: "TEMP-" + Date.now(), ...submitData, dateObj: new Date(submitData.date) };
+        setTransactions(prev => [optimisticTx, ...prev]);
+        window.gasClient.addTransaction(submitData); // Fire and forget for simplicity
+
+        setWishlists(prev => prev.map(wl => 
+            wl.id === selectedWishlist.id ? { ...wl, savedAmount: wl.savedAmount + amt } : wl
+        ));
+        
+        setSavingAmount('');
+        setIsSavingWishlistOpen(false);
+    };
+
+    const handleDeleteWishlist = (id) => {
+        if(window.confirm("ต้องการลบเป้าหมายนี้หรือไม่?")) {
+            setWishlists(prev => prev.filter(wl => wl.id !== id));
+        }
     };
 
     const handleAddPayment = async () => {
@@ -432,6 +488,69 @@ const Finance = () => {
                                 </div>
                             </div>
                         </BentoCard>
+
+                        {/* Wishlist Savings */}
+                        <BentoCard title="เป้าหมายการออม" subtitle="Wishlist Tracker" icon="Target">
+                            <div className="mt-4 space-y-4">
+                                <button 
+                                    onClick={() => setIsWishlistModalOpen(true)}
+                                    className="w-full py-3 bg-white/5 border border-dashed border-white/20 rounded-2xl text-white/60 hover:text-white hover:border-blue-500/50 transition-all text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                                >
+                                    <i data-lucide="Plus" className="w-4 h-4" /> ตั้งเป้าหมายใหม่
+                                </button>
+
+                                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                                    {wishlists.length === 0 ? (
+                                        <p className="text-center py-10 text-white/10 italic text-xs">ยังไม่มีเป้าหมายการออม</p>
+                                    ) : (
+                                        wishlists.map(wl => {
+                                            const progress = Math.min((wl.savedAmount / wl.targetAmount) * 100, 100);
+                                            const isComplete = progress >= 100;
+                                            return (
+                                                <div key={wl.id} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 group hover:bg-white/[0.05] transition-all">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <h5 className="text-white font-bold">{wl.name}</h5>
+                                                            <p className="text-[10px] text-white/30">{progress.toFixed(0)}% Complete</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className={`text-sm font-bold ${isComplete ? 'text-green-400' : 'text-blue-400'}`}>
+                                                                ฿{wl.savedAmount.toLocaleString()}
+                                                            </p>
+                                                            <p className="text-[8px] text-white/20 uppercase">เป้าหมาย / ฿{wl.targetAmount.toLocaleString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mb-3">
+                                                        <div 
+                                                            className={`h-full transition-all duration-1000 ${isComplete ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'}`}
+                                                            style={{ width: `${progress}%` }}
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex gap-2">
+                                                        {!isComplete && (
+                                                            <button 
+                                                                onClick={() => { setSelectedWishlist(wl); setIsSavingWishlistOpen(true); }}
+                                                                className="flex-1 py-2 bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white rounded-xl text-[10px] font-bold transition-all"
+                                                            >
+                                                                หยอดกระปุก
+                                                            </button>
+                                                        )}
+                                                        <button 
+                                                            onClick={() => handleDeleteWishlist(wl.id)}
+                                                            className="p-2 bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 rounded-xl transition-all"
+                                                        >
+                                                            <i data-lucide="Trash2" className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        </BentoCard>
                     </div>
 
                 </div>
@@ -546,6 +665,55 @@ const Finance = () => {
                                     ยืนยันการรับเงิน
                                 </button>
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Wishlist Modals */}
+                {isWishlistModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-midnight/80 backdrop-blur-md">
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#111318] border border-white/10 p-8 rounded-[32px] w-full max-w-md shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl text-white font-semibold">ตั้งเป้าหมายการออม</h2>
+                                <button onClick={() => setIsWishlistModalOpen(false)} className="text-white/20 hover:text-white"><i data-lucide="X" className="w-6 h-6"/></button>
+                            </div>
+                            <form onSubmit={handleAddWishlist} className="space-y-4">
+                                <div className="space-y-1.5 border-b border-white/10 pb-4">
+                                    <label className="text-[10px] text-white/40 uppercase tracking-widest pl-1">ราคาเป้าหมาย (บาท)</label>
+                                    <input required type="number" step="0.01" className="w-full bg-transparent text-4xl text-white font-light placeholder:text-white/10 focus:outline-none px-2" placeholder="0.00" value={newWishlist.targetAmount} onChange={e=>setNewWishlist({...newWishlist, targetAmount: e.target.value})}/>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] text-white/40 uppercase tracking-widest pl-1">ของที่อยากได้</label>
+                                    <input required type="text" className="w-full bg-white/5 border border-white/5 p-4 rounded-xl text-white focus:border-blue-500/50 outline-none" placeholder="เช่น MacBook Pro" value={newWishlist.name} onChange={e=>setNewWishlist({...newWishlist, name: e.target.value})}/>
+                                </div>
+                                <button type="submit" className="w-full py-4 mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all">
+                                    บันทึกเป้าหมาย
+                                </button>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+
+                {isSavingWishlistOpen && selectedWishlist && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-midnight/80 backdrop-blur-md">
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#111318] border border-white/10 p-8 rounded-[32px] w-full max-w-md shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h2 className="text-xl text-white font-semibold">หยอดกระปุก</h2>
+                                    <p className="text-xs text-blue-400 mt-1">เป้าหมาย: {selectedWishlist.name}</p>
+                                </div>
+                                <button onClick={() => setIsSavingWishlistOpen(false)} className="text-white/20 hover:text-white"><i data-lucide="X" className="w-6 h-6"/></button>
+                            </div>
+                            <form onSubmit={handleAddSavings} className="space-y-4">
+                                <div className="space-y-1.5 border-b border-white/10 pb-4">
+                                    <label className="text-[10px] text-white/40 uppercase tracking-widest pl-1">จำนวนเงินที่ต้องการออม (บาท)</label>
+                                    <input required type="number" step="0.01" max={selectedWishlist.targetAmount - selectedWishlist.savedAmount} className="w-full bg-transparent text-4xl text-white font-light placeholder:text-white/10 focus:outline-none px-2" placeholder="0.00" value={savingAmount} onChange={e=>setSavingAmount(e.target.value)}/>
+                                    <p className="text-[10px] text-white/20 px-2 mt-2">หมายเหตุ: ระบบจะลงรายจ่ายในบัญชีกลางให้อัตโนมัติ</p>
+                                </div>
+                                <button type="submit" className="w-full py-4 mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl transition-all">
+                                    ออมเงิน
+                                </button>
+                            </form>
                         </motion.div>
                     </div>
                 )}

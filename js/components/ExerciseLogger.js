@@ -13,9 +13,10 @@ const ExerciseLogger = ({ isOpen, onClose, onSave }) => {
     const [duration, setDuration] = useState('');
     const [durationUnit, setDurationUnit] = useState('min'); // 'min' or 'hr'
     const [distance, setDistance] = useState('');
+    const [bodyParts, setBodyParts] = useState('');
 
     const activityOptions = [
-        '🏃 วิ่ง', '🚴 ปั่นจักรยาน', '🏋️ เวทเทรนนิ่ง', '🏊 ว่ายน้ำ', 
+        '🏃 วิ่ง', '🚴 ปั่นจักรยาน', '🏋️ เวทเทรนนิ่ง', '🤸 คาลิสเทนนิกส์', '🏊 ว่ายน้ำ', 
         '🚶 เดิน', '🧘 โยคะ', '⚽ เตะบอล', '🏸 แบดมินตัน', '🥊 มวย', '💪 ออกกำลังกายทั่วไป'
     ];
 
@@ -96,6 +97,9 @@ const ExerciseLogger = ({ isOpen, onClose, onSave }) => {
             }
             
             let mealNameStr = `[EXERCISE] ${activityName} ( ${actualDuration} นาที )`;
+            if (bodyParts) {
+                mealNameStr = `[EXERCISE] ${activityName} (${bodyParts}) ( ${actualDuration} นาที )`;
+            }
             const needsDistance = activityName.includes('วิ่ง') || activityName.includes('จักรยาน');
             if (needsDistance && distance) {
                 mealNameStr = `[EXERCISE] ${activityName} ( ${distance} กม., ${actualDuration} นาที )`;
@@ -252,6 +256,17 @@ const ExerciseLogger = ({ isOpen, onClose, onSave }) => {
                                     >
                                         {activityOptions.map(opt => <option key={opt} value={opt} className="bg-zinc-900">{opt}</option>)}
                                     </select>
+                                </div>
+
+                                <div className="space-y-2.5">
+                                    <label className="text-[10px] text-orange-400 font-bold uppercase tracking-widest">ส่วนที่เล่นวันนี้ (ทางเลือก)</label>
+                                    <input 
+                                        type="text" 
+                                        value={bodyParts}
+                                        onChange={(e) => setBodyParts(e.target.value)}
+                                        placeholder="เช่น อก, หลัง, ไหล่, ขา"
+                                        className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-orange-500/50"
+                                    />
                                 </div>
 
                                 {(activityName.includes('วิ่ง') || activityName.includes('จักรยาน')) && (

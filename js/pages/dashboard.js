@@ -216,6 +216,247 @@ const useSlide = () => {
     return { phase, trigger, exitStyle, enterStyle };
 };
 
+/* ─── Chart Widget ─────────────────────────────────────────── */
+const AuraChartWidget = ({ nutritionData, financeData }) => {
+    const nutriChartRef = useRef(null);
+    const financeChartRef = useRef(null);
+    const nutriChartInstance = useRef(null);
+    const financeChartInstance = useRef(null);
+
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [aiAdvice, setAiAdvice] = useState('');
+
+    const getDatesArray = () => {
+        const today = new Date();
+        return Array.from({length: 7}, (_, i) => {
+            const d = new Date();
+            d.setDate(today.getDate() - (6 - i));
+            return { full: toDateStr(d), short: `${d.getDate()}/${d.getMonth()+1}` };
+        });
+    };
+
+    // Group nutrition by last 7 days
+    useEffect(() => {
+        if (!window.Chart || !nutritionData) return;
+        
+        const datesInfo = getDatesArray();
+        const intake = datesInfo.map(d => {
+            const dayLogs = nutritionData.filter(n => isSameDay(n?.date, d.full) && parseFloat(n.calories) > 0);
+            return dayLogs.reduce((sum, n) => sum + parseFloat(n.calories), 0);
+        });
+        
+        const burned = datesInfo.map(d => {
+            const dayLogs = nutritionData.filter(n => isSameDay(n?.date, d.full) && parseFloat(n.calories) < 0);
+            return Math.abs(dayLogs.reduce((sum, n) => sum + parseFloat(n.calories), 0));
+        });
+
+        if (nutriChartInstance.current) nutriChartInstance.current.destroy();
+        
+        if (nutriChartRef.current) {
+            const ctx = nutriChartRef.current.getContext('2d');
+            nutriChartInstance.current = new window.Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datesInfo.map(d => d.short),
+                    datasets: [
+                        { label: 'กินเข้าไป', data: intake, backgroundColor: 'rgba(55, 180, 212, 0.7)', borderRadius: 4 },
+                        { label: 'เผาผลาญ', data: burned, backgroundColor: 'rgba(212, 55, 55, 0.7)', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.7)' } } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
+                    }
+                }
+            });
+        }
+
+        return () => { if (nutriChartInstance.current) nutriChartInstance.current.destroy(); };
+    }, [nutritionData]);
+
+    // Group finance by last 7 days
+    useEffect(() => {
+        if (!window.Chart || !financeData) return;
+        
+        const datesInfo = getDatesArray();
+        const income = datesInfo.map(d => {
+            const dayLogs = financeData.filter(n => isSameDay(n?.date, d.full) && n.type === 'income');
+            return dayLogs.reduce((sum, n) => sum + parseFloat(n.amount), 0);
+        });
+        
+        const expense = datesInfo.map(d => {
+            const dayLogs = financeData.filter(n => isSameDay(n?.date, d.full) && n.type === 'expense');
+            return dayLogs.reduce((sum, n) => sum + parseFloat(n.amount), 0);
+        });
+
+        if (financeChartInstance.current) financeChartInstance.current.destroy();
+        
+        if (financeChartRef.current) {
+            const ctx = financeChartRef.current.getContext('2d');
+            financeChartInstance.current = new window.Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: datesInfo.map(d => d.short),
+                    datasets: [
+                        { label: 'รายรับ', data: income, borderColor: '#37d478', backgroundColor: 'rgba(55, 212, 120, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'รายจ่าย', data: expense, borderColor: '#d43737', backgroundColor: 'rgba(212, 55, 55, 0.1)', fill: true, tension: 0.4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.7)' } } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
+                    }
+                }
+            });
+        }
+
+        return () => { if (financeChartInstance.current) financeChartInstance.current.destroy(); };
+    }, [financeData]);
+
+    const handleAnalyzeGraphs = async () => {
+        setIsAnalyzing(true);
+        
+        // Prepare summary string of the last 7 days to send to AI
+        const datesInfo = getDatesArray();
+        let summaryText = datesInfo.map(d => {
+            const dateStr = d.full;
+            
+            // Nutri
+            const dayNutri = nutritionData ? nutritionData.filter(n => isSameDay(n?.date, dateStr)) : [];
+            const intake = dayNutri.filter(n => parseFloat(n.calories) > 0).reduce((sum, n) => sum + parseFloat(n.calories), 0);
+            const burned = Math.abs(dayNutri.filter(n => parseFloat(n.calories) < 0).reduce((sum, n) => sum + parseFloat(n.calories), 0));
+            
+            // Finance
+            const dayFin = financeData ? financeData.filter(n => isSameDay(n?.date, dateStr)) : [];
+            const income = dayFin.filter(n => n.type === 'income').reduce((sum, n) => sum + parseFloat(n.amount), 0);
+            const expense = dayFin.filter(n => n.type === 'expense').reduce((sum, n) => sum + parseFloat(n.amount), 0);
+            
+            return `วันที่ ${d.short}: กิน ${intake} kcal, เบิร์น ${burned} kcal | รับ ${income} บาท, จ่าย ${expense} บาท`;
+        }).join('\n');
+
+        const prompt = `ในฐานะผู้ช่วยส่วนตัว Aura AI ช่วยดูสถิติ 7 วันย้อนหลังของฉันหน่อย (ฉันไม่มีพื้นฐานการอ่านกราฟ):
+${summaryText}
+ช่วยสรุปให้ฟังแบบเข้าใจง่ายที่สุด ว่าสัปดาห์นี้ฉันคุมอาหารและคุมเงินได้ดีแค่ไหน มีอะไรน่าห่วงไหม สรุปสั้นๆ ว้าวๆ 2-3 ประโยค เป็นกันเองครับ`;
+
+        try {
+            const advice = await window.gasClient.callAI(prompt, "วิเคราะห์สถิติรายสัปดาห์");
+            setAiAdvice(advice);
+        } catch {
+            setAiAdvice("ขออภัย ไม่สามารถดึงข้อมูลสรุปจาก AI ได้ในขณะนี้");
+        }
+        setIsAnalyzing(false);
+    };
+
+    return (
+        <div className="flex flex-col w-full mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 min-h-[250px]">
+                    <div className="mb-4">
+                        <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="Utensils" className="w-4 h-4 text-blue-400"></i> โภชนาการ (7 วันย้อนหลัง)
+                        </h3>
+                        <p className="text-[11px] text-white/50 mt-1">เปรียบเทียบแคลอรี่ที่กินเข้าไป กับที่เผาผลาญจากการออกกำลังกาย</p>
+                    </div>
+                    <div className="relative h-[200px] w-full">
+                        <canvas ref={nutriChartRef}></canvas>
+                    </div>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 min-h-[250px]">
+                    <div className="mb-4">
+                        <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="Wallet" className="w-4 h-4 text-green-400"></i> การเงิน (7 วันย้อนหลัง)
+                        </h3>
+                        <p className="text-[11px] text-white/50 mt-1">เปรียบเทียบยอดรวมรายรับและรายจ่ายในแต่ละวัน</p>
+                    </div>
+                    <div className="relative h-[200px] w-full">
+                        <canvas ref={financeChartRef}></canvas>
+                    </div>
+                </div>
+            </div>
+
+            {/* AI Chart Analyst Button */}
+            <div className="mt-4">
+                {aiAdvice ? (
+                    <div className="p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 text-sm text-white/90 leading-relaxed relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <span className="text-purple-400 mr-2 font-bold flex items-center gap-2 mb-2">
+                            <i data-lucide="Sparkles" className="w-4 h-4"></i> Aura Insight สรุปสัปดาห์นี้:
+                        </span>
+                        {aiAdvice}
+                    </div>
+                ) : (
+                    <button 
+                        onClick={handleAnalyzeGraphs}
+                        disabled={isAnalyzing}
+                        className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium text-purple-400 transition-all flex items-center justify-center gap-2"
+                    >
+                        {isAnalyzing ? (
+                            <><i data-lucide="Loader2" className="w-4 h-4 animate-spin" /> AI กำลังอ่านกราฟให้คุณ...</>
+                        ) : (
+                            <><i data-lucide="Sparkles" className="w-4 h-4" /> สรุปกราฟสัปดาห์นี้ให้ฟังหน่อย (Aura AI)</>
+                        )}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+/* ─── Energy Correlator ────────────────────────────────────── */
+const EnergyCorrelator = ({ energyLevel, setEnergyLevel, handleSaveMood, aiAdvice, isAnalyzing }) => {
+    return (
+        <div className="bg-white/5 border border-gold/20 rounded-3xl p-5 mt-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+            
+            <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold">
+                    <i data-lucide="Zap" className="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 className="text-sm font-semibold text-white">Energy & Bio-Correlator</h3>
+                    <p className="text-xs text-white/50">ประเมินพลังงานปัจจุบันเพื่อหาต้นตอ</p>
+                </div>
+            </div>
+
+            <div className="mb-4">
+                <div className="flex justify-between text-xs font-bold text-white/40 mb-2">
+                    <span>หมดสภาพ (0%)</span>
+                    <span className="text-gold text-lg">{energyLevel}%</span>
+                    <span>พลังล้น (100%)</span>
+                </div>
+                <input 
+                    type="range" 
+                    min="0" max="100" 
+                    value={energyLevel} 
+                    onChange={(e) => setEnergyLevel(parseInt(e.target.value))}
+                    className="w-full accent-gold h-2 bg-white/10 rounded-full appearance-none outline-none cursor-pointer"
+                />
+            </div>
+
+            <button 
+                onClick={() => handleSaveMood('Neutral', energyLevel)}
+                disabled={isAnalyzing}
+                className="w-full py-3 bg-gold/10 text-gold hover:bg-gold/20 border border-gold/30 rounded-xl font-bold tracking-widest text-xs uppercase transition-all mb-4"
+            >
+                {isAnalyzing ? "กำลังวิเคราะห์..." : "วิเคราะห์ความเชื่อมโยง (AI)"}
+            </button>
+
+            {aiAdvice && (
+                <div className="p-4 bg-black/40 rounded-xl border border-white/5 text-sm text-white/80 leading-relaxed">
+                    <span className="text-gold mr-2 font-bold">Aura Insight:</span>
+                    {aiAdvice}
+                </div>
+            )}
+        </div>
+    );
+};
+
 /* ─── Main Dashboard ───────────────────────────────────────── */
 const Dashboard = () => {
     const Navbar = window.Navbar;
@@ -235,6 +476,8 @@ const Dashboard = () => {
     const [habitStackAdvice, setHabitStackAdvice] = useState(null);
     const [isBurnoutAnalyzing, setIsBurnoutAnalyzing] = useState(false);
     const [burnoutAdvice, setBurnoutAdvice] = useState('');
+    const [isEnergyAnalyzing, setIsEnergyAnalyzing] = useState(false);
+    const [energyAdvice, setEnergyAdvice] = useState('');
 
     // Helper to extract clean Local Time (HH:mm) from any string format
     const formatLocalTime = (str) => {
@@ -649,6 +892,28 @@ const Dashboard = () => {
         }
     };
 
+    const handleSaveEnergyAndAnalyze = async (mood, energy) => {
+        setIsEnergyAnalyzing(true);
+        // Save mood
+        await handleSaveMood(mood, energy);
+        
+        // Call AI for correlation
+        const recentFood = nutrition.filter(n => parseFloat(n.calories) > 0).slice(0, 5).map(n => n.mealName).join(', ');
+        const latestSleep = (wellness.filter(w => (parseFloat(w.sleepHours) || 0) > 0).sort((a,b) => new Date(b.date) - new Date(a.date))[0]?.sleepHours || 0);
+        
+        const prompt = `ในฐานะ Aura AI (Bio-hacking Expert) ตอนนี้ผู้ใช้มีระดับพลังงาน ${energy}/100 
+        ข้อมูลที่ผ่านมา: การนอนล่าสุด ${latestSleep} ชม., อาหารล่าสุด: ${recentFood || 'ไม่มีข้อมูล'}
+        ช่วยวิเคราะห์สั้นๆ 1-2 ประโยค ว่าระดับพลังงานนี้อาจเกิดจากอะไร และแนะนำวิธีปรับตัวแบบเป็นกันเอง ว้าวๆ`;
+
+        try {
+            const advice = await window.gasClient.callAI(prompt, "วิเคราะห์พลังงาน");
+            setEnergyAdvice(advice);
+        } catch {
+            setEnergyAdvice("ไม่สามารถวิเคราะห์พลังงานได้ในขณะนี้");
+        }
+        setIsEnergyAnalyzing(false);
+    };
+
     const calculateStats = () => {
         const { weight = 70, height = 170, age = 25, gender = 'male', activityLevel = 1.2, fitnessGoal = 'maintain' } = settings || {};
         const bmi = weight / ((height / 100) ** 2) || 0;
@@ -686,14 +951,37 @@ const Dashboard = () => {
 
     const wellnessStats = (() => {
         const filtered = wellness.filter(w => isSameDay(w?.date, selectedDateStr));
-        console.log("[Aura Debug] wellnessFiltered:", filtered.length, "for", selectedDateStr);
         const totalWater = filtered.reduce((sum, w) => sum + (parseFloat(w.water) || 0), 0);
         // Sleep is usually the most recent entry regardless of today's filtered list if we want to show current status
         const latestSleep = (wellness.filter(w => (parseFloat(w.sleepHours) || 0) > 0).sort((a,b) => new Date(b.date) - new Date(a.date))[0]?.sleepHours || 0);
         return { water: totalWater, sleep: latestSleep };
     })();
 
-
+    const calculateStressScore = () => {
+        const latestMood = moods.slice().sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+        const energy = latestMood?.energy || 50;
+        const sleep = wellnessStats.sleep || 0;
+        const workClasses = todayClasses.length;
+        
+        let score = 30; // base stress
+        
+        // Sleep penalty (less than 7 hours adds stress)
+        if (sleep > 0 && sleep < 7) score += (7 - sleep) * 10;
+        else if (sleep >= 7) score -= (sleep - 7) * 5; 
+        
+        // Work penalty
+        score += workClasses * 5;
+        
+        // Exercise penalty (high intensity adds physical stress)
+        score += Math.min(20, exerciseCals / 50); 
+        
+        // Energy buffer
+        score -= (energy / 5);
+        
+        return Math.max(0, Math.min(100, Math.round(score)));
+    };
+    
+    const stressScore = calculateStressScore();
 
     const analyzeBurnout = async () => {
         setIsBurnoutAnalyzing(true);
@@ -859,6 +1147,22 @@ const Dashboard = () => {
                     </div>
                 </header>
 
+                {stressScore >= 85 && (
+                    <div className="max-w-[1400px] mx-auto px-6 lg:px-8 mb-6 animate-fade-in">
+                        <div className="p-4 rounded-2xl bg-red-500/20 border border-red-500/50 flex items-center justify-between shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center animate-pulse">
+                                    <i data-lucide="AlertTriangle" className="w-5 h-5 text-red-500"></i>
+                                </div>
+                                <div>
+                                    <h3 className="text-red-400 font-bold text-sm">CRITICAL STRESS ALERT (คะแนนความล้า: {stressScore}%)</h3>
+                                    <p className="text-red-400/80 text-xs mt-1">ร่างกายและสมองของคุณรับภาระหนักเกินไป แนะนำให้ลดความเข้มข้นงานและนอนพักให้มากกว่าเดิมด่วน!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Bento Grid */}
                 <div className="bento-grid stagger-children flex flex-col md:grid">
 
@@ -938,6 +1242,18 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </div>
+                    </BentoCard>
+
+                    {/* ── Aura Analytics Card ── */}
+                    <BentoCard
+                        title="ภาพรวมรายสัปดาห์"
+                        subtitle="Aura Analytics"
+                        icon="BarChart2"
+                        accent="purple"
+                        className="col-span-12"
+                        style={{ order: order.stats + 0.5 }}
+                    >
+                        <AuraChartWidget nutritionData={nutrition} financeData={finances} />
                     </BentoCard>
 
                     {/* ── Schedule Card ── */}
@@ -1151,46 +1467,14 @@ const Dashboard = () => {
                                 ))}
                             </div>
 
-                            {/* Energy Slider */}
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] font-bold text-text-secondary uppercase tracking-widest pl-1">
-                                    <span>ระดับพลังงาน</span>
-                                    <span className="text-gold">{latestMood?.energy || 50}%</span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={localEnergy}
-                                    onChange={(e) => setLocalEnergy(parseInt(e.target.value))}
-                                    onMouseUp={() => handleSaveMood(latestMood?.mood || 'neutral', localEnergy)}
-                                    onTouchEnd={() => handleSaveMood(latestMood?.mood || 'neutral', localEnergy)}
-                                    className="w-full accent-gold h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer"
-                                />
-                            </div>
-
-                            {/* AI Analysis */}
-                            <div className="relative pt-2">
-                                {isBurnoutAnalyzing ? (
-                                    <div className="animate-pulse space-y-2 py-4 text-center">
-                                        <div className="thinking-dot"></div>
-                                        <div className="thinking-dot"></div>
-                                        <div className="thinking-dot"></div>
-                                        <p className="text-[10px] text-gold/60 mt-2">Gemini กำลังวิเคราะห์อาการของคุณ...</p>
-                                    </div>
-                                ) : burnoutAdvice ? (
-                                    <div className="p-3 rounded-xl bg-gold/5 border border-gold/20 text-[12px] italic text-white/80 leading-relaxed animate-fade-in">
-                                        "{burnoutAdvice}"
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={analyzeBurnout}
-                                        className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-medium text-gold transition-all"
-                                    >
-                                        วิเคราะห์ Burnout โดย AI
-                                    </button>
-                                )}
-                            </div>
+                            {/* New Energy Correlator & AI Analysis */}
+                            <EnergyCorrelator 
+                                energyLevel={localEnergy} 
+                                setEnergyLevel={setLocalEnergy} 
+                                handleSaveMood={(mood, energy) => handleSaveEnergyAndAnalyze(latestMood?.mood || 'Neutral', energy)} 
+                                aiAdvice={energyAdvice} 
+                                isAnalyzing={isEnergyAnalyzing} 
+                            />
                         </div>
                     </BentoCard>
 
