@@ -67,34 +67,81 @@ const ExerciseLogger = ({ isOpen, onClose, onSave }) => {
         try {
             const actualDuration = durationUnit === 'hr' ? parseFloat(duration) * 60 : parseFloat(duration);
 
-            // Let AI estimate calories
-            let prompt = `ฉันเพิ่งออกกำลังกายด้วยการ ${activityName} เป็นเวลา ${actualDuration} นาที`;
-            if (distance) {
-                prompt += ` ระยะทาง ${distance} กิโลเมตร`;
-            }
+            // --- MET-based Calorie Calculation (Scientific) ---
+            // MET values from Compendium of Physical Activities
+            const MET_TABLE = {
+                '🏃 วิ่ง': 9.8,           // Running, 6 mph (10 min/mile)
+                '🚴 ปั่นจักรยาน': 7.5,    // Bicycling, 12-13.9 mph
+                '🏋️ เวทเทรนนิ่ง': 6.0,   // Weight lifting, vigorous
+                '🤸 คาลิสเทนนิกส์': 8.0,  // Calisthenics, vigorous (pull-ups, push-ups, etc.)
+                '🏊 ว่ายน้ำ': 7.0,         // Swimming laps, moderate
+                '🚶 เดิน': 3.5,            // Walking, 3.5 mph (brisk)
+                '🧘 โยคะ': 3.0,            // Yoga, Hatha
+                '⚽ เตะบอล': 7.0,          // Soccer, casual
+                '🏸 แบดมินตัน': 5.5,       // Badminton, social/singles
+                '🥊 มวย': 9.0,             // Boxing, sparring
+                '💪 ออกกำลังกายทั่วไป': 5.0 // General exercise
+            };
+
+            // Get user profile from cached settings
+            let userWeight = 70; // default fallback (kg)
+            let userAge = 25;    // default fallback (years)
             
-            // Try to get user weight from local settings
-            const cachedSettings = localStorage.getItem('aura_cache_settings');
-            if (cachedSettings) {
+            // Try multiple cache sources to find settings
+            // 1. Try gasClient in-memory cache
+            try {
+                const cached = window.gasClient?._cache;
+                if (cached) {
+                    for (const key in cached) {
+                        const d = cached[key]?.data;
+                        if (d?.settings) {
+                            if (d.settings.weight) userWeight = parseFloat(d.settings.weight);
+                            if (d.settings.age) userAge = parseInt(d.settings.age);
+                            break;
+                        }
+                    }
+                }
+            } catch(e){}
+            
+            // 2. Fallback: try localStorage cache keys used by health page
+            if (userWeight === 70 || userAge === 25) {
                 try {
-                    const settings = JSON.parse(cachedSettings);
-                    if (settings.profile && settings.profile.weight) {
-                        prompt += ` น้ำหนักตัวของฉันคือ ${settings.profile.weight} kg`;
+                    const wellnessCache = localStorage.getItem('aura_wellness_v2');
+                    if (wellnessCache) {
+                        // Health page caches wellness, but settings may be nearby
+                    }
+                    // Try any aura_cache key
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('aura_cache')) {
+                            const v = JSON.parse(localStorage.getItem(k));
+                            const s = v?.data?.settings || v?.settings || v;
+                            if (s?.weight) userWeight = parseFloat(s.weight);
+                            if (s?.age) userAge = parseInt(s.age);
+                            if (userWeight !== 70 && userAge !== 25) break;
+                        }
                     }
                 } catch(e){}
             }
-            prompt += `. โปรดประเมินการเผาผลาญแคลอรี่ของฉัน ตอบกลับมาเป็นตัวเลขกิโลแคลอรี่ (kcal) อย่างเดียว ห้ามมีตัวอักษรอื่นเด็ดขาด ห้ามใส่แท็ก [ACTION:...] หรือคำสั่งใดๆ ทั้งสิ้น เช่น ตอบแค่ 350`;
-
-            const aiResponse = await window.gasClient.callAI(prompt);
-            let cals = 300; // default fallback
             
-            // Handle both string response and object response (if any)
-            const replyText = typeof aiResponse === 'string' ? aiResponse : (aiResponse?.reply || '');
-            
-            if (replyText) {
-                const parsed = parseInt(replyText.replace(/\D/g, ''));
-                if (!isNaN(parsed) && parsed > 0) cals = parsed;
+            // 3. Last resort: fetch fresh from server
+            if (userWeight === 70 || userAge === 25) {
+                try {
+                    const freshData = await window.gasClient.fetchData('settings', false);
+                    if (freshData?.settings) {
+                        if (freshData.settings.weight) userWeight = parseFloat(freshData.settings.weight);
+                        if (freshData.settings.age) userAge = parseInt(freshData.settings.age);
+                    }
+                } catch(e){}
             }
+
+            const met = MET_TABLE[activityName] || 5.0;
+            const durationHours = actualDuration / 60;
+            
+            // Calorie formula: MET × Weight(kg) × Duration(hours)
+            // Age adjustment: metabolic rate decreases ~1-2% per decade after 25
+            const ageFactor = userAge > 25 ? 1 - ((userAge - 25) * 0.005) : 1.0;
+            const cals = Math.round(met * userWeight * durationHours * Math.max(ageFactor, 0.7));
             
             let mealNameStr = `[EXERCISE] ${activityName} ( ${actualDuration} นาที )`;
             if (bodyParts) {
@@ -115,7 +162,6 @@ const ExerciseLogger = ({ isOpen, onClose, onSave }) => {
                 distance: distance ? parseFloat(distance) : ""
             };
             
-            // Since we can't inject action easily without calling AI, we just use addNutrition
             await window.gasClient.addNutrition(data);
             
             await window.gasClient.fetchData('nutrition', true);
@@ -322,9 +368,9 @@ const ExerciseLogger = ({ isOpen, onClose, onSave }) => {
                                     className="w-full py-4 mt-4 bg-orange-500 text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest text-xs flex justify-center items-center gap-2"
                                 >
                                     {isSaving ? (
-                                        <><i data-lucide="Loader2" className="w-4 h-4 animate-spin" /> AI กำลังวิเคราะห์และบันทึก</>
+                                        <><i data-lucide="Loader2" className="w-4 h-4 animate-spin" /> กำลังคำนวณและบันทึก</>
                                     ) : (
-                                        <><i data-lucide="Sparkles" className="w-4 h-4" /> ให้ AI คำนวณแคลอรี่และบันทึก</>
+                                        <><i data-lucide="Zap" className="w-4 h-4" /> คำนวณแคลอรี่ (MET) และบันทึก</>
                                     )}
                                 </button>
                             </form>
