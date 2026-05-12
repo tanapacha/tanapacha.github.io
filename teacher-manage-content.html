@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการเนื้อหาพรีเมียม | สำหรับคุณครู | KIDDO CS</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    :root {
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --card-border: rgba(255, 255, 255, 0.5);
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      min-height: 100vh;
+    }
+
+    .manage-section { margin-bottom: var(--sp-12); }
+
+    .group-header {
+      display: flex; align-items: center; gap: var(--sp-3);
+      margin-bottom: var(--sp-6);
+      padding: var(--sp-2) var(--sp-4);
+      background: var(--grad-primary);
+      color: white; border-radius: var(--radius-lg);
+      width: fit-content; box-shadow: var(--shadow-md);
+    }
+
+    .premium-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-2xl);
+      padding: var(--sp-6);
+      display: flex; flex-direction: column; gap: var(--sp-5);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      position: relative; overflow: hidden;
+    }
+    
+    .premium-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      border-color: var(--color-primary-300);
+    }
+
+    .premium-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+      background: var(--grad-primary); opacity: 0.8;
+    }
+
+    .item-box {
+      background: rgba(255,255,255,0.4);
+      border-radius: var(--radius-xl);
+      padding: var(--sp-4);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .item-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-2) var(--sp-3);
+      background: white; border-radius: var(--radius-lg);
+      margin-bottom: var(--sp-2);
+      border: 1px solid transparent; transition: all 0.2s;
+    }
+    .item-row:last-child { margin-bottom: 0; }
+    .item-row:hover { border-color: var(--color-primary-200); transform: scale(1.01); }
+
+    .tag {
+      font-size: 0.6rem; font-weight: 900; padding: 2px 8px; border-radius: 20px;
+      text-transform: uppercase; margin-right: var(--sp-2);
+    }
+    .tag-quiz { background: #e0f2fe; color: #0369a1; }
+    .tag-task { background: #fef3c7; color: #92400e; }
+
+    .btn-trash-red {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; background: #fee2e2; color: #dc2626;
+      border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-trash-red:hover {
+      background: #dc2626; color: white; transform: rotate(10deg) scale(1.1);
+    }
+    
+    .action-group {
+      display: flex; gap: var(--sp-2);
+      margin-top: auto; padding-top: var(--sp-4);
+      border-top: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    
+    <!-- Sidebar Sections Restored -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">เมนูหลัก</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
+    </div>
+    
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Teacher Panel</div>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="book"></span>จัดการเนื้อหา</a>
+      <a href="teacher-create-problem.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>สร้างแบบทดสอบ</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ดูคะแนนนักเรียน</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar" style="background:var(--grad-primary); color:white; border:none;">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">คุณครู</div>
+          <div class="sidebar-user-role" data-user="role">แอดมินระบบ</div>
+        </div>
+        <button data-action="logout" class="btn-logout"><span data-icon="logout"></span></button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header" style="background:transparent; border:none; margin-bottom:var(--sp-6);">
+      <div>
+        <h1 class="t-display">Content Manager</h1>
+        <p class="t-body t-secondary">จัดการคลังความรู้ แบบทดสอบ และภารกิจ</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="teacher-create-problem.html" class="btn btn-outline" style="background:white; border-color:var(--color-amber-500); color:var(--color-amber-700);">
+           <span data-icon="task"></span> สร้างแบบทดสอบ
+        </a>
+        <a href="teacher-create-exercise.html" class="btn btn-outline" style="background:white; border-color:var(--color-primary-500); color:var(--color-primary-700);">
+           <span data-icon="upload"></span> สั่งงานใหม่
+        </a>
+        <a href="teacher-create-lesson.html" class="btn btn-primary shadow-lg">
+           <span data-icon="plus"></span> เพิ่มเนื้อหาใหม่
+        </a>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div id="contentContainer">
+        <div class="p-20 t-center t-secondary anim-pulse">กำลังปรุงข้อมูลให้พรีเมียม...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  Auth.requireAuth();
+
+  const TRASH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+
+  async function init() {
+    try {
+      const [lRes, qRes, tRes] = await Promise.all([
+        ApiService.getLessons(),
+        ApiService.getQuizzes(),
+        ApiService.getTasks()
+      ]);
+      
+      if (lRes.status === 'success') {
+        render(lRes.data, qRes.data || [], tRes.data || []);
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  function render(lessons, quizzes, tasks) {
+    const container = document.getElementById('contentContainer');
+    if (lessons.length === 0) {
+      container.innerHTML = '<div class="card p-20 t-center t-secondary">ยังไม่มีบทเรียนในระบบ</div>';
+      return;
+    }
+
+    const groups = {};
+    lessons.forEach(l => {
+      const cat = l.Category || l.Title;
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(l);
+    });
+
+    container.innerHTML = Object.keys(groups).map(cat => `
+      <div class="manage-section">
+        <div class="group-header">
+           <span data-icon="folder" style="width:16px;"></span>
+           <span class="fw-bold t-xs uppercase">${cat}</span>
+        </div>
+        <div class="grid-2 gap-6">
+          ${groups[cat].map(l => {
+            const myQuizzes = quizzes.filter(q => q.LessonID === l.ID);
+            const myTasks = tasks.filter(t => t.LessonID === l.ID);
+            
+            return `
+              <div class="premium-card anim-fade-up">
+                <div class="flex justify-between items-start">
+                   <div>
+                      <h3 class="t-title mb-1">${l.Title}</h3>
+                      <p class="t-xs t-secondary fw-semibold">ID: ${l.ID}</p>
+                   </div>
+                   <a href="teacher-create-lesson.html?edit=${l.ID}" class="btn btn-ghost btn-icon btn-sm" title="แก้ไขบทเรียน">
+                     <span data-icon="edit"></span>
+                   </a>
+                </div>
+
+                <!-- Assessments Section -->
+                <div class="item-box">
+                   <div class="t-xs fw-black t-secondary mb-3 uppercase" style="letter-spacing:0.05em; opacity:0.6;">Quizzes & Assessments</div>
+                   ${myQuizzes.length > 0 ? myQuizzes.map(q => `
+                     <div class="item-row">
+                        <div class="flex items-center">
+                           <span class="tag tag-quiz">${q.Type || 'post'}</span>
+                           <span class="fw-bold t-sm">${q.Title}</span>
+                        </div>
+                        <button onclick="handleDeleteQuiz('${q.ID}', '${q.Title}')" class="btn-trash-red" title="ลบโจทย์นี้">
+                           ${TRASH_ICON}
+                        </button>
+                     </div>
+                   `).join('') : '<div class="t-xs t-disabled italic p-1">ไม่มีแบบทดสอบ</div>'}
+                </div>
+
+                <!-- Missions Section -->
+                <div class="item-box">
+                   <div class="t-xs fw-black t-secondary mb-3 uppercase" style="letter-spacing:0.05em; opacity:0.6;">Missions & Assignments</div>
+                   ${myTasks.length > 0 ? myTasks.map(t => `
+                     <div class="item-row">
+                        <div class="flex items-center">
+                           <span class="tag tag-task">MISSION</span>
+                           <span class="fw-bold t-sm">${t.Title}</span>
+                        </div>
+                        <button onclick="handleDeleteTask('${t.ID}', '${t.Title}')" class="btn-trash-red" title="ลบภารกิจนี้">
+                           ${TRASH_ICON}
+                        </button>
+                     </div>
+                   `).join('') : '<div class="t-xs t-disabled italic p-1">ไม่มีภารกิจ</div>'}
+                </div>
+
+                <div class="action-group">
+                   <a href="teacher-create-problem.html?lessonId=${l.ID}" class="btn btn-outline btn-xs flex-1" style="background:white; border-color:var(--color-amber-500); color:var(--color-amber-700);">+ โจทย์</a>
+                   <a href="teacher-create-exercise.html?lessonId=${l.ID}" class="btn btn-outline btn-xs flex-1" style="background:white; border-color:var(--color-primary-500); color:var(--color-primary-700);">+ ภารกิจ</a>
+                   <button onclick="handleDeleteLesson('${l.ID}', '${l.Title}')" class="btn btn-ghost btn-xs t-danger-color">ลบบท</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    if (window.app && window.app.initIcons) window.app.initIcons();
+  }
+
+  async function handleDeleteQuiz(id, title) {
+    if (!confirm(`ต้องการลบแบบทดสอบ "${title}" ใช่หรือไม่?`)) return;
+    try {
+      const res = await ApiService.deleteQuiz(id);
+      if (res.status === 'success') { alert("ลบโจทย์เรียบร้อยแล้ว"); init(); }
+    } catch (e) { console.error(e); }
+  }
+
+  async function handleDeleteTask(id, title) {
+    if (!confirm(`ต้องการลบภารกิจ "${title}" ใช่หรือไม่?`)) return;
+    try {
+      const res = await ApiService.deleteTask(id);
+      if (res.status === 'success') { alert("ลบภารกิจเรียบร้อยแล้ว"); init(); }
+    } catch (e) { console.error(e); }
+  }
+
+  async function handleDeleteLesson(id, title) {
+    if (!confirm(`ลบบทเรียน "${title}" และเนื้อหาทั้งหมด?`)) return;
+    try {
+      const res = await ApiService.deleteLesson(id);
+      if (res.status === 'success') { alert("ลบบทเรียนเรียบร้อยแล้ว"); init(); }
+    } catch (e) { console.error(e); }
+  }
+
+  init();
+</script>
+</body>
+</html>

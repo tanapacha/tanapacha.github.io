@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KIDDO LEARNING — แพลตฟอร์มการเรียนรู้ที่ออกแบบมาเพื่อนักเรียนชั้น ป.4 และครูผู้สอน">
+  <title>วิทยาการคำนวณ ป.4 | KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    /* Fix for background blobs to not interfere with clicks */
+    .bg-blob {
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* Smooth transition for navbar */
+    nav {
+      transition: all 0.3s ease;
+    }
+    @media (max-width: 640px) {
+      .nav-desktop-only { display: none; }
+      .nav-inner { padding: 0 10px; }
+    }
+  </style>
+</head>
+<body style="overflow-x: hidden;">
+
+<!-- Premium Sticky Nav -->
+<nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 15px 20px; background: rgba(255,255,255,0.8); backdrop-filter: blur(24px); border-bottom: 1px solid var(--glass-border);">
+  <div class="nav-inner" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+    <a href="index.html" class="flex items-center gap-3" style="text-decoration:none;">
+      <div class="sidebar-logo-icon" style="width:38px; height:38px;">
+        <span data-icon="monitor"></span>
+      </div>
+      <span style="font-size: 1.2rem; font-weight: 800; color: var(--neutral-900); letter-spacing: -0.02em;">KIDDO CS</span>
+    </a>
+    <div class="flex items-center gap-4">
+      <a href="login.html" class="t-small fw-bold t-secondary nav-desktop-only" style="text-decoration:none;">เข้าสู่ระบบ</a>
+      <a href="register.html" class="btn btn-primary" style="height:42px; padding: 0 24px; font-size: 13px; border-radius: var(--radius-full);">เริ่มต้นฟรี</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Super Hero Section -->
+<section style="padding: 160px 20px 80px; text-align: center; position: relative; overflow: hidden;">
+  <!-- Abstract BG Blobs (Fixed with pointer-events) -->
+  <div class="bg-blob" style="position: absolute; top: 0; left: -10%; width: 500px; height: 500px; background: var(--color-primary-500); opacity: 0.08; filter: blur(120px); border-radius: 50%;"></div>
+  <div class="bg-blob" style="position: absolute; bottom: 0; right: -10%; width: 600px; height: 600px; background: var(--color-purple-500); opacity: 0.08; filter: blur(150px); border-radius: 50%;"></div>
+
+  <div class="anim-reveal" style="max-width: 900px; margin: 0 auto; position: relative; z-index: 2;">
+    <div class="badge badge-primary mb-6" style="padding: 8px 16px; font-size: 10px; background: var(--color-primary-50); color: var(--color-primary-600); border: 1px solid var(--color-primary-100);">แพลตฟอร์มการเรียนรู้ระดับพรีเมียม</div>
+    <h1 class="t-display mb-8" style="font-size: clamp(2.2rem, 8vw, 4.2rem); line-height: 1.1; letter-spacing: -0.03em;">
+      เรียนรู้ <span style="background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">วิทยาการคำนวณ</span><br>ที่สนุกที่สุดสำหรับเด็ก ป.4
+    </h1>
+    <p class="t-body mb-12" style="font-size: clamp(1rem, 3vw, 1.25rem); max-width: 600px; margin-left: auto; margin-right: auto; color: var(--text-secondary); line-height: 1.7;">
+      เปลี่ยนเรื่องยากให้เป็นเรื่องสนุก ผ่านบทเรียนดิจิทัลที่ออกแบบมาเพื่อเสริมสร้างทักษะการคิด และการแก้ปัญหาอย่างเป็นระบบ
+    </p>
+    <div class="flex items-center justify-center gap-4">
+      <a href="register.html" class="btn btn-primary" style="height:56px; padding: 0 32px; border-radius: var(--radius-full);">ทดลองเรียนฟรี</a>
+      <a href="login.html" class="btn btn-outline" style="height:56px; padding: 0 32px; border-radius: var(--radius-full);">เข้าสู่ระบบ</a>
+    </div>
+  </div>
+
+  <!-- Interactive Preview Card -->
+  <div class="anim-reveal delay-2" style="margin-top: 80px; max-width: 1000px; margin-left: auto; margin-right: auto; padding: 0 10px;">
+    <div class="card" style="padding: 10px; border-radius: var(--radius-2xl); background: white; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-tactile);">
+       <div style="background: var(--neutral-50); border-radius: var(--radius-xl); aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid var(--neutral-200);">
+          <div style="text-align: center; position: relative; z-index: 2;">
+             <div class="avatar avatar-lg mb-6" style="background: var(--color-primary-500); color: white; margin-left: auto; margin-right: auto; border: none; box-shadow: 0 10px 20px oklch(62% 0.28 255 / 0.3);">
+                <span data-icon="play"></span>
+             </div>
+             <p class="t-title fw-bold" style="color: var(--neutral-800);">ห้องเรียนดิจิทัลที่เด็กไทยหลงรัก</p>
+             <p class="t-small t-secondary mt-2">สัมผัสประสบการณ์การเรียนที่เปลี่ยนโลกการเรียนรู้ของคุณ</p>
+          </div>
+          <!-- Decorative Shapes -->
+          <div style="position: absolute; top: -40px; left: -40px; width: 180px; height: 180px; background: var(--color-primary-50); border-radius: 50%; opacity: 0.5;"></div>
+          <div style="position: absolute; bottom: -40px; right: -40px; width: 220px; height: 220px; background: var(--color-amber-50); border-radius: 50%; opacity: 0.5;"></div>
+       </div>
+    </div>
+  </div>
+</section>
+
+<!-- Simple Feature Section -->
+<section id="features" style="padding: 100px 20px; background: white;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div class="grid-auto">
+      <div class="card" style="border:none; text-align: center; padding: var(--sp-8);">
+        <div class="avatar avatar-lg mb-6" style="background: var(--color-primary-50); color: var(--color-primary-500); margin-left: auto; margin-right: auto; border: none;">
+          <span data-icon="puzzle"></span>
+        </div>
+        <h3 class="t-title mb-4">คิดอย่างเป็นระบบ</h3>
+        <p class="t-small t-secondary">ฝึกทักษะอัลกอริทึมผ่านสถานการณ์จำลองที่นักเรียนเข้าถึงง่ายที่สุด</p>
+      </div>
+      <div class="card" style="border:none; text-align: center; padding: var(--sp-8);">
+        <div class="avatar avatar-lg mb-6" style="background: var(--color-purple-500); color: white; margin-left: auto; margin-right: auto; border: none;">
+          <span data-icon="code"></span>
+        </div>
+        <h3 class="t-title mb-4">พื้นฐานการโค้ด</h3>
+        <p class="t-small t-secondary">เรียนรู้การเขียนโปรแกรมด้วยบล็อกคำสั่งที่เข้าใจง่ายและสนุก</p>
+      </div>
+      <div class="card" style="border:none; text-align: center; padding: var(--sp-8);">
+        <div class="avatar avatar-lg mb-6" style="background: var(--color-success); color: white; margin-left: auto; margin-right: auto; border: none;">
+          <span data-icon="award"></span>
+        </div>
+        <h3 class="t-title mb-4">ติดตามผลลัพธ์</h3>
+        <p class="t-small t-secondary">ระบบสรุปคะแนนอัตโนมัติ เพื่อให้คุณครูและนักเรียนประเมินความก้าวหน้าได้ทันที</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer style="padding: 60px 20px; background: var(--neutral-900); color: white; text-align: center;">
+  <div class="sidebar-logo-icon mb-6" style="margin-left: auto; margin-right: auto; background: var(--grad-primary);">
+    <span data-icon="monitor"></span>
+  </div>
+  <p class="t-xs" style="color: var(--neutral-400); letter-spacing: 0.05em; text-transform: uppercase;">&copy; 2026 KIDDO CS — พัฒนาเพื่อยกระดับการศึกษาดิจิทัลของเด็กไทย</p>
+</footer>
+
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  if (window.Auth && Auth.redirectIfAuth) Auth.redirectIfAuth();
+  
+  // Icon init check
+  window.addEventListener('load', () => {
+    if (window.app && window.app.initIcons) window.app.initIcons();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ส่งภารกิจอัจฉริยะ | KIDDO CS</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    :root {
+      --primary-grad: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      --success-grad: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      background: #f1f5f9;
+      background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+      background-size: 20px 20px;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styling */
+    .sidebar { background: #1e293b; color: white; border: none; }
+    .sidebar-logo { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: var(--sp-4); }
+    .sidebar-section-label { color: #94a3b8; font-weight: 800; }
+    
+    .mission-item {
+      padding: var(--sp-4); background: rgba(255,255,255,0.05);
+      border-radius: var(--radius-lg); margin-bottom: var(--sp-2);
+      border: 1px solid transparent; transition: all 0.3s; cursor: pointer;
+    }
+    .mission-item:hover { background: rgba(255,255,255,0.1); transform: translateX(4px); }
+    .mission-item.active { background: var(--primary-grad); border-color: rgba(255,255,255,0.2); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+    /* Main Content */
+    .hero-header {
+      background: white; border-radius: var(--radius-2xl); padding: var(--sp-8);
+      margin-bottom: var(--sp-6); border: 1px solid var(--border-subtle);
+      box-shadow: var(--card-shadow); display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .info-card {
+      background: white; border-radius: var(--radius-2xl); padding: var(--sp-8);
+      border: 1px solid var(--border-subtle); box-shadow: var(--card-shadow);
+      height: 100%;
+    }
+
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 12px; background: #f1f5f9; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 900; color: #475569; text-transform: uppercase;
+      margin-bottom: var(--sp-4);
+    }
+
+    /* Upload Area */
+    .drop-zone {
+      border: 3px dashed #cbd5e1; border-radius: var(--radius-2xl);
+      padding: var(--sp-10); text-align: center; cursor: pointer;
+      transition: all 0.3s; background: #f8fafc;
+    }
+    .drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
+    .drop-zone svg { width: 48px; height: 48px; color: #3b82f6; margin-bottom: 12px; }
+
+    /* Submit Button - CLEAR & LARGE */
+    .big-submit-btn {
+      width: 100%; padding: var(--sp-5); border-radius: var(--radius-xl);
+      background: var(--primary-grad); color: white; border: none;
+      font-size: 1.25rem; font-weight: 900; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+      transition: all 0.3s; margin-top: var(--sp-6);
+    }
+    .big-submit-btn:hover {
+      transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+      filter: brightness(1.1);
+    }
+    .big-submit-btn:active { transform: translateY(0); }
+
+    /* Score UI */
+    .score-circle {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: #fef3c7; color: #92400e;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-weight: 900; border: 2px solid #fcd34d;
+    }
+
+    .success-state {
+      text-align: center; padding: var(--sp-12);
+    }
+    .success-state svg { width: 80px; height: 80px; color: #10b981; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="dashboard.html" class="flex items-center gap-2" style="color:#94a3b8; text-decoration:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <span class="fw-bold t-sm">กลับหน้าหลัก</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">📍 รายการภารกิจของคุณ</div>
+      <div id="missionList" class="mt-4">
+        <!-- Missions List -->
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div id="missionHero" class="hero-header anim-fade-up" style="display:none;">
+       <div>
+          <div class="section-tag">
+             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+             MISSION BRIEFING
+          </div>
+          <h1 id="missionTitle" class="t-display" style="margin:0; color:#0f172a;">-</h1>
+       </div>
+       <div class="score-circle">
+          <span style="font-size:0.6rem;">คะแนน</span>
+          <span id="missionScoreVal" style="font-size:1.2rem; line-height:1;">10</span>
+       </div>
+    </div>
+
+    <div class="page-body">
+      <div id="initialState" class="t-center p-20">
+         <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+         <h2 class="t-title t-secondary">กรุณาเลือกภารกิจที่ต้องการส่งงานทางด้านซ้ายมือครับ</h2>
+      </div>
+
+      <div class="grid-2 gap-8 anim-fade-up" id="missionContent" style="display:none;">
+        <!-- Left: Briefing -->
+        <div class="info-card">
+          <div class="section-tag" style="background:#eff6ff; color:#1d4ed8;">
+             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a4 4 0 0 0-4-4H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a4 4 0 0 1 4-4h6z"/></svg>
+             คำชี้แจงจากคุณครู
+          </div>
+          <div id="instrText" class="t-body mb-8 fw-medium" style="color:#334155; min-height:100px;">-</div>
+          
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:var(--radius-xl); padding:var(--sp-6);">
+             <h4 class="fw-bold t-xs t-secondary uppercase mb-3">เกณฑ์การพิชิตภารกิจ</h4>
+             <div id="instrCriteria" class="t-sm" style="color:#64748b; white-space:pre-line;">-</div>
+          </div>
+
+          <div class="mt-8 pt-6 border-top flex justify-between items-center">
+             <div class="t-xs fw-bold t-secondary flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 2v4"/><path d="M16 2v4"/></svg>
+                กำหนดส่ง: <span id="instrDeadline" class="t-error-color">-</span>
+             </div>
+             <div id="statusTag" class="badge badge-warning">ยังไม่ได้ส่ง</div>
+          </div>
+        </div>
+
+        <!-- Right: Submission -->
+        <div class="info-card" id="formCard">
+          <div id="successView" class="success-state" style="display:none;">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+             <h2 class="t-display mb-2">ภารกิจสำเร็จ!</h2>
+             <p class="t-body t-secondary">ส่งงานของคุณเรียบร้อยแล้ว รอลุ้นคะแนนได้เลยนะ</p>
+             <button onclick="location.reload()" class="btn btn-primary mt-8">ส่งงานอื่นๆ ต่อ</button>
+          </div>
+
+          <div id="formView">
+             <div class="section-tag" style="background:#f0fdf4; color:#15803d;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                SUBMISSION ZONE
+             </div>
+             <form id="submitForm">
+               <div class="form-group mb-6">
+                 <label class="form-label fw-black">1. วางลิงก์ผลงาน (ถ้ามี)</label>
+                 <input type="url" id="projectLink" class="input" style="height:50px; font-size:1rem;" placeholder="https://scratch.mit.edu/projects/...">
+               </div>
+               
+               <div class="form-group mb-6">
+                 <label class="form-label fw-black">2. บันทึกสั้นๆ ถึงคุณครู</label>
+                 <textarea id="teacherComment" class="input" rows="3" placeholder="เขียนคำอธิบายงานหรือข้อความถึงคุณครู..."></textarea>
+               </div>
+
+               <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                 <div class="fw-bold t-body" id="fileLabel">คลิกเพื่อแนบรูปภาพหรือไฟล์งาน</div>
+                 <div class="t-xs t-secondary mt-1">ไฟล์สกุล .jpg, .png หรือ .pdf</div>
+                 <input type="file" id="fileInput" style="display:none;" onchange="handleFileSelect(this)">
+               </div>
+
+               <button type="submit" id="submitBtn" class="big-submit-btn">
+                  <span>🚀 ยืนยันการส่งงานเลย!</span>
+               </button>
+             </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  let tasks = [];
+  let currentId = '';
+  let user = null;
+
+  async function init() {
+    user = Auth.requireAuth();
+    try {
+      const res = await ApiService.getTasks();
+      if (res.status === 'success') {
+        tasks = res.data;
+        renderList();
+      }
+    } catch (e) { console.error(e); }
+
+    document.getElementById('submitForm').addEventListener('submit', onSubmit);
+  }
+
+  function renderList() {
+    const list = document.getElementById('missionList');
+    if (tasks.length === 0) {
+      list.innerHTML = '<div class="p-4 t-secondary t-xs">ไม่มีงานค้างส่งในขณะนี้</div>';
+      return;
+    }
+    list.innerHTML = tasks.map(t => `
+      <div class="mission-item" id="task-${t.ID}" onclick="loadTask('${t.ID}')">
+         <div class="fw-bold t-sm">${t.Title}</div>
+         <div class="t-xs" style="opacity:0.7;">${t.Category || 'ทั่วไป'}</div>
+      </div>
+    `).join('');
+  }
+
+  function loadTask(id) {
+    currentId = id;
+    const t = tasks.find(x => x.ID === id);
+    if (!t) return;
+
+    // Update UI
+    document.getElementById('initialState').style.display = 'none';
+    document.getElementById('missionHero').style.display = 'flex';
+    document.getElementById('missionContent').style.display = 'grid';
+    
+    document.getElementById('missionTitle').textContent = t.Title;
+    document.getElementById('missionScoreVal').textContent = t.MaxPoints || 0;
+    document.getElementById('instrText').textContent = t.Instructions || 'รอคำแนะนำจากคุณครูสักครู่ครับ';
+    document.getElementById('instrCriteria').textContent = t.Criteria || 'ไม่มีเกณฑ์การให้คะแนนพิเศษ';
+    document.getElementById('instrDeadline').textContent = t.Deadline || 'ไม่มีกำหนด';
+
+    // Reset Form
+    document.getElementById('formView').style.display = 'block';
+    document.getElementById('successView').style.display = 'none';
+    document.getElementById('fileLabel').textContent = 'คลิกเพื่อแนบรูปภาพหรือไฟล์งาน';
+    document.getElementById('submitForm').reset();
+
+    // Active State
+    document.querySelectorAll('.mission-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(`task-${id}`).classList.add('active');
+  }
+
+  function handleFileSelect(input) {
+    if (input.files.length > 0) {
+      document.getElementById('fileLabel').textContent = `✅ เลือกไฟล์แล้ว: ${input.files[0].name}`;
+      document.getElementById('fileLabel').style.color = '#10b981';
+    }
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>📦 กำลังนำส่งงาน...</span>';
+
+    const fileInput = document.getElementById('fileInput');
+    let fileData = {};
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      const base64 = await new Promise(r => { reader.onload = () => r(reader.result); reader.readAsDataURL(file); });
+      fileData = { fileBase64: base64, fileName: file.name, mimeType: file.type };
+    }
+
+    try {
+      const res = await ApiService.submitAssignment(user.id, user.name, currentId, fileData);
+      if (res.status === 'success') {
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('successView').style.display = 'block';
+        document.getElementById('statusTag').className = 'badge badge-success';
+        document.getElementById('statusTag').textContent = 'ส่งงานแล้ว';
+      } else {
+        alert(res.message);
+        btn.disabled = false;
+        btn.innerHTML = '<span>🚀 ยืนยันการส่งงานเลย!</span>';
+      }
+    } catch (err) {
+      console.error(err);
+      btn.disabled = false;
+      btn.innerHTML = '<span>🚀 ยืนยันการส่งงานเลย!</span>';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

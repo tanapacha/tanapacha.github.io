@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สั่งงานใหม่ | สำหรับคุณครู | KIDDO CS</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body style="background:var(--bg-app);">
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Teacher Menu</div>
+      <a href="teacher-dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>แดชบอร์ด</a>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>จัดการเนื้อหา</a>
+      <a href="teacher-create-exercise.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="upload"></span>สั่งงานใหม่</a>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+    </div>
+    <div class="sidebar-footer">
+       <a href="#" data-action="logout" class="sidebar-nav-item t-danger"><span class="nav-icon" data-icon="logout"></span>ออกจากระบบ</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="t-display">สั่งงานใหม่ (แบบฝึกหัด)</h1>
+        <p class="t-body">สร้างโจทย์และคำชี้แจงเพื่อให้นักเรียนฝึกทักษะ</p>
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="saveMission()">
+        <span data-icon="send"></span> บันทึกและสั่งงานทันที
+      </button>
+    </header>
+
+    <div class="page-body" style="max-width:900px;">
+      <div class="grid-2">
+        <div class="flex flex-col gap-6">
+          <div class="card">
+            <h3 class="t-title mb-6">1. ข้อมูลพื้นฐาน</h3>
+            <div class="form-group mb-6">
+              <label class="form-label">หัวข้อภารกิจ / ชื่อแบบฝึกหัด</label>
+              <input type="text" id="mTitle" class="input" placeholder="เช่น สร้างโปรเจกต์ Scratch เดินตามเข็มทิศ">
+            </div>
+            <div class="form-group mb-6">
+              <label class="form-label">เชื่อมโยงกับบทเรียน (เพื่อจัดหมวดหมู่)</label>
+              <select id="mLesson" class="input">
+                <option>กำลังโหลดบทเรียน...</option>
+              </select>
+            </div>
+            <div class="grid-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">คะแนนเต็ม</label>
+                <input type="number" id="mPoints" class="input" value="10">
+              </div>
+              <div class="form-group">
+                <label class="form-label">กำหนดส่ง</label>
+                <input type="date" id="mDeadline" class="input">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <div class="card">
+            <h3 class="t-title mb-6">2. รายละเอียดโจทย์</h3>
+            <div class="form-group mb-6">
+              <label class="form-label">คำชี้แจง / โจทย์ปัญหา (สิ่งที่ต้องทำ)</label>
+              <textarea id="mInstr" class="input" rows="6" placeholder="ระบุสิ่งที่นักเรียนต้องทำอย่างละเอียด..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">เกณฑ์การให้คะแนน (Rubric)</label>
+              <textarea id="mCriteria" class="input" rows="4" placeholder="เช่น:&#10;- ความถูกต้อง 5 คะแนน&#10;- ความคิดสร้างสรรค์ 5 คะแนน"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  Auth.requireAuth();
+
+  async function loadContext() {
+    const res = await ApiService.getLessons();
+    if (res.status === 'success') {
+      const lessons = res.data;
+      const groups = {};
+      lessons.forEach(l => {
+        const cat = l.Category || 'ทั่วไป';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(l);
+      });
+
+      let html = '<option value="">-- เลือกบทเรียน --</option>';
+      for (const cat in groups) {
+        html += `<optgroup label="${cat}">`;
+        html += groups[cat].map(l => `<option value="${l.ID}">${l.Title}</option>`).join('');
+        html += `</optgroup>`;
+      }
+      document.getElementById('mLesson').innerHTML = html;
+
+      // Auto-select if ID is in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const lessonId = urlParams.get('lessonId');
+      if (lessonId) {
+        document.getElementById('mLesson').value = lessonId;
+      }
+    }
+  }
+
+  async function saveMission() {
+    const title = document.getElementById('mTitle').value.trim();
+    const lessonId = document.getElementById('mLesson').value;
+    const instr = document.getElementById('mInstr').value.trim();
+    const points = document.getElementById('mPoints').value;
+    const deadline = document.getElementById('mDeadline').value;
+    const criteria = document.getElementById('mCriteria').value.trim();
+
+    if (!title || !instr) {
+      alert("กรุณาระบุหัวข้อและคำชี้แจงให้ครบถ้วน");
+      return;
+    }
+
+    const btn = document.querySelector('.btn-primary');
+    btn.disabled = true; btn.innerHTML = 'กำลังบันทึกภารกิจ...';
+
+    const data = {
+      id: 'T' + Date.now(),
+      lessonId: lessonId,
+      title: title,
+      instructions: instr,
+      criteria: criteria,
+      maxPoints: points,
+      deadline: deadline
+    };
+
+    try {
+      const res = await ApiService.saveTask(data);
+      if (res.status === 'success') {
+        alert("สั่งงานเรียบร้อยแล้ว!");
+        location.href = 'teacher-manage-content.html';
+      } else {
+        alert(res.message);
+        btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> บันทึกและสั่งงานทันที';
+      }
+    } catch (err) {
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> บันทึกและสั่งงานทันที';
+    }
+  }
+
+  loadContext();
+</script>
+</body>
+</html>

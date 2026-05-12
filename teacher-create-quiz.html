@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สร้างแบบฝึกหัด | สำหรับคุณครู | KIDDO CS</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    .question-builder {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--sp-6);
+      margin-bottom: var(--sp-6);
+      position: relative;
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--sp-4);
+      padding-bottom: var(--sp-4);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      margin-bottom: var(--sp-3);
+    }
+    .option-check {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .form-group { margin-bottom: var(--sp-4); }
+    .form-label { display: block; font-size: var(--text-sm); font-weight: 600; margin-bottom: var(--sp-2); }
+    .form-control { width: 100%; padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); border: 1px solid var(--border-default); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">บทเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>แบบฝึกหัด</a>
+      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>ส่งงาน<span class="badge badge-warning nav-badge">1</span></a>
+      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
+    </div>
+    
+    <div class="sidebar-section" id="teacherSection">
+      <div class="sidebar-section-label">สำหรับคุณครู</div>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="users"></span>จัดการเนื้อหา</a>
+      <a href="teacher-create-quiz.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="task"></span>สร้างแบบฝึกหัด</a>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ดูคะแนนนักเรียน</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar"><span data-icon="users"></span></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">กำลังโหลด...</div>
+          <div class="sidebar-user-role" data-user="role">คุณครู</div>
+        </div>
+        <a href="#" data-action="logout" class="btn btn-ghost btn-icon btn-sm" title="ออกจากระบบ"><span data-icon="logout"></span></a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="t-subheading">สร้างแบบฝึกหัด</h1>
+        <p class="t-small t-secondary">ออกแบบโจทย์ปัญหาเพื่อทดสอบความรู้เด็กๆ</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-outline btn-sm">บันทึกร่าง</button>
+        <button class="btn btn-primary btn-sm">บันทึกและเปิดใช้งาน</button>
+      </div>
+    </header>
+
+    <div class="page-body" style="max-width:800px;">
+      <div class="card" style="margin-bottom:var(--sp-6);">
+        <h2 class="t-title" style="margin-bottom:var(--sp-4);">ข้อมูลพื้นฐาน</h2>
+        <div class="form-group">
+          <label class="form-label">ชื่อแบบฝึกหัด</label>
+          <input type="text" class="form-control" placeholder="เช่น แบบฝึกหัดเรื่องบล็อกการเคลื่อนที่">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ประเภทกิจกรรม</label>
+          <input type="text" class="form-control" placeholder="เช่น แบบฝึกหัด, กิจกรรมท้ายบท, หรือชื่อประเภทที่ต้องการ...">
+          <p class="t-xs t-secondary mt-1">พิมพ์ประเภทของกิจกรรมเพื่อใช้ในการแบ่งหมวดหมู่ในสมุดพก</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">บทเรียนที่เกี่ยวข้อง (ระบุรหัสหรือชื่อบทเรียน)</label>
+          <input type="text" class="form-control" placeholder="เช่น L1 หรือ อัลกอริทึมเบื้องต้น">
+        </div>
+      </div>
+
+      <div id="questionsList" class="anim-fade-up">
+        <!-- Question 1 -->
+        <div class="question-builder">
+          <div class="question-header">
+            <span class="fw-bold">ข้อที่ 1</span>
+            <button class="btn btn-ghost btn-sm" style="color:var(--color-error);">ลบข้อนี้</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label">คำถาม</label>
+            <textarea class="form-control" rows="2" placeholder="พิมพ์คำถามที่นี่..."></textarea>
+          </div>
+          <label class="form-label">ตัวเลือกและคำตอบที่ถูกต้อง</label>
+          <div class="option-row">
+            <input type="radio" name="correct1" class="option-check">
+            <input type="text" class="form-control" placeholder="ตัวเลือก ก.">
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct1" class="option-check">
+            <input type="text" class="form-control" placeholder="ตัวเลือก ข.">
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct1" class="option-check">
+            <input type="text" class="form-control" placeholder="ตัวเลือก ค.">
+          </div>
+          <div class="option-row">
+            <input type="radio" name="correct1" class="option-check">
+            <input type="text" class="form-control" placeholder="ตัวเลือก ง.">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-outline w-full" style="border-style:dashed; padding:var(--sp-6);" onclick="addQuestion()">
+        + เพิ่มข้อคำถามใหม่
+      </button>
+    </div>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  Auth.requireAuth();
+  
+  async function saveQuiz() {
+    const title = document.querySelector('input[placeholder*="แบบฝึกหัดเรื่อง"]').value.trim();
+    const type = document.querySelector('input[placeholder*="แบบฝึกหัด,"]').value.trim() || 'quiz';
+    const lessonId = document.querySelector('input[placeholder*="L1"]').value.trim();
+    
+    if (!title || !lessonId) return alert("กรุณาระบุชื่อและบทเรียน");
+
+    const builders = document.querySelectorAll('.question-builder');
+    const questions = Array.from(builders).map((b, i) => {
+      const qText = b.querySelector('textarea').value;
+      const opts = Array.from(b.querySelectorAll('input[type="text"]')).map(i => i.value);
+      const correctIdx = Array.from(b.querySelectorAll('input[type="radio"]')).findIndex(r => r.checked);
+      const keys = ['a','b','c','d'];
+      
+      return {
+        action: 'createQuiz',
+        LessonID: lessonId,
+        Title: title,
+        Type: type,
+        Question: qText,
+        OptionA: opts[0],
+        OptionB: opts[1],
+        OptionC: opts[2],
+        OptionD: opts[3],
+        Answer: correctIdx !== -1 ? keys[correctIdx] : 'a',
+        Points: 10
+      };
+    });
+
+    const btn = document.querySelector('.btn-primary.btn-sm'); // Match the header button
+    const originalText = btn.textContent;
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+    try {
+      // บันทึกทีละข้อ
+      for (const q of questions) {
+        await ApiService.post('createQuiz', q, false);
+      }
+      alert("บันทึกเรียบร้อยแล้ว!");
+      location.href = 'teacher-manage-content.html';
+    } catch (err) {
+      alert("เกิดข้อผิดพลาด");
+      btn.disabled = false; btn.textContent = originalText;
+    }
+  }
+
+  function addQuestion() {
+    const list = document.getElementById('questionsList');
+    const count = list.children.length + 1;
+    const newQ = list.children[0].cloneNode(true);
+    newQ.querySelector('.fw-bold').innerText = `ข้อที่ ${count}`;
+    newQ.querySelectorAll('input[type="radio"]').forEach(r => {
+      r.name = `correct${count}`;
+      r.checked = false;
+    });
+    newQ.querySelectorAll('input[type="text"]').forEach(i => i.value = '');
+    newQ.querySelector('textarea').value = '';
+    list.appendChild(newQ);
+  }
+  
+  // เชื่อมปุ่ม Save ใน header
+  document.querySelector('.btn-primary.btn-sm').onclick = saveQuiz;
+</script>
+</body>
+</html>

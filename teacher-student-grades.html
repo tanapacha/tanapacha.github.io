@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการคะแนนนักเรียน | KIDDO PREMIUM</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.4);
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+    }
+
+    .main-content { padding-bottom: 100px; } /* Space for floating bar */
+
+    /* Premium Header */
+    .premium-header {
+      background: var(--glass-bg); backdrop-filter: blur(20px);
+      border-radius: var(--radius-2xl); padding: var(--sp-8);
+      border: 1px solid var(--glass-border); box-shadow: var(--shadow-xl);
+      margin-bottom: var(--sp-6); display: flex; justify-content: space-between; align-items: flex-end;
+    }
+
+    /* Modern Table Style */
+    .grade-container {
+      background: var(--glass-bg); backdrop-filter: blur(15px);
+      border-radius: 30px; padding: var(--sp-8);
+      border: 1px solid var(--glass-border); box-shadow: var(--shadow-2xl);
+    }
+
+    .grade-table { width: 100%; border-collapse: separate; border-spacing: 0 var(--sp-3); }
+    .grade-table th { padding: var(--sp-4); text-align: left; color: #64748b; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .grade-table tr { transition: transform 0.2s; }
+    .grade-table td { background: white; padding: var(--sp-4); border: 1px solid transparent; }
+    .grade-table td:first-child { border-radius: 20px 0 0 20px; border-left: 1px solid #f1f5f9; }
+    .grade-table td:last-child { border-radius: 0 20px 20px 0; border-right: 1px solid #f1f5f9; }
+    .grade-table tr:hover td { border-color: var(--color-primary-200); background: #f8fafc; }
+
+    /* Compact Inputs */
+    .cell-input {
+      width: 70px; height: 45px; border-radius: 12px; border: 2px solid #f1f5f9;
+      background: #f8fafc; text-align: center; font-weight: 900; font-size: 1rem;
+      color: var(--color-primary-600); transition: all 0.3s;
+    }
+    .cell-input:focus {
+      width: 85px; border-color: var(--color-primary-500); background: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); outline: none;
+    }
+    .cell-input::placeholder { color: #cbd5e1; font-weight: 400; }
+
+    /* Floating Save Bar */
+    .floating-save-bar {
+      position: fixed; bottom: 30px; right: 30px; z-index: 100;
+      background: var(--glass-bg); backdrop-filter: blur(25px);
+      padding: 12px 12px 12px 24px; border-radius: 24px;
+      border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      display: flex; align-items: center; gap: 24px;
+      animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      visibility: hidden; opacity: 0; transform: translateY(20px);
+    }
+    .floating-save-bar.visible { visibility: visible; opacity: 1; transform: translateY(0); }
+
+    .change-count { font-weight: 800; color: #475569; font-size: 0.95rem; }
+
+    .btn-save-floating {
+      background: var(--grad-primary); color: white; border: none;
+      padding: 14px 32px; border-radius: 18px; font-weight: 900;
+      cursor: pointer; box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.5);
+      transition: all 0.3s;
+    }
+    .btn-save-floating:hover { transform: scale(1.05); filter: brightness(1.1); }
+    .btn-save-floating:active { transform: scale(0.95); }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .student-id { font-size: 0.7rem; color: #94a3b8; font-family: monospace; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Teacher Admin</div>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="users"></span>จัดการเนื้อหา</a>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนนักเรียน</a>
+      <div class="sidebar-divider"></div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>กลับหน้าหลัก</a>
+    </div>
+
+    <div class="sidebar-footer">
+       <button data-action="logout" class="btn btn-ghost btn-sm t-danger-color w-full">ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="premium-header anim-fade-up">
+       <div>
+          <h1 class="t-display" style="margin:0; font-size:2.5rem; letter-spacing:-0.03em;">Smart Gradebook</h1>
+          <p class="t-body t-secondary mt-1">จัดการคะแนนทุกประเภทในตารางเดียว (บันทึกอัตโนมัติลงชีท Grades)</p>
+       </div>
+       <div style="width:300px;">
+          <label class="t-xs fw-black t-secondary uppercase mb-2 block">เลือกบทเรียนที่ต้องการจัดการ</label>
+          <select id="selectLesson" class="input" style="background:white; border-radius:15px;" onchange="loadGradesData()">
+             <option>กำลังโหลดบทเรียน...</option>
+          </select>
+       </div>
+    </div>
+
+    <div class="page-body">
+      <div class="grade-container anim-fade-up">
+         <table class="grade-table">
+            <thead>
+               <tr>
+                  <th style="width:120px;">รหัส</th>
+                  <th>ชื่อ-นามสกุล</th>
+                  <th style="width:100px; text-align:center;">ก่อนเรียน</th>
+                  <th style="width:100px; text-align:center;">แบบฝึกหัด</th>
+                  <th style="width:100px; text-align:center;">หลังเรียน</th>
+                  <th style="width:120px; text-align:center;">คะแนนเต็ม</th>
+               </tr>
+            </thead>
+            <tbody id="gradeTableBody">
+               <!-- Rows will be injected here -->
+            </tbody>
+         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Save Bar -->
+  <div id="saveBar" class="floating-save-bar">
+     <div class="change-count">มีการเปลี่ยนแปลง <span id="pendingCount">0</span> รายการ</div>
+     <button onclick="saveAllGrades()" id="btnSaveAll" class="btn-save-floating">บันทึกทั้งหมด</button>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  let students = [];
+  let lessons = [];
+  let currentGrades = [];
+  let pendingChanges = {}; // Store changes locally before saving
+
+  async function init() {
+    Auth.requireAuth();
+    try {
+      const [sRes, lRes] = await Promise.all([
+        ApiService.getUsers(),
+        ApiService.getLessons()
+      ]);
+      
+      students = sRes.status === 'success' ? sRes.data.filter(u => String(u.Role).toLowerCase() === 'user') : [];
+      lessons = lRes.status === 'success' ? lRes.data : [];
+
+      renderLessonSelect();
+      if (lessons.length > 0) loadGradesData();
+    } catch (e) { console.error(e); }
+  }
+
+  function renderLessonSelect() {
+    const select = document.getElementById('selectLesson');
+    select.innerHTML = lessons.map(l => `<option value="${l.ID}">${l.Title}</option>`).join('');
+  }
+
+  async function loadGradesData() {
+    const lessonId = document.getElementById('selectLesson').value;
+    const body = document.getElementById('gradeTableBody');
+    body.innerHTML = '<tr><td colspan="6" class="t-center p-20">กำลังดึงข้อมูลคะแนน...</td></tr>';
+    
+    try {
+      const gRes = await ApiService.getGrades();
+      if (gRes.status === 'success') {
+        currentGrades = gRes.data;
+        renderTable(lessonId);
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  function renderTable(lessonId) {
+    const body = document.getElementById('gradeTableBody');
+    pendingChanges = {};
+    updateSaveBar();
+
+    if (students.length === 0) {
+      body.innerHTML = '<tr><td colspan="6" class="t-center p-20">ไม่พบครายชื่อนักเรียน</td></tr>';
+      return;
+    }
+
+    body.innerHTML = students.map(s => {
+      const pre = currentGrades.find(g => g.StudentID === s.ID && g.LessonID === lessonId && g.Type === 'pre');
+      const ex = currentGrades.find(g => g.StudentID === s.ID && g.LessonID === lessonId && g.Type === 'exercise');
+      const post = currentGrades.find(g => g.StudentID === s.ID && g.LessonID === lessonId && g.Type === 'post');
+      
+      return `
+        <tr>
+           <td class="student-id">${s.ID}</td>
+           <td class="fw-bold" style="color:#334155;">${s.Name}</td>
+           <td class="t-center">
+              <input type="number" class="cell-input" placeholder="-" value="${pre ? pre.Score : ''}" 
+                oninput="trackChange('${s.ID}', 'pre', this.value)">
+           </td>
+           <td class="t-center">
+              <input type="number" class="cell-input" placeholder="-" value="${ex ? ex.Score : ''}" 
+                oninput="trackChange('${s.ID}', 'exercise', this.value)">
+           </td>
+           <td class="t-center">
+              <input type="number" class="cell-input" placeholder="-" value="${post ? post.Score : ''}" 
+                oninput="trackChange('${s.ID}', 'post', this.value)">
+           </td>
+           <td class="t-center fw-bold t-secondary">/ 10</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function trackChange(studentId, type, value) {
+    const key = `${studentId}_${type}`;
+    pendingChanges[key] = value;
+    updateSaveBar();
+  }
+
+  function updateSaveBar() {
+    const count = Object.keys(pendingChanges).length;
+    const bar = document.getElementById('saveBar');
+    document.getElementById('pendingCount').textContent = count;
+    
+    if (count > 0) {
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+    }
+  }
+
+  async function saveAllGrades() {
+    const lessonId = document.getElementById('selectLesson').value;
+    const grades = [];
+    
+    for (const key in pendingChanges) {
+      const [studentId, type] = key.split('_');
+      grades.push({
+        studentId: studentId,
+        lessonId: lessonId,
+        type: type,
+        score: pendingChanges[key],
+        maxScore: 10
+      });
+    }
+
+    if (grades.length === 0) return;
+
+    const btn = document.getElementById('btnSaveAll');
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+    try {
+      const res = await ApiService.saveBulkGrades(grades);
+      if (res.status === 'success') {
+        alert("บันทึกคะแนนเรียบร้อยแล้ว!");
+        pendingChanges = {};
+        updateSaveBar();
+        loadGradesData(); // Reload to refresh the table
+      }
+    } catch (e) {
+      console.error(e);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
+    } finally {
+      btn.disabled = false; btn.textContent = 'บันทึกทั้งหมด';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

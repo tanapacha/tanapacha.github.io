@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ห้องเรียนออนไลน์ | KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    /* Premium Sidebar Tweaks */
+    .lesson-sidebar {
+      width: 320px;
+      background: white;
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+    }
+    .sidebar-header {
+      padding: var(--sp-8) var(--sp-6);
+      border-bottom: 1px solid var(--neutral-100);
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      margin-bottom: var(--sp-5);
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--color-primary-500); }
+
+    /* Lesson Content Area */
+    .lesson-main {
+      flex: 1;
+      padding: var(--sp-10) var(--sp-12);
+      background: var(--bg-app);
+      overflow-y: auto;
+    }
+    .lesson-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Video Player Premium Look */
+    .player-wrapper {
+      background: #000;
+      border-radius: var(--radius-2xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-2xl);
+      aspect-ratio: 16/9;
+      position: relative;
+      margin-bottom: var(--sp-8);
+    }
+    .media-tabs-premium {
+      display: flex;
+      gap: var(--sp-2);
+      margin-bottom: var(--sp-6);
+      background: var(--neutral-100);
+      padding: 6px;
+      border-radius: var(--radius-xl);
+      width: fit-content;
+    }
+    .media-tab-btn {
+      padding: 10px 24px;
+      border-radius: var(--radius-lg);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .media-tab-btn.active {
+      background: white;
+      color: var(--color-primary-500);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Module List in Sidebar */
+    .module-group { margin-bottom: var(--sp-6); }
+    .module-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-disabled);
+      font-weight: 800;
+      padding: 0 var(--sp-6) var(--sp-2);
+    }
+    .lesson-nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: 14px var(--sp-6);
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      border-left: 4px solid transparent;
+      transition: all 0.2s;
+    }
+    .lesson-nav-item:hover { background: var(--neutral-50); color: var(--text-primary); }
+    .lesson-nav-item.active {
+      background: var(--color-primary-50);
+      color: var(--color-primary-600);
+      border-left-color: var(--color-primary-500);
+    }
+    .lesson-nav-item-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--neutral-300);
+    }
+    .lesson-nav-item.active .lesson-nav-item-dot { background: var(--color-primary-500); }
+  </style>
+</head>
+<body>
+<div class="app flex flex-row">
+
+  <!-- Sidebar -->
+  <aside class="lesson-sidebar">
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="back-link">
+        <span data-icon="left"></span> กลับหน้าหลัก
+      </a>
+      <div class="flex items-center gap-3">
+        <div class="avatar avatar-sm" style="background:var(--grad-primary); color:white; border:none;">
+           <span data-icon="monitor"></span>
+        </div>
+        <div>
+           <div class="fw-bold t-sm">วิทยาการคำนวณ</div>
+           <div class="t-xs t-secondary">ประถมศึกษาปีที่ 4</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="sidebarLessons" class="flex-1 overflow-y-auto py-6">
+       <!-- Lessons injected here -->
+       <div class="p-10 t-center t-secondary t-xs">กำลังโหลดบทเรียน...</div>
+    </div>
+
+    <div class="p-6 border-top">
+       <button data-action="logout" class="btn btn-ghost btn-block btn-sm" style="justify-content:flex-start; color:var(--color-error);">
+          <span data-icon="logout"></span> ออกจากระบบ
+       </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="lesson-main">
+    <div id="lessonContent" class="lesson-container">
+       <!-- Lesson Data Injected Here -->
+       <div class="p-20 t-center">
+          <div class="spinner mb-4"></div>
+          <p class="t-secondary">กำลังเตรียมเนื้อหาการเรียน...</p>
+       </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  Auth.requireAuth();
+
+  async function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const lessonId = urlParams.get('id');
+    if (!lessonId) { location.href = 'lessons-list.html'; return; }
+
+    try {
+      const res = await ApiService.getLessons();
+      if (res.status !== 'success') return;
+      
+      const all = res.data;
+      const current = all.find(l => l.ID === lessonId);
+      if (!current) return;
+
+      // 1. Sidebar Rendering
+      const groups = {};
+      all.forEach(l => {
+        const cat = (l.Category || l.Title).trim();
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(l);
+      });
+
+      document.getElementById('sidebarLessons').innerHTML = Object.keys(groups).map(cat => `
+        <div class="module-group">
+           <div class="module-label">${cat}</div>
+           ${groups[cat].map(l => `
+             <a href="play-lesson.html?id=${l.ID}" class="lesson-nav-item ${l.ID === lessonId ? 'active' : ''}">
+                <div class="lesson-nav-item-dot"></div>
+                <span>${l.Title}</span>
+             </a>
+           `).join('')}
+        </div>
+      `).join('');
+
+      // 2. Main Content Rendering
+      const vUrl = getEmbedUrl(current.VideoURL || current.Thumbnail);
+      const sUrl = getEmbedUrl(current.SlideURL || current.Deadline);
+
+      document.getElementById('lessonContent').innerHTML = `
+        <div class="flex flex-col gap-2 mb-10 anim-fade-up">
+           <div class="flex items-center gap-2 t-xs t-secondary fw-bold uppercase letter-spacing-1">
+              <span>บทเรียน</span>
+              <span data-icon="right" style="width:12px;"></span>
+              <span class="t-primary-color">${current.Category || 'ทั่วไป'}</span>
+           </div>
+           <h1 class="t-display" style="font-size:2.5rem; line-height:1.2;">${current.Title}</h1>
+        </div>
+
+        <div class="media-tabs-premium anim-fade-up anim-delay-1">
+           <button id="tabVideo" class="media-tab-btn active" onclick="switchMedia('video')">
+              <span data-icon="play"></span> วิดีโอบทเรียน
+           </button>
+           <button id="tabSlide" class="media-tab-btn" onclick="switchMedia('slide')">
+              <span data-icon="folder"></span> สไลด์ประกอบ
+           </button>
+        </div>
+
+        <div id="videoContainer" class="player-wrapper anim-scale-in anim-delay-2">
+           ${vUrl ? `<iframe src="${vUrl}" width="100%" height="100%" allow="autoplay" style="border:none;"></iframe>` : `
+             <div class="flex flex-col items-center justify-center h-full text-white opacity-50">
+                <span data-icon="play" style="width:64px; height:64px; margin-bottom:12px;"></span>
+                <p>ไม่มีวิดีโอสำหรับบทเรียนนี้</p>
+             </div>
+           `}
+        </div>
+
+        <div id="slideContainer" class="player-wrapper anim-scale-in anim-delay-2" style="display:none; background:#f8fafc;">
+           ${sUrl ? `<iframe src="${sUrl}" width="100%" height="100%" style="border:none;"></iframe>` : `
+             <div class="flex flex-col items-center justify-center h-full t-secondary">
+                <span data-icon="folder" style="width:64px; height:64px; margin-bottom:12px;"></span>
+                <p>ไม่มีสไลด์ประกอบการเรียน</p>
+             </div>
+           `}
+        </div>
+
+        <div class="grid-2 gap-12 mt-12 anim-fade-up anim-delay-3">
+           <div>
+              <h3 class="t-title mb-4 pb-2 border-bottom">รายละเอียดบทเรียน</h3>
+              <p class="t-body t-primary" style="line-height:1.8; white-space:pre-wrap;">${current.Description || 'ไม่มีข้อมูลรายละเอียดเพิ่มเติมสำหรับบทเรียนนี้'}</p>
+           </div>
+           <div class="flex flex-col gap-6">
+              <div class="card bg-raised p-8 t-center" style="border:2px dashed var(--color-primary-100);">
+                 <div class="avatar avatar-lg mx-auto mb-4" style="background:var(--color-primary-50); color:var(--color-primary-500); border:none;">
+                    <span data-icon="sparkles"></span>
+                 </div>
+                 <h3 class="t-title mb-2">ทดสอบความเข้าใจ</h3>
+                 <p class="t-xs t-secondary mb-6">เรียนจบแล้ว เลือกทำกิจกรรมเพื่อสะสมแต้มกันเถอะ!</p>
+                 <div class="flex flex-col gap-3">
+                    <a id="quizBtn" href="quiz-list.html" class="btn btn-primary btn-block">
+                       <span data-icon="task"></span> ทำโจทย์ปัญหา (Quiz)
+                    </a>
+                    <a href="assignments.html?id=${lessonId}" class="btn btn-outline btn-block" style="border-color:var(--color-primary-300); color:var(--color-primary-600);">
+                       <span data-icon="upload"></span> ส่งแบบฝึกหัด (Mission)
+                    </a>
+                 </div>
+              </div>
+
+              <!-- Navigation -->
+              <div class="flex gap-3">
+                 <div id="prevBtn" class="flex-1"></div>
+                 <div id="nextBtn" class="flex-1"></div>
+              </div>
+           </div>
+        </div>
+      `;
+
+      // 3. Navigation Buttons
+      const idx = all.findIndex(l => l.ID === lessonId);
+      if (idx > 0) {
+        document.getElementById('prevBtn').innerHTML = `
+          <a href="play-lesson.html?id=${all[idx-1].ID}" class="btn btn-outline btn-block" style="height:auto; padding:12px; text-align:left; flex-direction:column; align-items:flex-start;">
+             <span class="t-xs t-secondary mb-1">ก่อนหน้า</span>
+             <span class="t-sm fw-bold t-truncate w-full">${all[idx-1].Title}</span>
+          </a>
+        `;
+      }
+      if (idx < all.length - 1) {
+        document.getElementById('nextBtn').innerHTML = `
+          <a href="play-lesson.html?id=${all[idx+1].ID}" class="btn btn-outline btn-block" style="height:auto; padding:12px; text-align:right; flex-direction:column; align-items:flex-end; border-color:var(--color-primary-300);">
+             <span class="t-xs t-secondary mb-1">ถัดไป</span>
+             <span class="t-sm fw-bold t-truncate w-full">${all[idx+1].Title}</span>
+          </a>
+        `;
+      }
+
+      if (window.app && window.app.initIcons) window.app.initIcons();
+
+      // 3. Link Quiz Directly if exists
+      try {
+        const quizRes = await ApiService.getQuizzes(lessonId);
+        if (quizRes.status === 'success' && quizRes.data.length > 0) {
+          const quiz = quizRes.data[0];
+          const qBtn = document.getElementById('quizBtn');
+          if (qBtn) {
+            // ระบบซ่อมลิงก์อัตโนมัติ: ถ้าลิงก์ไม่ใช่ URL จริงๆ ให้ส่งไปหน้าทำโจทย์ในเว็บแทน
+            const isExternal = quiz.QuizURL && quiz.QuizURL.trim().startsWith('http');
+            const isGame = quiz.QuizURL && quiz.QuizURL.trim().startsWith('{');
+
+            if (isGame) {
+              qBtn.href = `game.html?id=${quiz.ID}&lessonId=${lessonId}`;
+              qBtn.target = "_self";
+            } else if (isExternal) {
+              qBtn.href = quiz.QuizURL;
+              qBtn.target = "_blank";
+            } else {
+              // ระบบตรวจจับลิงก์แบบยืดหยุ่นสูง + ระบบเดาใจ (Smart Recovery)
+              let rawUrl = (quiz.QuizURL || quiz['Quiz URL'] || quiz.Link || '').trim();
+              const pointsStr = (quiz.Points || '').trim();
+
+              // ถ้าช่องลิงก์ปกติไม่ใช่ลิงก์ แต่ช่อง Points ดันเป็นลิงก์ (กรณีครูกรอกผิดช่อง)
+              if (!rawUrl.includes('http') && pointsStr.includes('http')) {
+                 rawUrl = pointsStr;
+              }
+
+              const urlStr = rawUrl.toLowerCase();
+              const isExternal = urlStr.includes('http') || urlStr.includes('forms') || urlStr.includes('goo.gl') || urlStr.includes('docs.google');
+
+              if (isExternal) {
+                qBtn.href = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
+                qBtn.target = "_blank";
+              } else {
+                // ถ้าไม่มีลิงก์ ให้ส่งไปหน้ารวมโจทย์เพื่อความปลอดภัย
+                qBtn.href = `quiz-list.html?id=${lessonId}`;
+                qBtn.target = "_self";
+              }
+            }
+          }
+        }
+      } catch(e) { console.error("Quiz Link Error:", e); }
+    } catch (err) { console.error(err); }
+  }
+
+  function getEmbedUrl(url) {
+    if (!url || typeof url !== 'string' || !url.startsWith('http')) return null;
+    if (url.includes('drive.google.com')) return url.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      let vId = '';
+      if (url.includes('v=')) vId = url.split('v=')[1].split('&')[0];
+      else if (url.includes('youtu.be/')) vId = url.split('youtu.be/')[1].split('?')[0];
+      else if (url.includes('shorts/')) vId = url.split('shorts/')[1].split('?')[0];
+      if (vId) return `https://www.youtube.com/embed/${vId}`;
+    }
+    return url;
+  }
+
+  function switchMedia(type) {
+    const v = document.getElementById('videoContainer'), s = document.getElementById('slideContainer');
+    const tv = document.getElementById('tabVideo'), ts = document.getElementById('tabSlide');
+    if (type === 'video') {
+      v.style.display = 'block'; s.style.display = 'none';
+      tv.classList.add('active'); ts.classList.remove('active');
+    } else {
+      v.style.display = 'none'; s.style.display = 'block';
+      tv.classList.remove('active'); ts.classList.add('active');
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

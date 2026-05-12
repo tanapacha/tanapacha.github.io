@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KIDDO Game Studio | สำหรับคุณครู</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    :root {
+      --studio-bg: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+      --glass-white: rgba(255, 255, 255, 0.7);
+    }
+
+    body { background: var(--studio-bg); min-height: 100vh; }
+
+    .game-builder-layout {
+      display: grid; grid-template-columns: 450px 1fr;
+      height: calc(100vh - 40px); margin: 20px; gap: 20px;
+    }
+
+    /* Editor Pane (Left) */
+    .editor-pane {
+      background: var(--glass-white); backdrop-filter: blur(20px);
+      border-radius: 30px; border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: var(--shadow-xl); overflow-y: auto; padding: var(--sp-8);
+    }
+
+    /* Preview Pane (Right) */
+    .preview-pane {
+      background: rgba(15, 23, 42, 0.05); border-radius: 30px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+
+    /* Device Mockup */
+    .phone-mockup {
+      width: 320px; height: 640px; background: #0f172a; border: 12px solid #1e293b;
+      border-radius: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.3);
+      position: relative; overflow: hidden; display: flex; flex-direction: column;
+    }
+    .phone-screen {
+      flex: 1; background: white; margin: 5px; border-radius: 25px;
+      overflow-y: auto; padding: 20px; display: flex; flex-direction: column;
+    }
+
+    /* Game Type Cards */
+    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .type-card {
+      background: white; border: 2px solid #e2e8f0; border-radius: 20px;
+      padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.3s;
+      box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center;
+    }
+    .type-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--color-primary-300); }
+    .type-card.active { border-color: var(--color-primary-500); background: var(--color-primary-50); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+    .type-card .icon-box {
+      width: 44px; height: 44px; background: #f1f5f9; border-radius: 12px;
+      margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
+      color: var(--color-primary-600);
+    }
+    .type-card.active .icon-box { background: var(--color-primary-500); color: white; }
+
+    /* Content Items */
+    .content-item {
+      background: white; border-radius: 15px; padding: 15px; margin-bottom: 10px;
+      border: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: flex-start;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } }
+
+    /* Floating Header inside Screen */
+    .screen-header { border-bottom: 2px dashed #f1f5f9; padding-bottom: 15px; margin-bottom: 15px; }
+
+    /* Buttons */
+    .btn-add {
+      width: 100%; padding: 15px; border: 2px dashed #cbd5e1; border-radius: 15px;
+      background: transparent; color: #64748b; font-weight: 800; cursor: pointer;
+      transition: all 0.3s; margin-top: 10px;
+    }
+    .btn-add:hover { border-color: var(--color-primary-500); color: var(--color-primary-500); background: white; }
+
+    .btn-save-studio {
+      background: var(--grad-primary); color: white; border: none;
+      padding: 20px; border-radius: 20px; font-weight: 900; font-size: 1.1rem;
+      width: 100%; cursor: pointer; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+      margin-top: 30px; transition: all 0.3s;
+    }
+    .btn-save-studio:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5); }
+  </style>
+</head>
+<body>
+<div class="app" style="display:flex;">
+  <!-- Consistent Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">เมนูหลัก</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">สำหรับคุณครู</div>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="users"></span>จัดการเนื้อหา</a>
+      <a href="teacher-create-problem.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>สร้างโจทย์ปัญหา</a>
+      <a href="teacher-create-game.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="sparkles"></span>สร้างเกมการศึกษา</a>
+      <a href="teacher-create-exercise.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>สร้างแบบฝึกหัด (สั่งงาน)</a>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนนักเรียน</a>
+    </div>
+    <div class="sidebar-footer">
+       <button data-action="logout" class="btn btn-ghost btn-sm t-danger-color w-full">ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="game-builder-layout">
+    <!-- Editor Pane -->
+    <div class="editor-pane anim-fade-up">
+       <div class="flex items-center gap-4 mb-8">
+          <div style="width:50px; height:50px; background:var(--grad-primary); border-radius:15px; display:flex; align-items:center; justify-content:center; color:white;">
+             <span data-icon="sparkles" style="width:24px; height:24px;"></span>
+          </div>
+          <div>
+             <h1 class="t-title" style="margin:0;">KIDDO Studio</h1>
+             <p class="t-xs t-secondary fw-bold uppercase">สร้างมินิเกมฝึกทักษะ CT</p>
+          </div>
+       </div>
+
+       <div class="form-group mb-6">
+          <label class="form-label fw-black">1. ข้อมูลพื้นฐาน</label>
+          <select id="lessonSelect" class="input mb-3" style="background:white;"></select>
+          <input type="text" id="gameTitle" class="input" style="background:white;" placeholder="ตั้งชื่อเกมแสนสนุกของคุณ..." oninput="updatePreview()">
+       </div>
+
+       <div class="form-group mb-6">
+          <label class="form-label fw-black">2. เลือกประเภทมินิเกม</label>
+          <div class="type-grid">
+             <div class="type-card active" onclick="selectType('matching', this)">
+                <div class="icon-box"><span data-icon="puzzle"></span></div>
+                <div class="t-xs fw-bold">จับคู่</div>
+             </div>
+             <div class="type-card" onclick="selectType('sequence', this)">
+                <div class="icon-box"><span data-icon="clock"></span></div>
+                <div class="t-xs fw-bold">ลำดับ</div>
+             </div>
+             <div class="type-card" onclick="selectType('logic', this)">
+                <div class="icon-box"><span data-icon="shield"></span></div>
+                <div class="t-xs fw-bold">จริง/เท็จ</div>
+             </div>
+             <div class="type-card" onclick="selectType('external', this)">
+                <div class="icon-box"><span data-icon="link"></span></div>
+                <div class="t-xs fw-bold">แปะลิงก์</div>
+             </div>
+          </div>
+       </div>
+
+       <div class="form-group">
+          <label class="form-label fw-black">3. เนื้อหาภายในเกม</label>
+          <div id="editorContent"></div>
+          <button id="btnAddItem" class="btn-add" onclick="addItem()">+ เพิ่มรายการใหม่</button>
+       </div>
+
+       <button class="btn-save-studio" onclick="saveGame()">🚀 บันทึกและเปิดใช้งานเกม</button>
+    </div>
+
+    <!-- Preview Pane -->
+    <div class="preview-pane">
+       <div class="t-xs t-secondary fw-black uppercase mb-6 ls-widest">Student Live Preview</div>
+       <div class="phone-mockup">
+          <div class="phone-screen">
+             <div class="screen-header">
+                <div id="prevTitle" class="fw-black t-base" style="color:#0f172a;">ชื่อเกมของคุณ</div>
+                <div id="prevType" class="t-xs t-secondary">ประเภทเกม: จับคู่</div>
+             </div>
+             <div id="previewContent" class="flex-1"></div>
+          </div>
+          <!-- Home button of phone -->
+          <div style="width:40px; height:4px; background:#334155; border-radius:10px; margin: 10px auto;"></div>
+       </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  let currentGameType = 'matching';
+  let gameItems = [];
+
+  async function init() {
+    Auth.requireAuth();
+    try {
+      const res = await ApiService.getLessons();
+      const select = document.getElementById('lessonSelect');
+      if (res.status === 'success') {
+        select.innerHTML = '<option value="">-- เลือกบทเรียน --</option>' + 
+          res.data.map(l => `<option value="${l.ID}">${l.Title}</option>`).join('');
+      }
+      initItems();
+    } catch (e) { console.error(e); }
+  }
+
+  function selectType(type, el) {
+    currentGameType = type;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    
+    document.getElementById('prevType').textContent = 'ประเภทเกม: ' + el.querySelector('.t-xs').textContent;
+    document.getElementById('btnAddItem').style.display = type === 'external' ? 'none' : 'block';
+    
+    initItems();
+  }
+
+  function initItems() {
+    gameItems = [];
+    if (currentGameType === 'matching') gameItems = [{ a: '', b: '' }];
+    else if (currentGameType === 'sequence') gameItems = [{ text: '' }];
+    else if (currentGameType === 'logic') gameItems = [{ text: '', isTrue: true }];
+    else if (currentGameType === 'external') gameItems = [{ url: '' }];
+    
+    renderEditor();
+    updatePreview();
+  }
+
+  function renderEditor() {
+    const container = document.getElementById('editorContent');
+    container.innerHTML = '';
+    
+    gameItems.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'content-item';
+      
+      let fields = '';
+      if (currentGameType === 'matching') {
+        fields = `<div class="flex gap-2 w-full"><input type="text" class="input input-sm" placeholder="ฝั่งซ้าย" value="${item.a}" oninput="updateItem(${idx}, 'a', this.value)"><input type="text" class="input input-sm" placeholder="ฝั่งขวา" value="${item.b}" oninput="updateItem(${idx}, 'b', this.value)"></div>`;
+      } else if (currentGameType === 'sequence') {
+        fields = `<input type="text" class="input input-sm w-full" placeholder="ขั้นตอนที่ ${idx+1}" value="${item.text}" oninput="updateItem(${idx}, 'text', this.value)">`;
+      } else if (currentGameType === 'logic') {
+        fields = `<div class="flex gap-2 w-full"><input type="text" class="input input-sm w-full" placeholder="ประโยคเงื่อนไข" value="${item.text}" oninput="updateItem(${idx}, 'text', this.value)"><select class="input input-sm" style="width:80px" onchange="updateItem(${idx}, 'isTrue', this.value === 'true')"><option value="true" ${item.isTrue ? 'selected':''}>จริง</option><option value="false" ${!item.isTrue ? 'selected':''}>เท็จ</option></select></div>`;
+      } else if (currentGameType === 'external') {
+        fields = `<div class="w-full"><label class="t-xs fw-bold t-secondary mb-1 block">ระบุลิงก์เกม (Wordwall / Scratch)</label><input type="url" class="input input-sm w-full" placeholder="https://..." value="${item.url}" oninput="updateItem(${idx}, 'url', this.value)"></div>`;
+      }
+
+      div.innerHTML = `
+        <div class="flex-1">${fields}</div>
+        ${currentGameType !== 'external' ? `<button class="btn btn-ghost btn-sm t-error-color" onclick="removeItem(${idx})">&times;</button>` : ''}
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function addItem() {
+    if (currentGameType === 'matching') gameItems.push({ a: '', b: '' });
+    else if (currentGameType === 'sequence') gameItems.push({ text: '' });
+    else if (currentGameType === 'logic') gameItems.push({ text: '', isTrue: true });
+    renderEditor();
+    updatePreview();
+  }
+
+  function removeItem(idx) {
+    gameItems.splice(idx, 1);
+    renderEditor();
+    updatePreview();
+  }
+
+  function updateItem(idx, key, val) {
+    gameItems[idx][key] = val;
+    updatePreview();
+  }
+
+  function updatePreview() {
+    document.getElementById('prevTitle').textContent = document.getElementById('gameTitle').value || 'ชื่อเกมของคุณ';
+    const container = document.getElementById('previewContent');
+    container.innerHTML = '';
+
+    if (currentGameType === 'matching') {
+       gameItems.slice(0,3).forEach(i => {
+          container.innerHTML += `<div class="flex justify-between mb-2"><div class="badge badge-primary t-xs" style="width:45%; text-align:center;">${i.a || '?'}</div><div class="badge badge-outline t-xs" style="width:45%; text-align:center;">${i.b || '?'}</div></div>`;
+       });
+    } else if (currentGameType === 'sequence') {
+       gameItems.slice(0,4).forEach((i, idx) => {
+          container.innerHTML += `<div class="p-3 bg-app rounded-lg mb-2 t-xs fw-bold">${idx+1}. ${i.text || '...'}</div>`;
+       });
+    } else if (currentGameType === 'logic') {
+       container.innerHTML = `<div class="p-4 bg-app rounded-xl t-center mb-4"><div class="t-xs t-secondary mb-2">จริง หรือ เท็จ?</div><div class="fw-bold t-sm">${gameItems[0]?.text || 'ประโยคเงื่อนไข...'}</div></div><div class="flex gap-2"><button class="btn btn-success btn-sm w-full">จริง</button><button class="btn btn-error btn-sm w-full">เท็จ</button></div>`;
+    } else if (currentGameType === 'external') {
+       container.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center t-center"><div style="width:60px; height:60px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:15px;"><span data-icon="link" style="color:#64748b;"></span></div><div class="t-sm fw-bold">เกมจากลิงก์ภายนอก</div><div class="t-xs t-secondary px-4 mt-2">นักเรียนจะเข้าเล่นเกมผ่านลิงก์ที่คุณครูระบุไว้</div></div>`;
+    }
+    if (window.app && window.app.initIcons) window.app.initIcons();
+  }
+
+  async function saveGame() {
+    const lessonId = document.getElementById('lessonSelect').value;
+    const title = document.getElementById('gameTitle').value;
+    if (!lessonId || !title) return alert("กรุณาระบุบทเรียนและชื่อเกมครับ");
+
+    const payload = {
+      LessonID: lessonId,
+      Title: title,
+      Type: 'game',
+      QuizURL: JSON.stringify({ type: currentGameType, items: gameItems }),
+      Points: 10
+    };
+
+    try {
+      const res = await ApiService.createQuiz(payload);
+      if (res.status === 'success') {
+        alert("สร้างเกมการศึกษาเรียบร้อยแล้ว!");
+        location.href = 'teacher-manage-content.html';
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  init();
+</script>
+</body>
+</html>

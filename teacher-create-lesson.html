@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สร้าง/แก้ไขเนื้อหา | KIDDO CS</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    .form-group { margin-bottom: var(--sp-6); }
+    .form-label { display: block; font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-2); }
+    .form-hint { font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; }
+    .form-control { width: 100%; padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-surface); font-size: var(--text-base); box-sizing: border-box; }
+    .form-control:focus { outline: none; border-color: var(--color-primary-500); box-shadow: 0 0 0 3px var(--color-primary-100); }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; margin-bottom: 8px; }
+    .chip {
+      padding: 6px 16px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+      border: 1.5px solid var(--border-default); background: white; cursor: pointer; transition: all 0.15s;
+    }
+    .chip:hover { border-color: var(--color-primary-400); background: var(--color-primary-50); }
+    .chip.active { background: var(--color-primary-500); color: white; border-color: var(--color-primary-500); }
+    .preview-box { padding: 16px; background: var(--neutral-50); border-radius: var(--radius-lg); border: 1px dashed var(--border-subtle); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">เมนู</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">สำหรับคุณครู</div>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="users"></span>จัดการเนื้อหา</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">คุณครู</div>
+          <div class="sidebar-user-role" data-user="role">ผู้ดูแล</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div>
+        <a href="teacher-manage-content.html" class="t-small t-primary-color flex items-center gap-1" style="margin-bottom:var(--sp-2);">
+          <span data-icon="left"></span> กลับหน้าจัดการ
+        </a>
+        <h1 class="t-subheading" id="pageTitle">สร้างเนื้อหาใหม่</h1>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <form id="lessonForm">
+        <div class="grid-2 gap-8 anim-fade-up">
+          <!-- คอลัมน์ซ้าย: ข้อมูลบทเรียน -->
+          <div class="card">
+            <h2 class="t-title" style="margin-bottom:var(--sp-6);">ข้อมูลบทเรียน</h2>
+
+            <!-- ขั้นตอนที่ 1: เลือกบท -->
+            <div class="form-group" style="background:var(--color-primary-50); padding:var(--sp-4); border-radius:var(--radius-lg); border:1px solid var(--color-primary-100);">
+              <label class="form-label" style="color:var(--color-primary-700);">ขั้นตอนที่ 1: เลือกบทเรียน</label>
+              <div class="form-hint" style="margin-bottom:8px;">เลือกบทที่มีอยู่แล้ว หรือพิมพ์ชื่อบทใหม่</div>
+              <div id="categoryChips" class="chip-row"></div>
+              <input type="text" id="lessonCategory" class="form-control" placeholder="พิมพ์ชื่อบท เช่น บทที่ 1 อัลกอริทึม" required>
+            </div>
+
+            <!-- ขั้นตอนที่ 2: ตั้งชื่อเรื่องย่อย -->
+            <div class="form-group" style="background:var(--neutral-50); padding:var(--sp-4); border-radius:var(--radius-lg); border:1px solid var(--border-subtle);">
+              <label class="form-label">ขั้นตอนที่ 2: ตั้งชื่อเรื่องย่อยในบทนี้</label>
+              <div class="form-hint" style="margin-bottom:8px;">ชื่อนี้จะแสดงเป็นรายการให้นักเรียนเลือกในเมนูซ้าย</div>
+              <input type="text" id="lessonTitle" class="form-control" placeholder="เช่น 1.1 อัลกอริทึมคืออะไร" required>
+            </div>
+
+            <!-- เนื้อหา -->
+            <div class="form-group">
+              <label class="form-label">เนื้อหาบทเรียน</label>
+              <textarea id="lessonDesc" class="form-control" rows="6" placeholder="พิมพ์เนื้อหาที่ต้องการให้นักเรียนอ่าน..."></textarea>
+            </div>
+          </div>
+
+          <!-- คอลัมน์ขวา: สื่อ + ตัวอย่าง -->
+          <div style="display:flex; flex-direction:column; gap:var(--sp-6);">
+            <div class="card">
+              <h2 class="t-title" style="margin-bottom:var(--sp-4);">สื่อการสอน</h2>
+              <div class="form-group">
+                <label class="form-label">ลิงก์วิดีโอ YouTube</label>
+                <input type="url" id="youtubeUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">สไลด์ประกอบ</label>
+                <input type="file" id="slideInput" class="form-control" accept=".pdf,.ppt,.pptx">
+              </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="card">
+              <h3 class="t-title" style="margin-bottom:var(--sp-3);">ตัวอย่างที่นักเรียนจะเห็น (เมนูซ้าย)</h3>
+              <div id="previewSidebar" class="preview-box">
+                <div class="t-xs t-secondary">(กรอกข้อมูลเพื่อดูตัวอย่าง)</div>
+              </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-full">บันทึกข้อมูล</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  Auth.requireAuth();
+  const urlParams = new URLSearchParams(window.location.search);
+  const editId = urlParams.get('edit');
+  let allLessonsData = [];
+
+  if (editId) {
+    document.getElementById('pageTitle').textContent = 'แก้ไขเนื้อหาบทเรียน';
+  }
+
+  async function init() {
+    try {
+      const res = await ApiService.getLessons();
+      if (res.status === 'success' && res.data) {
+        allLessonsData = res.data;
+
+        // ดึง Category ที่ไม่ซ้ำ (ถ้า Category ว่าง ให้ใช้ Title แทน เพื่อให้คุณครูเลือกมาแก้ได้)
+        const catSet = new Set();
+        res.data.forEach(l => {
+          const cat = l.Category ? String(l.Category).trim() : '';
+          const title = l.Title ? String(l.Title).trim() : '';
+          
+          if (cat && cat !== 'ทั่วไป') {
+            catSet.add(cat);
+          } else if (title) {
+            // ถ้าเป็นข้อมูลเก่าที่ยังไม่มี Category ให้เอา Title มาแสดงเป็นปุ่มให้เลือกกดมาแก้ไขได้
+            catSet.add(title);
+          }
+        });
+
+        const chips = document.getElementById('categoryChips');
+        if (catSet.size > 0) {
+          chips.innerHTML = [...catSet].map(cat =>
+            `<span class="chip" data-cat="${cat}" onclick="pickCategory(this)">${cat}</span>`
+          ).join('') + `<span class="chip" style="border-style:dashed;" onclick="newCategory()">+ บทใหม่</span>`;
+        } else {
+          chips.innerHTML = '<span class="t-xs t-secondary">ยังไม่มีบทเรียน — พิมพ์ชื่อบทใหม่ด้านล่าง</span>';
+        }
+
+        // ถ้าแก้ไข → โหลดข้อมูลเดิม
+        if (editId) {
+          const lesson = res.data.find(l => l.ID === editId);
+          if (lesson) {
+            const savedCat = (lesson.Category || '').trim();
+            const savedTitle = (lesson.Title || '').trim();
+            
+            // ถ้า Category ว่าง (ข้อมูลเก่า) → เอา Title ไปใส่ช่อง Category แทน
+            // แล้วเคลียร์ช่อง Title ให้คุณครูตั้งชื่อเรื่องย่อยใหม่
+            if (!savedCat || savedCat === 'ทั่วไป') {
+              document.getElementById('lessonCategory').value = savedTitle;
+              document.getElementById('lessonTitle').value = ''; // ให้คุณครูกรอกชื่อเรื่องย่อยใหม่
+            } else {
+              document.getElementById('lessonCategory').value = savedCat;
+              document.getElementById('lessonTitle').value = savedTitle;
+            }
+            
+            document.getElementById('lessonDesc').value = lesson.Description || '';
+            document.getElementById('youtubeUrl').value = lesson.VideoURL || '';
+            // highlight chip ที่ตรงกัน
+            const catToHighlight = document.getElementById('lessonCategory').value;
+            document.querySelectorAll('.chip[data-cat]').forEach(c => {
+              if (c.dataset.cat === catToHighlight) c.classList.add('active');
+            });
+            
+            // สั่งให้ Preview ทำงานทันที
+            updatePreview();
+          }
+        }
+      } else {
+        document.getElementById('categoryChips').innerHTML = '<span class="t-xs t-secondary">ยังไม่มีบทเรียน — พิมพ์ชื่อบทใหม่ด้านล่าง</span>';
+      }
+    } catch (err) {
+      console.error(err);
+      document.getElementById('categoryChips').innerHTML = '<span class="t-xs t-danger-color">โหลดข้อมูลไม่สำเร็จ</span>';
+    }
+  }
+
+  function pickCategory(el) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('lessonCategory').value = el.dataset.cat;
+    updatePreview();
+  }
+
+  function newCategory() {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('lessonCategory').value = '';
+    document.getElementById('lessonCategory').focus();
+  }
+
+  function updatePreview() {
+    const cat = document.getElementById('lessonCategory').value.trim() || '(ชื่อบท)';
+    const title = document.getElementById('lessonTitle').value.trim() || '(ชื่อเรื่องย่อย)';
+
+    // แสดงเรื่องย่อยอื่นๆ ในบทเดียวกัน (ถ้ามี) - match ทั้ง Category และ Title (กรณีข้อมูลเก่า)
+    const sameCatLessons = allLessonsData.filter(l => {
+      const lCat = (l.Category || '').trim();
+      const lTitle = (l.Title || '').trim();
+      return lCat === cat || (!lCat && lTitle === cat);
+    });
+    
+    const otherTopics = sameCatLessons
+      .filter(l => !(editId && l.ID === editId)) // ไม่แสดงตัวที่กำลังแก้ไข
+      .map(l => `<div style="padding:4px 0 4px 20px; font-size:0.75rem; color:var(--text-secondary);">● ${l.Title}</div>`)
+      .join('');
+
+    document.getElementById('previewSidebar').innerHTML = `
+      <div style="font-size:0.65rem; color:var(--text-disabled); font-weight:800; text-transform:uppercase; letter-spacing:0.05em; padding-bottom:6px; border-bottom:1px solid var(--border-subtle); margin-bottom:6px;">${cat}</div>
+      ${otherTopics}
+      <div style="display:flex; align-items:center; gap:6px; padding:6px 8px; background:var(--color-primary-50); border-radius:6px; color:var(--color-primary-600); font-size:0.8rem; font-weight:700;">
+        <div style="width:5px; height:5px; border-radius:50%; background:var(--color-primary-500);"></div>
+        ${title} <span style="font-weight:400; color:var(--text-secondary);">(ใหม่)</span>
+      </div>
+    `;
+  }
+
+  document.getElementById('lessonCategory').addEventListener('input', updatePreview);
+  document.getElementById('lessonTitle').addEventListener('input', updatePreview);
+
+  // Submit
+  document.getElementById('lessonForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const catVal = document.getElementById('lessonCategory').value.trim();
+    const titleVal = document.getElementById('lessonTitle').value.trim();
+
+    if (!catVal) { alert("⚠️ กรุณาใส่ชื่อบทเรียน (ขั้นตอนที่ 1)"); return; }
+    if (!titleVal) { alert("⚠️ กรุณาใส่ชื่อเรื่องย่อย (ขั้นตอนที่ 2)"); return; }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'กำลังบันทึก...';
+
+    const lessonData = {
+      lessonId: editId,
+      category: catVal,
+      title: titleVal,
+      description: document.getElementById('lessonDesc').value,
+      videoUrl: document.getElementById('youtubeUrl').value,
+      slideFile: null
+    };
+
+    const slideInput = document.getElementById('slideInput');
+    if (slideInput.files.length > 0) {
+      const file = slideInput.files[0];
+      const reader = new FileReader();
+      lessonData.slideFile = await new Promise(resolve => {
+        reader.onload = () => resolve({ base64: reader.result, name: file.name, mimeType: file.type });
+        reader.readAsDataURL(file);
+      });
+    }
+
+    try {
+      const action = editId ? 'updateLesson' : 'createLesson';
+      const res = await ApiService[action](lessonData);
+      if (res.status === 'success') {
+        // เคลียร์ Cache ฝั่ง Browser ด้วยเพื่อให้โหลดข้อมูลใหม่จริงๆ
+        localStorage.removeItem('API_CACHE_GET_getLessons_{}');
+        alert("บันทึกเรียบร้อยแล้ว!");
+        window.location.href = 'teacher-manage-content.html';
+      } else {
+        alert("ผิดพลาด: " + (res.message || 'ไม่ทราบสาเหตุ'));
+        submitBtn.disabled = false; submitBtn.textContent = 'บันทึกข้อมูล';
+      }
+    } catch (err) {
+      alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
+      submitBtn.disabled = false; submitBtn.textContent = 'บันทึกข้อมูล';
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
