@@ -34,8 +34,8 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-mark">
-        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
       </div>
     </div>
     <div class="sidebar-section">
@@ -156,8 +156,20 @@
 
   async function init() {
     const user = Auth.requireAuth();
+    if (!user) return;
+
+    // Update sidebar grade label
+    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
+    if (gradeLabel && user.grade) {
+      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    }
+
     try {
-      const [mRes, sRes, lRes] = await Promise.all([ApiService.getTasks(), ApiService.getAssignments(), ApiService.getLessons()]);
+      const [mRes, sRes, lRes] = await Promise.all([
+        ApiService.getTasks(user.grade), 
+        ApiService.getAssignments(), 
+        ApiService.getLessons(user.grade)
+      ]);
       if (mRes.status === 'success') allMissions = mRes.data;
       if (sRes.status === 'success') userSubmissions = sRes.data.filter(s => s.StudentID === user.id);
       if (lRes.status === 'success') allLessons = lRes.data;
@@ -212,7 +224,17 @@
     }
 
     if (filtered.length === 0) {
-      grid.innerHTML = '<div class="p-20 t-center t-secondary" style="grid-column:1/-1;">ไม่มีภารกิจในหัวข้อนี้</div>';
+      const user = Auth.get();
+      grid.innerHTML = `
+        <div class="card p-12 t-center anim-fade-up" style="grid-column: 1/-1;">
+          <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
+            <span data-icon="upload" style="width:32px; height:32px;"></span>
+          </div>
+          <h3 class="t-title mb-2">ยังไม่มีแบบฝึกหัดในขณะนี้</h3>
+          <p class="t-secondary t-sm">${currentFilter === 'all' ? `คุณครูยังไม่ได้เพิ่มแบบฝึกหัดสำหรับชั้น ${user.grade || ''}` : `ยังไม่มีแบบฝึกหัดในหมวดหมู่ ${currentFilter}`}</p>
+        </div>
+      `;
+      if (window.app && window.app.initIcons) window.app.initIcons();
       return;
     }
 

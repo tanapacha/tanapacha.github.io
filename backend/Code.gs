@@ -110,8 +110,8 @@ function setupSystem() {
   let usersSheet = ss.getSheetByName(CONFIG.SHEETS.USERS);
   if (!usersSheet) {
     usersSheet = ss.insertSheet(CONFIG.SHEETS.USERS);
-    usersSheet.appendRow(["ID", "Name", "Email", "Password", "Role", "Grade", "Points"]);
-    usersSheet.getRange("A1:G1").setFontWeight("bold").setBackground("#f3f3f3");
+    usersSheet.appendRow(["ID", "Name", "Email", "Password", "Role", "Grade", "Points", "Salt"]);
+    usersSheet.getRange("A1:H1").setFontWeight("bold").setBackground("#f3f3f3");
   }
 
   // --- C. สร้าง Sheet: Assignments ---
@@ -134,28 +134,27 @@ function setupSystem() {
   let lessonsSheet = ss.getSheetByName(CONFIG.SHEETS.LESSONS);
   if (!lessonsSheet) {
     lessonsSheet = ss.insertSheet(CONFIG.SHEETS.LESSONS);
-    lessonsSheet.appendRow(["ID", "Category", "Title", "Description", "Type", "Thumbnail", "Order", "Instructions", "Criteria", "MaxPoints", "Deadline", "VideoURL", "SlideURL"]);
-    lessonsSheet.getRange("A1:M1").setFontWeight("bold").setBackground("#f3f3f3");
+    lessonsSheet.appendRow(["ID", "Category", "Title", "Description", "Type", "Thumbnail", "Order", "Instructions", "Criteria", "MaxPoints", "Deadline", "VideoURL", "SlideURL", "Grade"]);
+    lessonsSheet.getRange("A1:N1").setFontWeight("bold").setBackground("#f3f3f3");
     // ข้อมูลเริ่มต้น
-    lessonsSheet.appendRow(["L1", "1. อัลกอริทึม", "อัลกอริทึมเบื้องต้น", "เรียนรู้การลำดับขั้นตอนการแก้ปัญหา", "video", "", 1, "ดูวิดีโอและทำสรุปสั้นๆ", "-", 0, "-"]);
-    lessonsSheet.appendRow(["L2", "2. การเขียนโปรแกรม Scratch", "การเขียนโปรแกรม Scratch", "สร้างโปรเจกต์แรกด้วยบล็อกคำสั่ง", "assignment", "", 2, "ให้นักเรียนสร้างโปรเจกต์ Scratch ตามโจทย์ที่คุณครูกำหนดในห้องเรียน", "1. ความถูกต้อง (5)\n2. ความสวยงาม (3)\n3. ความคิดสร้างสรรค์ (2)", 10, "15 พ.ค. 2569"]);
+    lessonsSheet.appendRow(["L1", "1. อัลกอริทึม", "อัลกอริทึมเบื้องต้น", "เรียนรู้การลำดับขั้นตอนการแก้ปัญหา", "video", "", 1, "ดูวิดีโอและทำสรุปสั้นๆ", "-", 0, "-", "", "", "ป.4"]);
+    lessonsSheet.appendRow(["L2", "2. การเขียนโปรแกรม Scratch", "การเขียนโปรแกรม Scratch", "สร้างโปรเจกต์แรกด้วยบล็อกคำสั่ง", "assignment", "", 2, "ให้นักเรียนสร้างโปรเจกต์ Scratch ตามโจทย์ที่คุณครูกำหนดในห้องเรียน", "1. ความถูกต้อง (5)\n2. ความสวยงาม (3)\n3. ความคิดสร้างสรรค์ (2)", 10, "15 พ.ค. 2569", "", "", "ป.4"]);
   }
 
-  // --- F. สร้าง Sheet: Quizzes ---
-  let quizzesSheet = ss.getSheetByName(CONFIG.SHEETS.QUIZZES);
-  if (! quizzesSheet) {
-    quizzesSheet = ss.insertSheet(CONFIG.SHEETS.QUIZZES);
-    // เพิ่ม Question, OptionA, OptionB, OptionC, OptionD, Answer สำหรับ internal quiz
-    quizzesSheet.appendRow(["ID", "LessonID", "Title", "Type", "QuizURL", "Points", "CreatedAt", "Question", "OptionA", "OptionB", "OptionC", "OptionD", "Answer"]);
-    quizzesSheet.getRange("A1:M1").setFontWeight("bold").setBackground("#f3f3f3");
-  }
-
-  // --- H. สร้าง Sheet: Tasks ---
+  // --- G. สร้าง Sheet: Tasks (โจทย์ปัญหา) ---
   let tasksSheet = ss.getSheetByName(CONFIG.SHEETS.TASKS);
   if (!tasksSheet) {
     tasksSheet = ss.insertSheet(CONFIG.SHEETS.TASKS);
-    tasksSheet.appendRow(["ID", "LessonID", "Title", "Instructions", "Criteria", "MaxPoints", "Deadline", "CreatedAt"]);
-    tasksSheet.getRange("A1:H1").setFontWeight("bold").setBackground("#f3f3f3");
+    tasksSheet.appendRow(["ID", "LessonID", "Title", "Instructions", "Criteria", "MaxPoints", "Deadline", "CreatedAt", "Grade"]);
+    tasksSheet.getRange("A1:I1").setFontWeight("bold").setBackground("#f3f3f3");
+  }
+
+  // --- H. สร้าง Sheet: Quizzes (แบบฝึกหัด) ---
+  let quizzesSheet = ss.getSheetByName(CONFIG.SHEETS.QUIZZES);
+  if (!quizzesSheet) {
+    quizzesSheet = ss.insertSheet(CONFIG.SHEETS.QUIZZES);
+    quizzesSheet.appendRow(["ID", "LessonID", "Title", "Type", "QuizURL", "Points", "CreatedAt", "Question", "OptionA", "OptionB", "OptionC", "OptionD", "Answer", "Grade"]);
+    quizzesSheet.getRange("A1:N1").setFontWeight("bold").setBackground("#f3f3f3");
   }
 
   // --- I. สร้าง Sheet: Missions ---
@@ -232,6 +231,43 @@ function migrateSchemaIfNeeded() {
     sheet.getRange(1, lastCol + 2).setValue("SlideURL").setFontWeight("bold").setBackground("#f3f3f3");
   }
 
+  // --- ตรวจสอบ Lessons: Grade column ---
+  const latestHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  if (latestHeaders.indexOf("Grade") === -1) {
+    const lastCol = sheet.getLastColumn();
+    sheet.getRange(1, lastCol + 1).setValue("Grade").setFontWeight("bold").setBackground("#f3f3f3");
+    // ตั้งค่า default "ป.4" ให้บทเรียนที่มีอยู่แล้ว
+    const dataRows = sheet.getLastRow() - 1;
+    if (dataRows > 0) {
+      const defaults = new Array(dataRows).fill(["ป.4"]);
+      sheet.getRange(2, lastCol + 1, dataRows, 1).setValues(defaults);
+    }
+  }
+
+  // --- ตรวจสอบ Quizzes: Grade column ---
+  const qSheet = ss.getSheetByName(CONFIG.SHEETS.QUIZZES);
+  if (qSheet) {
+    const qHeaders = qSheet.getRange(1, 1, 1, qSheet.getLastColumn()).getValues()[0];
+    if (qHeaders.indexOf("Grade") === -1) {
+      const lastCol = qSheet.getLastColumn();
+      qSheet.getRange(1, lastCol + 1).setValue("Grade").setFontWeight("bold").setBackground("#f3f3f3");
+      const dataRows = qSheet.getLastRow() - 1;
+      if (dataRows > 0) qSheet.getRange(2, lastCol + 1, dataRows, 1).setValues(new Array(dataRows).fill(["ป.4"]));
+    }
+  }
+
+  // --- ตรวจสอบ Tasks: Grade column ---
+  const tSheet = ss.getSheetByName(CONFIG.SHEETS.TASKS);
+  if (tSheet) {
+    const tHeaders = tSheet.getRange(1, 1, 1, tSheet.getLastColumn()).getValues()[0];
+    if (tHeaders.indexOf("Grade") === -1) {
+      const lastCol = tSheet.getLastColumn();
+      tSheet.getRange(1, lastCol + 1).setValue("Grade").setFontWeight("bold").setBackground("#f3f3f3");
+      const dataRows = tSheet.getLastRow() - 1;
+      if (dataRows > 0) tSheet.getRange(2, lastCol + 1, dataRows, 1).setValues(new Array(dataRows).fill(["ป.4"]));
+    }
+  }
+
   // --- ตรวจสอบ Sheet: Grades ---
   const gSheet = ss.getSheetByName(CONFIG.SHEETS.GRADES);
   if (gSheet) {
@@ -243,15 +279,15 @@ function migrateSchemaIfNeeded() {
   }
 
   // --- ตรวจสอบ Sheet: Quizzes ---
-  const qSheet = ss.getSheetByName(CONFIG.SHEETS.QUIZZES);
-  if (qSheet) {
-    const qHeaders = qSheet.getRange(1, 1, 1, Math.max(1, qSheet.getLastColumn())).getValues()[0];
+  const qSheet2 = ss.getSheetByName(CONFIG.SHEETS.QUIZZES);
+  if (qSheet2) {
+    const qHeaders = qSheet2.getRange(1, 1, 1, Math.max(1, qSheet2.getLastColumn())).getValues()[0];
     const required = ["ID", "LessonID", "Title", "Type", "QuizURL", "Points", "CreatedAt", "Question", "OptionA", "OptionB", "OptionC", "OptionD", "Answer"];
     
     required.forEach(col => {
       if (qHeaders.indexOf(col) === -1) {
-        const lastCol = qSheet.getLastColumn();
-        qSheet.getRange(1, lastCol + 1).setValue(col).setFontWeight("bold").setBackground("#f3f3f3");
+        const lastCol = qSheet2.getLastColumn();
+        qSheet2.getRange(1, lastCol + 1).setValue(col).setFontWeight("bold").setBackground("#f3f3f3");
       }
     });
   }
@@ -264,9 +300,9 @@ function doGet(e) {
     // ที่ไม่มี LockService ป้องกัน → อาจ race condition
     // Migration จะถูกเรียกใน doPost() และ setupSystem() แทน
     if (action === "getAssignments") return responseJSON(getAssignments());
-    if (action === "getLessons") return responseJSON(getLessons());
-    if (action === "getTasks") return responseJSON(getTasks());
-    if (action === "getQuizzes") return responseJSON(getQuizzes(e.parameter.lessonId));
+    if (action === "getLessons") return responseJSON(getLessons(e.parameter.grade));
+    if (action === "getTasks") return responseJSON(getTasks(e.parameter.grade));
+    if (action === "getQuizzes") return responseJSON(getQuizzes(e.parameter.lessonId, e.parameter.grade));
     if (action === "getGrades") return responseJSON(getGrades(e.parameter.studentId));
     if (action === "getUsers") return responseJSON(getUsers());
     return responseJSON({ status: "success", message: "KIDDO API is online" });
@@ -498,13 +534,41 @@ function handleGetDashboardData(payload) {
   }
 
   const { role, id } = payload;
+  
+  // แปลงบทเรียนเป็น objects
+  let allLessonsObj = dataToObjects(lessons);
+  
+  // Server-Side Grade Filtering: ถ้าเป็นนักเรียน ให้กรองตามระดับชั้น
+  const normalizedRole = (role || "").toLowerCase();
+  if (normalizedRole === "user") {
+    // หาระดับชั้นของนักเรียนจาก Users sheet
+    const usersHeaders = users[0];
+    const gradeIdx = usersHeaders.indexOf("Grade");
+    let studentGrade = "";
+    for (let i = 1; i < users.length; i++) {
+      if (users[i][0] === id && gradeIdx !== -1) {
+        studentGrade = String(users[i][gradeIdx]).trim();
+        break;
+      }
+    }
+    
+    // กรองเฉพาะบทเรียนที่ตรงกับระดับชั้น หรือ "ทั้งหมด"
+    if (studentGrade) {
+      // ดึงเฉพาะชั้นหลัก เช่น "ป.4/1" → "ป.4", "ป.4" → "ป.4"
+      const baseGrade = studentGrade.split("/")[0].trim();
+      allLessonsObj = allLessonsObj.filter(l => {
+        const lessonGrade = String(l.Grade || "").trim();
+        return !lessonGrade || lessonGrade === baseGrade || lessonGrade === "ทั้งหมด";
+      });
+    }
+  }
+  
   let result = { 
     status: "success", 
     data: {},
-    lessons: dataToObjects(lessons)
+    lessons: allLessonsObj
   };
   
-  const normalizedRole = (role || "").toLowerCase();
   if (normalizedRole === "user") {
     let totalScore = 0;
     let gradedCount = 0;
@@ -518,8 +582,8 @@ function handleGetDashboardData(payload) {
     }
     result.data = {
       completedLessons: gradedCount,
-      totalLessons: lessons.length - 1,
-      pendingQuizzes: (lessons.length - 1) - gradedCount,
+      totalLessons: allLessonsObj.length,
+      pendingQuizzes: allLessonsObj.length - gradedCount,
       avgScore: gradedCount > 0 ? (totalScore / gradedCount).toFixed(1) : 0
     };
     
@@ -621,19 +685,27 @@ function getUsers() {
   return { status: "success", data: dataToObjects(data) };
 }
 
-function getLessons() {
+function getLessons(gradeFilter) {
   // เคลียร์ Cache ก่อนดึง เพื่อให้เห็นข้อมูลล่าสุดเสมอ
   clearServerCache();
   const data = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.LESSONS).getDataRange().getValues();
   const headers = data[0];
-  return { 
-    status: "success", 
-    data: data.slice(1).map(row => {
-      let obj = {};
-      headers.forEach((h, i) => obj[h] = row[i]);
-      return obj;
-    })
-  };
+  let lessons = data.slice(1).map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
+  
+  // Server-Side Grade Filtering (ถ้ามี gradeFilter ส่งมา)
+  if (gradeFilter && gradeFilter !== "ทั้งหมด" && gradeFilter !== "all") {
+    const baseGrade = gradeFilter.split("/")[0].trim();
+    lessons = lessons.filter(l => {
+      const lessonGrade = String(l.Grade || "").trim();
+      return !lessonGrade || lessonGrade === baseGrade || lessonGrade === "ทั้งหมด";
+    });
+  }
+  
+  return { status: "success", data: lessons };
 }
 
 function responseJSON(obj) {
@@ -688,6 +760,9 @@ function handleCreateLesson(payload) {
   // [ID, Category, Title, Description, Type, Thumbnail, Order, Instructions, Criteria, MaxPoints, Deadline]
   // เราจะเก็บลิงก์วิดีโอในช่อง Thumbnail หรือจะขยายช่องเพิ่มก็ได้ แต่เบื้องต้นขอใส่ใน Description หรือขยายช่องครับ
   // เพื่อความสมบูรณ์ ผมจะบันทึก VideoUrl และ SlideUrl ต่อท้ายครับ
+  // รับค่า grade จาก payload (ค่าเริ่มต้น = "ป.4")
+  const lessonGrade = payload.grade || "ป.4";
+  
   sheet.appendRow([
     newId, 
     category, 
@@ -697,9 +772,9 @@ function handleCreateLesson(payload) {
     "", 
     sheet.getLastRow(), 
     "", "", "", "", 
-    "", // คอลัมน์ L (ว่างไว้ตามชีทคุณครู)
-    videoUrl, // คอลัมน์ M (13)
-    slideUrl  // คอลัมน์ N (14)
+    videoUrl, // คอลัมน์ L (12) — VideoURL
+    slideUrl, // คอลัมน์ M (13) — SlideURL
+    lessonGrade // คอลัมน์ N (14) — Grade
   ]);
 
   clearServerCache();
@@ -720,10 +795,11 @@ function handleDeleteLesson(payload) {
 }
 
 function handleUpdateLesson(payload) {
-  const { lessonId, category, title, description, videoUrl, slideUrl } = payload;
+  const { lessonId, category, title, description, videoUrl, slideUrl, grade } = payload;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEETS.LESSONS);
   const data = sheet.getDataRange().getValues();
+  const headers = data[0];
   
   for (let i = 1; i < data.length; i++) {
     if (data[i][0] === lessonId) {
@@ -732,8 +808,14 @@ function handleUpdateLesson(payload) {
       sheet.getRange(row, 3).setValue(title);
       sheet.getRange(row, 4).setValue(description);
       sheet.getRange(row, 5).setValue(videoUrl ? "video" : "slides");
-      sheet.getRange(row, 13).setValue(videoUrl); // คอลัมน์ M (13)
-      sheet.getRange(row, 14).setValue(slideUrl || ""); // คอลัมน์ N (14)
+      sheet.getRange(row, 13).setValue(videoUrl); // คอลัมน์ M (13) — VideoURL
+      sheet.getRange(row, 14).setValue(slideUrl || ""); // คอลัมน์ N (14) — SlideURL
+      
+      // อัปเดต Grade
+      const gradeColIdx = headers.indexOf("Grade");
+      if (gradeColIdx !== -1) {
+        sheet.getRange(row, gradeColIdx + 1).setValue(grade || "ป.4");
+      }
       
       clearServerCache();
       return { status: "success" };
@@ -741,7 +823,7 @@ function handleUpdateLesson(payload) {
   }
   return { status: "error", message: "ไม่พบบทเรียนที่ต้องการแก้ไข" };
 }
-function getTasks() {
+function getTasks(gradeFilter) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEETS.TASKS);
   if (!sheet) return { status: "success", data: [] };
@@ -750,29 +832,37 @@ function getTasks() {
   if (data.length < 2) return { status: "success", data: [] };
   
   const headers = data[0];
-  return { 
-    status: "success", 
-    data: data.slice(1).map(row => {
-      let obj = {};
-      headers.forEach((h, i) => obj[h] = row[i]);
-      return obj;
-    })
-  };
+  let tasks = data.slice(1).map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
+
+  // Server-Side Grade Filtering
+  if (gradeFilter && gradeFilter !== "ทั้งหมด" && gradeFilter !== "all") {
+    const baseGrade = gradeFilter.split("/")[0].trim();
+    tasks = tasks.filter(t => {
+      const g = String(t.Grade || "").trim();
+      return !g || g === baseGrade || g === "ทั้งหมด";
+    });
+  }
+
+  return { status: "success", data: tasks };
 }
 
 function handleCreateTask(payload) {
-  const { id, lessonId, title, instructions, criteria, maxPoints, deadline } = payload;
+  const { id, lessonId, title, instructions, criteria, maxPoints, deadline, grade } = payload;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(CONFIG.SHEETS.TASKS);
   
   // ป้องกันกรณีชีทหาย ให้สร้างใหม่ทันที
   if (!sheet) {
     sheet = ss.insertSheet(CONFIG.SHEETS.TASKS);
-    sheet.appendRow(["ID", "LessonID", "Title", "Instructions", "Criteria", "MaxPoints", "Deadline", "CreatedAt"]);
-    sheet.getRange("A1:H1").setFontWeight("bold").setBackground("#f3f3f3");
+    sheet.appendRow(["ID", "LessonID", "Title", "Instructions", "Criteria", "MaxPoints", "Deadline", "CreatedAt", "Grade"]);
+    sheet.getRange("A1:I1").setFontWeight("bold").setBackground("#f3f3f3");
   }
   
-  // [ID, LessonID, Title, Instructions, Criteria, MaxPoints, Deadline, CreatedAt]
+  // [ID, LessonID, Title, Instructions, Criteria, MaxPoints, Deadline, CreatedAt, Grade]
   sheet.appendRow([
     id || ("T" + new Date().getTime()),
     lessonId || "",
@@ -781,14 +871,15 @@ function handleCreateTask(payload) {
     criteria || "",
     maxPoints || 0,
     deadline || "-",
-    new Date()
+    new Date(),
+    grade || "ป.4"
   ]);
 
   clearServerCache();
   return { status: "success" };
 }
 
-function getQuizzes(lessonId) {
+function getQuizzes(lessonId, gradeFilter) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEETS.QUIZZES);
   if (!sheet) return { status: "success", data: [] };
@@ -806,6 +897,15 @@ function getQuizzes(lessonId) {
   // กรองตาม LessonID ถ้ามีการส่งมา (และไม่ใช่ค่าว่างหรือ "undefined")
   if (lessonId && lessonId !== "undefined" && lessonId !== "null") {
     quizzes = quizzes.filter(q => q.LessonID && q.LessonID.toString() === lessonId.toString());
+  }
+
+  // Server-Side Grade Filtering
+  if (gradeFilter && gradeFilter !== "ทั้งหมด" && gradeFilter !== "all") {
+    const baseGrade = gradeFilter.split("/")[0].trim();
+    quizzes = quizzes.filter(q => {
+      const g = String(q.Grade || "").trim();
+      return !g || g === baseGrade || g === "ทั้งหมด";
+    });
   }
 
   return { status: "success", data: quizzes };
@@ -829,7 +929,7 @@ function handleCreateQuiz(payload) {
   };
 
   // 3. จัดเรียงข้อมูลตามลำดับหัวตารางเป๊ะๆ
-  const row = headers.map(h => data[h] || "");
+  const row = headers.map(h => payload[h] || data[h] || "");
   
   sheet.appendRow(row);
   

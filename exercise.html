@@ -59,7 +59,9 @@
     }
 
     try {
-      const res = await ApiService.getLessons();
+      const user = Auth.get();
+      const userGrade = (user && user.role === 'user' && user.grade) ? user.grade : null;
+      const res = await ApiService.getLessons(userGrade);
       if (res.status !== 'success') throw new Error(res.message);
       
       const allLessons = res.data;

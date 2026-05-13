@@ -118,6 +118,14 @@
           <p class="t-body t-secondary mt-1">จัดการคะแนนทุกประเภทในตารางเดียว (บันทึกอัตโนมัติลงชีท Grades)</p>
        </div>
        <div style="width:300px;">
+          <label class="t-xs fw-black t-secondary uppercase mb-2 block">เลือกระดับชั้น</label>
+          <select id="selectGrade" class="input mb-4" style="background:white; border-radius:15px;" onchange="filterByGrade()">
+             <option value="" disabled selected>-- เลือกระดับชั้น --</option>
+             <option value="ป.3">ป.3</option>
+             <option value="ป.4">ป.4</option>
+             <option value="ป.5">ป.5</option>
+             <option value="ป.6">ป.6</option>
+          </select>
           <label class="t-xs fw-black t-secondary uppercase mb-2 block">เลือกบทเรียนที่ต้องการจัดการ</label>
           <select id="selectLesson" class="input" style="background:white; border-radius:15px;" onchange="loadGradesData()">
              <option>กำลังโหลดบทเรียน...</option>
@@ -157,6 +165,8 @@
 <script src="js/auth.js"></script>
 <script src="js/app.js"></script>
 <script>
+  let allStudents = [];
+  let allLessons = [];
   let students = [];
   let lessons = [];
   let currentGrades = [];
@@ -170,12 +180,33 @@
         ApiService.getLessons()
       ]);
       
-      students = sRes.status === 'success' ? sRes.data.filter(u => String(u.Role).toLowerCase() === 'user') : [];
-      lessons = lRes.status === 'success' ? lRes.data : [];
+      allStudents = sRes.status === 'success' ? sRes.data.filter(u => String(u.Role).toLowerCase() === 'user') : [];
+      allLessons = lRes.status === 'success' ? lRes.data : [];
 
-      renderLessonSelect();
-      if (lessons.length > 0) loadGradesData();
+      filterByGrade();
     } catch (e) { console.error(e); }
+  }
+
+  function filterByGrade() {
+    const grade = document.getElementById('selectGrade').value;
+    if (!grade) {
+      students = [];
+      lessons = [];
+    } else {
+      students = allStudents.filter(s => {
+        const sg = String(s.Grade || '').split('/')[0].trim();
+        return sg === grade;
+      });
+      lessons = allLessons.filter(l => String(l.Grade || '').trim() === grade);
+    }
+    renderLessonSelect();
+    if (lessons.length > 0) {
+      loadGradesData();
+    } else {
+      document.getElementById('gradeTableBody').innerHTML = '<tr><td colspan="6" class="t-center p-20" style="color:var(--color-slate-400);">กรุณาเลือกระดับชั้นและบทเรียนเพื่อดูข้อมูล</td></tr>';
+      currentGrades = [];
+      updateSaveBar();
+    }
   }
 
   function renderLessonSelect() {

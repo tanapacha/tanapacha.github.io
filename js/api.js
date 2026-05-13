@@ -159,17 +159,20 @@ const ApiService = {
     return this.get("getAssignments");
   },
 
-  async getLessons() {
-    return this.get("getLessons", {}, false);
+  async getLessons(gradeFilter) {
+    const params = {};
+    if (gradeFilter) params.grade = gradeFilter;
+    return this.get("getLessons", params, false);
   },
 
   async getUsers() {
     return this.get("getUsers");
   },
 
-  async getQuizzes(lessonId) {
+  async getQuizzes(lessonId, grade) {
     const params = {};
     if (lessonId) params.lessonId = lessonId;
+    if (grade) params.grade = grade;
     return this.get("getQuizzes", params, false);
   },
 
@@ -208,8 +211,10 @@ const ApiService = {
     return this.post("deleteLesson", { lessonId }, false);
   },
 
-  async getTasks() {
-    return this.get("getTasks", {}, false);
+  async getTasks(grade) {
+    const params = {};
+    if (grade) params.grade = grade;
+    return this.get("getTasks", params, false);
   },
 
   async saveTask(taskData) {

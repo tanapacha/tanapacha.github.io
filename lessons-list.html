@@ -78,7 +78,7 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-      <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Learning Menu</div>
@@ -128,12 +128,34 @@
     const user = Auth.requireAuth();
     if (!user) return;
 
+    // Update sidebar grade label
+    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
+    if (gradeLabel && user.grade) {
+      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    }
+
+    // Pass student's grade for server-side filtering
+    const userGrade = (user.role === 'user' && user.grade) ? user.grade : null;
+
     try {
-      const res = await ApiService.getLessons();
+      const res = await ApiService.getLessons(userGrade);
       const container = document.getElementById('chaptersContainer');
       
       if (res.status === 'success') {
         const lessons = res.data;
+        if (!lessons || lessons.length === 0) {
+          container.innerHTML = `
+            <div class="card p-12 t-center anim-fade-up">
+              <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
+                <span data-icon="bookOpen" style="width:32px; height:32px;"></span>
+              </div>
+              <h3 class="t-title mb-2">ยังไม่มีบทเรียนในชั้นนี้</h3>
+              <p class="t-secondary t-sm">คุณครูยังไม่ได้เพิ่มบทเรียนสำหรับชั้น ${user.grade || ''} <br>ลองกลับมาดูใหม่อีกครั้งในภายหลังนะครับ</p>
+            </div>
+          `;
+          if (window.app && window.app.initIcons) window.app.initIcons();
+          return;
+        }
         // Group by Category (Instead of non-existent Chapter)
         const categories = [];
         lessons.forEach(l => {

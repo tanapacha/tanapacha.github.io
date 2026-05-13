@@ -13,7 +13,7 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-      <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Learning Menu</div>
@@ -138,6 +138,12 @@
     const user = Auth.requireAuth();
     if (!user) return;
 
+    // Update sidebar grade label
+    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
+    if (gradeLabel && user.grade) {
+      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    }
+
     try {
       const res = await ApiService.getDashboardData(user);
       if (res.status === 'success') {
@@ -158,11 +164,11 @@
           progressFill.style.width = `${xpProgress}%`;
         }
 
-        // Render Recent Lessons
-        const lessonsRes = await ApiService.getLessons();
-        if (lessonsRes.status === 'success') {
-          const container = document.getElementById('recentLessonsContainer');
-          container.innerHTML = lessonsRes.data.slice(0, 3).map(lesson => `
+        // Render Recent Lessons (use grade-filtered data from dashboard response)
+        const lessonsToShow = res.lessons || [];
+        const container = document.getElementById('recentLessonsContainer');
+        if (lessonsToShow.length > 0 && container) {
+          container.innerHTML = lessonsToShow.slice(0, 3).map(lesson => `
             <div class="flex items-center gap-4 p-4" style="background:var(--neutral-50); border-radius:var(--radius-lg);">
               <div class="avatar" style="background:var(--color-primary-500); color:white; border:none;">
                 <span data-icon="book"></span>
@@ -174,6 +180,17 @@
               <a href="play-lesson.html?id=${lesson.ID}" class="btn btn-outline btn-sm" style="height:34px; padding:0 12px; font-size:11px;">เข้าเรียน</a>
             </div>
           `).join('');
+          if (window.app && window.app.initIcons) window.app.initIcons();
+        } else if (container) {
+          container.innerHTML = `
+            <div class="p-8 t-center">
+              <div class="avatar mb-4" style="margin:0 auto; background:var(--neutral-100); color:var(--neutral-400); border:none;">
+                <span data-icon="bookOpen"></span>
+              </div>
+              <div class="t-sm fw-bold t-secondary">ยังไม่มีบทเรียนสำหรับชั้นของคุณ</div>
+              <div class="t-xs t-disabled mt-1">คุณครูกำลังเตรียมเนื้อหาให้พรีเมียมอยู่ครับ!</div>
+            </div>
+          `;
           if (window.app && window.app.initIcons) window.app.initIcons();
         }
       }

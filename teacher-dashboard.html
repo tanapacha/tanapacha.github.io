@@ -104,22 +104,7 @@
             <h2 class="t-title">นักเรียนที่ต้องการความช่วยเหลือ</h2>
           </div>
           <div id="activityContainer" style="display:flex; flex-direction:column; gap:var(--sp-4);">
-            <div class="flex items-center gap-3 p-3" style="background: var(--color-primary-50); border-radius: var(--radius-md); border-left: 3px solid var(--color-warning);">
-              <div class="avatar" style="background: white; border: 1px solid var(--border-subtle); color: var(--text-primary); width: 32px; height: 32px; font-size: 0.8rem;">ส</div>
-              <div class="flex-1">
-                <div class="fw-bold t-sm">สมชาย รักเรียน</div>
-                <div class="t-xs t-secondary">คะแนนแบบทดสอบเฉลี่ย 45%</div>
-              </div>
-              <a href="#" class="btn btn-outline btn-sm">ดูผล</a>
-            </div>
-            <div class="flex items-center gap-3 p-3" style="background: var(--color-primary-50); border-radius: var(--radius-md); border-left: 3px solid var(--color-error);">
-              <div class="avatar" style="background: white; border: 1px solid var(--border-subtle); color: var(--text-primary); width: 32px; height: 32px; font-size: 0.8rem;">ม</div>
-              <div class="flex-1">
-                <div class="fw-bold t-sm">มะลิ ทองดี</div>
-                <div class="t-xs t-secondary">ไม่ได้ส่งงาน 2 สัปดาห์</div>
-              </div>
-              <a href="#" class="btn btn-outline btn-sm">ดูผล</a>
-            </div>
+            <div class="p-8 t-center t-secondary t-sm">กำลังคำนวณข้อมูล...</div>
           </div>
         </div>
       </div>
@@ -162,9 +147,11 @@
     }
 
     try {
-      const [dashRes, lessonsRes] = await Promise.all([
+      const [dashRes, lessonsRes, usersRes, subsRes] = await Promise.all([
         ApiService.getDashboardData(user),
-        ApiService.getLessons()
+        ApiService.getLessons(),
+        ApiService.getUsers(),
+        ApiService.getAssignments()
       ]);
 
       if (dashRes.status === 'success') {
@@ -191,6 +178,47 @@
           container.innerHTML = '<div class="p-8 t-center t-secondary">ยังไม่มีข้อมูลบทเรียน</div>';
         }
         
+        // Populate Struggling Students
+        if (usersRes.status === 'success' && subsRes.status === 'success') {
+          const allUsers = usersRes.data.filter(u => u.Role !== 'admin');
+          const allSubs = subsRes.data;
+
+          // Sort users by Points (lowest first)
+          const struggling = allUsers.sort((a, b) => (parseInt(a.Points) || 0) - (parseInt(b.Points) || 0)).slice(0, 3);
+          const actContainer = document.getElementById('activityContainer');
+          
+          if (struggling.length > 0) {
+            actContainer.innerHTML = struggling.map((s, idx) => {
+              const letter = s.Name.charAt(0);
+              const isCritical = idx === 0;
+              const colorClass = isCritical ? 'var(--color-error)' : 'var(--color-warning)';
+              
+              const userSubs = allSubs.filter(sub => sub.StudentID === s.ID);
+              const gradedSubs = userSubs.filter(sub => sub.Status === 'graded');
+              let scoreText = `คะแนนสะสม ${s.Points || 0} แต้ม`;
+              if (userSubs.length === 0) {
+                scoreText = 'ไม่ได้ส่งงานเลย';
+              } else if (gradedSubs.length > 0) {
+                const avg = gradedSubs.reduce((acc, curr) => acc + parseFloat(curr.Points || 0), 0) / gradedSubs.length;
+                scoreText = `คะแนนงานเฉลี่ย ${avg.toFixed(1)} คะแนน`;
+              }
+
+              return `
+              <div class="flex items-center gap-3 p-3" style="background: var(--color-primary-50); border-radius: var(--radius-md); border-left: 3px solid ${colorClass};">
+                <div class="avatar" style="background: white; border: 1px solid var(--border-subtle); color: var(--text-primary); width: 32px; height: 32px; font-size: 0.8rem;">${letter}</div>
+                <div class="flex-1">
+                  <div class="fw-bold t-sm">${s.Name} <span class="t-xs t-secondary">(${s.Grade || 'ไม่ระบุชั้น'})</span></div>
+                  <div class="t-xs t-secondary">${scoreText}</div>
+                </div>
+                <a href="teacher-student-grades.html" class="btn btn-outline btn-sm">ดูผล</a>
+              </div>
+              `;
+            }).join('');
+          } else {
+            actContainer.innerHTML = '<div class="p-8 t-center t-secondary">ไม่มีนักเรียนที่น่าเป็นห่วง 🎉</div>';
+          }
+        }
+
         if (window.app && window.app.initIcons) window.app.initIcons();
       }
     } catch (err) {

@@ -22,6 +22,22 @@
     .chip:hover { border-color: var(--color-primary-400); background: var(--color-primary-50); }
     .chip.active { background: var(--color-primary-500); color: white; border-color: var(--color-primary-500); }
     .preview-box { padding: 16px; background: var(--neutral-50); border-radius: var(--radius-lg); border: 1px dashed var(--border-subtle); }
+
+    /* Grade Pills */
+    .grade-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .grade-pill {
+      padding: 10px 20px; border-radius: 999px; font-size: 0.85rem; font-weight: 700;
+      border: 2px solid var(--border-default); background: white; cursor: pointer;
+      transition: all 0.2s ease; user-select: none;
+    }
+    .grade-pill:hover { transform: scale(1.05); }
+    .grade-pill.active { color: white; border-color: transparent; transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .grade-pill[data-grade="ป.3"].active { background: #0D47A1; }
+    .grade-pill[data-grade="ป.4"].active { background: #1B5E20; }
+    .grade-pill[data-grade="ป.5"].active { background: #E65100; }
+    .grade-pill[data-grade="ป.6"].active { background: #880E4F; }
+    .grade-pill[data-grade="ทั้งหมด"].active { background: #424242; }
+    .grade-error { color: var(--color-error, #dc2626); font-size: 0.75rem; margin-top: 4px; display: none; }
   </style>
 </head>
 <body>
@@ -85,6 +101,20 @@
               <input type="text" id="lessonTitle" class="form-control" placeholder="เช่น 1.1 อัลกอริทึมคืออะไร" required>
             </div>
 
+            <!-- ขั้นตอนที่ 3: เลือกระดับชั้น -->
+            <div class="form-group" style="background:#E8F5E9; padding:var(--sp-4); border-radius:var(--radius-lg); border:1px solid #A5D6A7;">
+              <label class="form-label" style="color:#1B5E20;">🎯 ขั้นตอนที่ 3: เลือกระดับชั้นเป้าหมาย</label>
+              <div class="form-hint" style="margin-bottom:8px;">บทเรียนนี้จะแสดงให้นักเรียนชั้นไหนเห็น</div>
+              <div class="grade-pills" id="gradePills">
+                <button type="button" class="grade-pill" data-grade="ป.3" onclick="pickGrade(this)">ป.3</button>
+                <button type="button" class="grade-pill active" data-grade="ป.4" onclick="pickGrade(this)">ป.4</button>
+                <button type="button" class="grade-pill" data-grade="ป.5" onclick="pickGrade(this)">ป.5</button>
+                <button type="button" class="grade-pill" data-grade="ป.6" onclick="pickGrade(this)">ป.6</button>
+                <button type="button" class="grade-pill" data-grade="ทั้งหมด" onclick="pickGrade(this)">🌐 ทั้งหมด</button>
+              </div>
+              <span class="grade-error" id="gradeError">⚠️ กรุณาเลือกระดับชั้นก่อนบันทึก</span>
+            </div>
+
             <!-- เนื้อหา -->
             <div class="form-group">
               <label class="form-label">เนื้อหาบทเรียน</label>
@@ -130,6 +160,14 @@
   const urlParams = new URLSearchParams(window.location.search);
   const editId = urlParams.get('edit');
   let allLessonsData = [];
+  let selectedGrade = 'ป.4'; // ค่าเริ่มต้น
+
+  function pickGrade(el) {
+    document.querySelectorAll('.grade-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    selectedGrade = el.dataset.grade;
+    document.getElementById('gradeError').style.display = 'none';
+  }
 
   if (editId) {
     document.getElementById('pageTitle').textContent = 'แก้ไขเนื้อหาบทเรียน';
@@ -187,6 +225,13 @@
             const catToHighlight = document.getElementById('lessonCategory').value;
             document.querySelectorAll('.chip[data-cat]').forEach(c => {
               if (c.dataset.cat === catToHighlight) c.classList.add('active');
+            });
+            
+            // Restore Grade pill
+            const savedGrade = String(lesson.Grade || 'ป.4').trim();
+            selectedGrade = savedGrade;
+            document.querySelectorAll('.grade-pill').forEach(p => {
+              p.classList.toggle('active', p.dataset.grade === savedGrade);
             });
             
             // สั่งให้ Preview ทำงานทันที
@@ -252,6 +297,11 @@
 
     if (!catVal) { alert("⚠️ กรุณาใส่ชื่อบทเรียน (ขั้นตอนที่ 1)"); return; }
     if (!titleVal) { alert("⚠️ กรุณาใส่ชื่อเรื่องย่อย (ขั้นตอนที่ 2)"); return; }
+    if (!selectedGrade) {
+      document.getElementById('gradeError').style.display = 'block';
+      alert("⚠️ กรุณาเลือกระดับชั้นเป้าหมาย (ขั้นตอนที่ 3)");
+      return;
+    }
 
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
@@ -263,6 +313,7 @@
       title: titleVal,
       description: document.getElementById('lessonDesc').value,
       videoUrl: document.getElementById('youtubeUrl').value,
+      grade: selectedGrade,
       slideFile: null
     };
 

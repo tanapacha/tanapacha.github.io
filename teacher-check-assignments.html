@@ -82,6 +82,13 @@
                 <span class="t-xs fw-bold uppercase t-secondary">รายการส่งงาน</span>
                 <span id="pCount" class="badge badge-warning">0</span>
              </div>
+             <select id="filterGrade" class="input t-small mb-2" style="height:32px;" onchange="renderSubs()">
+               <option value="" disabled selected>-- เลือกระดับชั้น --</option>
+               <option value="ป.3">ป.3</option>
+               <option value="ป.4">ป.4</option>
+               <option value="ป.5">ป.5</option>
+               <option value="ป.6">ป.6</option>
+             </select>
              <select id="filterStatus" class="input t-small" style="height:32px;" onchange="renderSubs()">
                <option value="pending">รอตรวจ</option>
                <option value="graded">ตรวจแล้ว</option>
@@ -172,14 +179,16 @@
 <script>
   let missions = [];
   let subs = [];
+  let users = [];
   let activeSub = null;
 
   async function start() {
     Auth.requireAuth();
     if (Auth.get()?.role !== 'admin') location.href = 'dashboard.html';
 
-    const [mRes, sRes] = await Promise.all([ApiService.getTasks(), ApiService.getAssignments()]);
+    const [mRes, sRes, uRes] = await Promise.all([ApiService.getTasks(), ApiService.getAssignments(), ApiService.getUsers()]);
     if (mRes.status === 'success') missions = mRes.data;
+    if (uRes.status === 'success') users = uRes.data;
     if (sRes.status === 'success') {
       subs = sRes.data;
       renderSubs();
@@ -188,8 +197,23 @@
 
   function renderSubs() {
     const filter = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : 'pending';
-    const filteredSubs = subs.filter(s => s.Status === filter);
+    const gradeFilter = document.getElementById('filterGrade') ? document.getElementById('filterGrade').value : '';
     const container = document.getElementById('subContainer');
+    
+    if (!gradeFilter) {
+      document.getElementById('pCount').textContent = '0';
+      container.innerHTML = '<div class="p-10 t-center t-secondary t-sm" style="color:var(--color-slate-400);">กรุณาเลือกระดับชั้นเพื่อแสดงข้อมูล</div>';
+      return;
+    }
+
+    let filteredSubs = subs.filter(s => s.Status === filter);
+    filteredSubs = filteredSubs.filter(s => {
+      const studentUser = users.find(u => u.ID === s.StudentID);
+      if (!studentUser) return false;
+      const sGrade = String(studentUser.Grade || '').split('/')[0].trim();
+      return sGrade === gradeFilter;
+    });
+
     document.getElementById('pCount').textContent = filteredSubs.length;
 
     if (filteredSubs.length === 0) {

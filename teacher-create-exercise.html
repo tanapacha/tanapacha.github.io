@@ -8,6 +8,23 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
+  <style>
+    /* Grade Pills */
+    .grade-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .grade-pill {
+      padding: 10px 20px; border-radius: 999px; font-size: 0.85rem; font-weight: 700;
+      border: 2px solid var(--border-default); background: white; cursor: pointer;
+      transition: all 0.2s ease; user-select: none;
+    }
+    .grade-pill:hover { transform: scale(1.05); }
+    .grade-pill.active { color: white; border-color: transparent; transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .grade-pill[data-grade="ป.3"].active { background: #0D47A1; }
+    .grade-pill[data-grade="ป.4"].active { background: #1B5E20; }
+    .grade-pill[data-grade="ป.5"].active { background: #E65100; }
+    .grade-pill[data-grade="ป.6"].active { background: #880E4F; }
+    .grade-pill[data-grade="ทั้งหมด"].active { background: #424242; }
+    .grade-error { color: var(--color-error, #dc2626); font-size: 0.75rem; margin-top: 4px; display: none; }
+  </style>
 </head>
 <body style="background:var(--bg-app);">
 <div class="app">
@@ -46,6 +63,17 @@
         <div class="flex flex-col gap-6">
           <div class="card">
             <h3 class="t-title mb-6">1. ข้อมูลพื้นฐาน</h3>
+            <div class="form-group mb-6" style="background:#FCE4EC; padding:var(--sp-4); border-radius:var(--radius-lg); border:1px solid #F8BBD0;">
+              <label class="form-label" style="color:#880E4F;">🎯 เลือกระดับชั้นเป้าหมาย</label>
+              <div class="grade-pills" id="gradePills">
+                <button type="button" class="grade-pill" data-grade="ป.3" onclick="pickGrade(this)">ป.3</button>
+                <button type="button" class="grade-pill active" data-grade="ป.4" onclick="pickGrade(this)">ป.4</button>
+                <button type="button" class="grade-pill" data-grade="ป.5" onclick="pickGrade(this)">ป.5</button>
+                <button type="button" class="grade-pill" data-grade="ป.6" onclick="pickGrade(this)">ป.6</button>
+                <button type="button" class="grade-pill" data-grade="ทั้งหมด" onclick="pickGrade(this)">🌐 ทั้งหมด</button>
+              </div>
+              <span class="grade-error" id="gradeError">⚠️ กรุณาเลือกระดับชั้นก่อนบันทึก</span>
+            </div>
             <div class="form-group mb-6">
               <label class="form-label">หัวข้อภารกิจ / ชื่อแบบฝึกหัด</label>
               <input type="text" id="mTitle" class="input" placeholder="เช่น สร้างโปรเจกต์ Scratch เดินตามเข็มทิศ">
@@ -66,7 +94,7 @@
                 <input type="date" id="mDeadline" class="input">
               </div>
             </div>
-          </div>
+            </div>
         </div>
 
         <div class="flex flex-col gap-6">
@@ -92,32 +120,56 @@
 <script src="js/app.js"></script>
 <script>
   Auth.requireAuth();
+  
+  let selectedGrade = 'ป.4';
+
+  function pickGrade(el) {
+    document.querySelectorAll('.grade-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    selectedGrade = el.dataset.grade;
+    document.getElementById('gradeError').style.display = 'none';
+    if (allLessonsData.length > 0) renderLessonsDropdown();
+  }
+
+  let allLessonsData = [];
 
   async function loadContext() {
     const res = await ApiService.getLessons();
     if (res.status === 'success') {
-      const lessons = res.data;
-      const groups = {};
-      lessons.forEach(l => {
-        const cat = l.Category || 'ทั่วไป';
-        if (!groups[cat]) groups[cat] = [];
-        groups[cat].push(l);
-      });
+      allLessonsData = res.data;
+      renderLessonsDropdown();
+    }
+  }
 
-      let html = '<option value="">-- เลือกบทเรียน --</option>';
+  function renderLessonsDropdown() {
+    let filtered = allLessonsData;
+    if (selectedGrade !== 'ทั้งหมด') {
+      filtered = allLessonsData.filter(l => String(l.Grade || '').trim() === selectedGrade);
+    }
+    
+    const groups = {};
+    filtered.forEach(l => {
+      const cat = l.Category || 'ทั่วไป';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(l);
+    });
+
+    let html = '<option value="">-- เลือกบทเรียน --</option>';
+    if (filtered.length === 0) {
+      html = '<option value="">-- ไม่มีบทเรียนในระดับชั้นนี้ --</option>';
+    } else {
       for (const cat in groups) {
         html += `<optgroup label="${cat}">`;
         html += groups[cat].map(l => `<option value="${l.ID}">${l.Title}</option>`).join('');
         html += `</optgroup>`;
       }
-      document.getElementById('mLesson').innerHTML = html;
+    }
+    document.getElementById('mLesson').innerHTML = html;
 
-      // Auto-select if ID is in URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const lessonId = urlParams.get('lessonId');
-      if (lessonId) {
-        document.getElementById('mLesson').value = lessonId;
-      }
+    const urlParams = new URLSearchParams(window.location.search);
+    const lessonId = urlParams.get('lessonId');
+    if (lessonId) {
+      document.getElementById('mLesson').value = lessonId;
     }
   }
 
@@ -133,6 +185,10 @@
       alert("กรุณาระบุหัวข้อและคำชี้แจงให้ครบถ้วน");
       return;
     }
+    if (!selectedGrade) {
+      document.getElementById('gradeError').style.display = 'block';
+      return alert("กรุณาเลือกระดับชั้น");
+    }
 
     const btn = document.querySelector('.btn-primary');
     btn.disabled = true; btn.innerHTML = 'กำลังบันทึกภารกิจ...';
@@ -144,7 +200,8 @@
       instructions: instr,
       criteria: criteria,
       maxPoints: points,
-      deadline: deadline
+      deadline: deadline,
+      grade: selectedGrade
     };
 
     try {

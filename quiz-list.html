@@ -13,8 +13,8 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-mark">
-        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
       </div>
     </div>
     <div class="sidebar-section">
@@ -71,15 +71,22 @@
 <script src="js/app.js"></script>
 <script>
   async function initQuizzes() {
-    Auth.requireAuth();
+    const user = Auth.requireAuth();
+    if (!user) return;
+
+    // Update sidebar grade label
+    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
+    if (gradeLabel && user.grade) {
+      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    }
     
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const filterId = urlParams.get('id'); // รับรหัสบทเรียนเพื่อกรองอัตโนมัติ
 
       const [qRes, lRes] = await Promise.all([
-        ApiService.getQuizzes(), 
-        ApiService.getLessons()
+        ApiService.getQuizzes(null, user.grade), 
+        ApiService.getLessons(user.grade)
       ]);
       
       // ตรวจสอบแต่ละ response แยกกัน (ไม่ให้พังทั้งหมดถ้าผิดแค่อันเดียว)
@@ -100,7 +107,16 @@
 
         const container = document.getElementById('quizContainer');
         if (quizzes.length === 0) {
-          container.innerHTML = `<div class="p-20 t-center t-secondary" style="grid-column: 1/-1;">${filterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาในระบบ'}</div>`;
+          container.innerHTML = `
+            <div class="card p-12 t-center anim-fade-up" style="grid-column: 1/-1;">
+              <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
+                <span data-icon="task" style="width:32px; height:32px;"></span>
+              </div>
+              <h3 class="t-title mb-2">ยังไม่มีโจทย์ปัญหา</h3>
+              <p class="t-secondary t-sm">${filterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาสำหรับชั้นของคุณในขณะนี้'}</p>
+            </div>
+          `;
+          if (window.app && window.app.initIcons) window.app.initIcons();
           return;
         }
 
