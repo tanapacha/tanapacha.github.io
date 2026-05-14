@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบบริหารจัดการพัสดุ | ประวัติการทำรายการ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; }
+        .search-wrap { position: relative; flex: 1; }
+        .search-wrap i { position: absolute; left: 12px; top: 12px; color: #999; }
+        .search-wrap input { padding-left: 35px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+    <div class="mpg-app">
+        <!-- Sidebar -->
+        <div class="mpg-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-shield-halved" style="margin-right: 10px; color: gold;"></i> SMART SCHOOL
+            </div>
+            <div class="sidebar-nav">
+                <a href="admin_dashboard.html" class="nav-item">
+                    <i class="fas fa-th-large"></i> แผงควบคุม (Dashboard)
+                </a>
+                <a href="admin_inventory.html" class="nav-item">
+                    <i class="fas fa-boxes"></i> จัดการพัสดุ
+                </a>
+                <a href="admin_transactions.html" class="nav-item active">
+                    <i class="fas fa-history"></i> ประวัติรายการทั้งหมด
+                </a>
+                <a href="admin_summary.html" class="nav-item">
+                    <i class="fas fa-chart-pie"></i> รายงานสรุป
+                </a>
+            </div>
+            <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+                <a href="index.html" class="nav-item" style="color: #ff7675;" onclick="localStorage.clear()">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="mpg-main">
+            <div class="top-bar">
+                <div style="font-weight: 700; color: var(--brand-primary);">ประวัติการทำรายการ (Transaction History)</div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="window.print()"><i class="fas fa-print"></i> พิมพ์รายงาน</button>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="mpg-card">
+                    <div class="filter-header">
+                        <div class="search-wrap">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" onkeyup="filterTrx()" placeholder="ค้นหาชื่อผู้ยืม, พัสดุ หรือรหัส...">
+                        </div>
+                        <select id="statusFilter" onchange="filterTrx()" style="width: 200px;">
+                            <option value="">สถานะ: ทั้งหมด</option>
+                            <option value="กำลังยืม">กำลังยืม</option>
+                            <option value="คืนแล้ว">คืนแล้ว</option>
+                            <option value="เกินกำหนด">เกินกำหนด</option>
+                        </select>
+                    </div>
+
+                    <table class="mpg-table">
+                        <thead>
+                            <tr>
+                                <th>ผู้รับผิดชอบ</th>
+                                <th>พัสดุ / จำนวน</th>
+                                <th>วันที่ยืม</th>
+                                <th>กำหนดคืน</th>
+                                <th>สถานะ</th>
+                                <th style="text-align: right;">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trxTbody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px;">
+                                    <i class="fas fa-spinner fa-spin"></i> กำลังโหลดประวัติ...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxgR3YK2xU4aXjI4DgSk9eny_V2gZYvvLzPfpWq6IhC4BDuBR5IO_QNOHR4h3zLPqDU/exec";
+        let allTrx = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem("smart_school_user") || "{}");
+            if (user.role !== 'ผู้ดูแลระบบ' && user.role !== 'Admin') { window.location.href = "index.html"; return; }
+            loadTransactions();
+        });
+
+        async function loadTransactions() {
+            try {
+                const user = JSON.parse(localStorage.getItem("smart_school_user") || "{}");
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_all_transactions', role: user.role }) });
+                const r = await res.json();
+                if (r.status === 'success') { allTrx = r.data; renderTable(r.data); }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('trxTbody');
+            if(!data.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">ไม่พบประวัติรายการ</td></tr>'; return; }
+
+            tbody.innerHTML = data.map(t => {
+                const isReturned = (t.status || "").includes('คืนแล้ว');
+                const isOverdue = (t.status || "").includes('ค้าง') || (t.status || "").includes('เกิน');
+                let badge = '';
+                if (isReturned) badge = 'badge-success';
+                else if (isOverdue) badge = 'badge-danger';
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight:700;">${t.user_name || "ไม่ทราบชื่อ"}</div>
+                            <div style="font-size:11px; color:#666;">ID: ${t.user_id || '-'}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:700; color:var(--brand-primary);">${t.item_name}</div>
+                            <div style="font-size:11px;">จำนวน: ${t.qty || 1}</div>
+                        </td>
+                        <td class="mono">${new Date(t.date).toLocaleDateString('th-TH')}</td>
+                        <td class="mono">${t.due_date ? new Date(t.due_date).toLocaleDateString('th-TH') : '-'}</td>
+                        <td><span class="mpg-badge ${badge}">${t.status}</span></td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button class="btn" style="padding:4px 8px;" title="รายละเอียด" onclick="alert('เหตุผล: ${t.reason || "-"}')"><i class="fas fa-info-circle"></i></button>
+                                ${!isReturned ? `<button class="btn btn-primary" style="padding:4px 12px; font-size:11px;" onclick="handleReturn('${t.trx_id}')"><i class="fas fa-undo"></i> รับคืน</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterTrx() {
+            const s = document.getElementById('searchInput').value.toLowerCase();
+            const f = document.getElementById('statusFilter').value;
+            renderTable(allTrx.filter(t => {
+                const mSearch = (t.user_name || "").toLowerCase().includes(s) || (t.item_name || "").toLowerCase().includes(s);
+                const mStatus = f === "" || (t.status || "").includes(f);
+                return mSearch && mStatus;
+            }));
+        }
+
+        async function handleReturn(id) {
+            if (!confirm("ยืนยันการรับคืนพัสดุ?")) return;
+            const user = JSON.parse(localStorage.getItem("smart_school_user") || "{}");
+            try {
+                const res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'return_items', transaction_ids: [id], role: user.role }) 
+                });
+                const r = await res.json();
+                if (r.status === 'success') { alert("รับคืนสำเร็จ!"); loadTransactions(); } 
+                else { alert("เกิดข้อผิดพลาด: " + r.message); }
+            } catch (e) { alert("เกิดข้อผิดพลาดในการบันทึกการรับคืน"); }
+        }
+    </script>
+</body>
+</html>

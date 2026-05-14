@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบบริหารจัดการพัสดุ | รายงานสรุป</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="mpg-app">
+        <!-- Sidebar -->
+        <div class="mpg-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-shield-halved" style="margin-right: 10px; color: gold;"></i> SMART SCHOOL
+            </div>
+            <div class="sidebar-nav">
+                <a href="admin_dashboard.html" class="nav-item">
+                    <i class="fas fa-th-large"></i> แผงควบคุม (Dashboard)
+                </a>
+                <a href="admin_inventory.html" class="nav-item">
+                    <i class="fas fa-boxes"></i> จัดการพัสดุ
+                </a>
+                <a href="admin_transactions.html" class="nav-item">
+                    <i class="fas fa-history"></i> ประวัติรายการทั้งหมด
+                </a>
+                <a href="admin_summary.html" class="nav-item active">
+                    <i class="fas fa-chart-pie"></i> รายงานสรุป
+                </a>
+            </div>
+            <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+                <a href="index.html" class="nav-item" style="color: #ff7675;" onclick="localStorage.clear()">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="mpg-main">
+            <div class="top-bar">
+                <div style="font-weight: 700; color: var(--brand-primary);">รายงานสรุปผลการใช้งาน (Statistics Report)</div>
+                <div class="filter-group" style="display: flex; gap: 5px;">
+                    <button class="btn active" id="btn-7d" onclick="setFilter('7d')">7 วัน</button>
+                    <button class="btn" id="btn-30d" onclick="setFilter('30d')">30 วัน</button>
+                    <button class="btn" id="btn-all" onclick="setFilter('all')">ทั้งหมด</button>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #eef2ff; color: #4f46e5;"><i class="fas fa-file-export"></i></div>
+                        <div>
+                            <span class="stat-val" id="valBorrows">0</span>
+                            <span class="stat-label">ยอดการยืม (ชิ้น)</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #f0fdf4; color: #16a34a;"><i class="fas fa-file-import"></i></div>
+                        <div>
+                            <span class="stat-val" id="valReturns" style="color: var(--success);">0</span>
+                            <span class="stat-label">ยอดคืนสำเร็จ (ชิ้น)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mpg-card">
+                    <h3 style="margin-top:0; font-size: 1.1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+                        <i class="fas fa-chart-bar" style="margin-right: 10px; color: #4f46e5;"></i> วิเคราะห์ตามหมวดหมู่ (พัสดุยอดนิยม)
+                    </h3>
+                    <div style="height: 300px; position: relative; margin-top: 20px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="mpg-card" style="margin-top: 30px;">
+                    <h3 style="margin-top:0; font-size: 1.1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+                        <i class="fas fa-chart-line" style="margin-right: 10px; color: var(--success);"></i> แนวโน้มการใช้งาน (Line Trend)
+                    </h3>
+                    <div style="height: 300px; position: relative; margin-top: 20px;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxgR3YK2xU4aXjI4DgSk9eny_V2gZYvvLzPfpWq6IhC4BDuBR5IO_QNOHR4h3zLPqDU/exec";
+        let currentFilter = '7d';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('smart_school_user') || '{}');
+            if (user.role !== 'ผู้ดูแลระบบ' && user.role !== 'Admin') { window.location.href = 'index.html'; return; }
+            fetchSummary();
+        });
+
+        async function fetchSummary() {
+            try {
+                const user = JSON.parse(localStorage.getItem('smart_school_user') || '{}');
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'get_admin_summary', filter: currentFilter, role: user.role })
+                });
+                const result = await res.json();
+                if (result.status === 'success') { renderStats(result.data); }
+            } catch (e) { console.error(e); }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + filter).classList.add('active');
+            fetchSummary();
+        }
+
+        let catChart = null, trendChart = null;
+
+        function renderStats(data) {
+            document.getElementById('valBorrows').innerText = data.totalBorrows.toLocaleString();
+            document.getElementById('valReturns').innerText = data.totalReturns.toLocaleString();
+
+            if (catChart) catChart.destroy();
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            catChart = new Chart(catCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data.categoryStats),
+                    datasets: [{
+                        label: 'จำนวนที่ยืม (ชิ้น)',
+                        data: Object.values(data.categoryStats),
+                        backgroundColor: '#003366',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            if (trendChart) trendChart.destroy();
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            const trendLabels = Object.keys(data.dailyTrends).sort();
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'สรุปยอดรวม',
+                        data: trendLabels.map(l => data.dailyTrends[l]),
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.05)',
+                        fill: true, tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+    </script>
+</body>
+</html>

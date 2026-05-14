@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบบริหารจัดการพัสดุ | ข้อมูลส่วนตัว</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="mpg-app">
+        <div class="mpg-sidebar">
+            <div class="sidebar-header"><i class="fas fa-box-open" style="color: gold;"></i> SMART SCHOOL</div>
+            <div class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-th-large"></i> หน้าหลัก
+                </a>
+                <a href="borrow.html" class="nav-item">
+                    <i class="fas fa-cart-plus"></i> เบิกพัสดุ
+                </a>
+                <a href="return.html" class="nav-item">
+                    <i class="fas fa-undo"></i> คืนพัสดุ
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <i class="fas fa-search-plus"></i> คลังพัสดุ
+                </a>
+                <a href="summary.html" class="nav-item">
+                    <i class="fas fa-list-alt"></i> รายงานสรุป
+                </a>
+                <div id="adminLinkPlaceholder"></div>
+            </div>
+            <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+                <a href="index.html" class="nav-item" style="color: #ff7675;" onclick="localStorage.clear()">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </div>
+        </div>
+
+        <div class="mpg-main">
+            <div class="top-bar">
+                <div style="font-weight: 700;">ข้อมูลผู้ใช้งานระบบ (User Profile)</div>
+            </div>
+
+            <div class="content-body" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
+                <div class="mpg-card" style="width: 500px; text-align: center;">
+                    <i class="fas fa-user-circle" style="font-size: 5rem; color: #ddd; margin-bottom: 20px;"></i>
+                    <h2 id="profName" style="margin: 0; color: var(--brand-primary);">...</h2>
+                    <p id="profRole" style="color: #666; margin-top: 5px; font-weight: 700;">-</p>
+                    
+                    <div style="text-align: left; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="font-size: 0.8rem; color: #999; display: block;">รหัสผู้ใช้งาน (User ID)</label>
+                            <div id="profId" style="font-family: monospace; font-weight: 700;">-</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="font-size: 0.8rem; color: #999; display: block;">ชื่อเข้าใช้งาน (Username)</label>
+                            <div id="profUser" style="font-weight: 700;">-</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="font-size: 0.8rem; color: #999; display: block;">สังกัด/ฝ่าย</label>
+                            <div id="profDept" style="font-weight: 700;">สถานศึกษา / ทั่วไป</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('smart_school_user'));
+            if (!user) { window.location.href = 'index.html'; return; }
+            document.getElementById('profName').innerText = user.name || user.username;
+            document.getElementById('profRole').innerText = user.role;
+            document.getElementById('profId').innerText = user.user_id || '-';
+            document.getElementById('profUser').innerText = user.username;
+            if (user.role === 'ผู้ดูแลระบบ' || user.role === 'Admin') document.getElementById('adminLinkPlaceholder').innerHTML = `<a href="admin_dashboard.html" class="nav-item"><i class="fas fa-lock"></i> Admin Portal</a>`;
+        });
+    </script>
+</body>
+</html>

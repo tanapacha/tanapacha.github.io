@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบบริหารจัดการพัสดุ | คืนพัสดุ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .return-item { 
+            display: flex; align-items: center; gap: 15px; padding: 15px; 
+            border: 1px solid #ddd; margin-bottom: 10px; border-radius: 4px; 
+            cursor: pointer; transition: 0.2s;
+        }
+        .return-item:hover { border-color: var(--brand-primary); background: #f8faff; }
+        .return-item.selected { border-color: var(--brand-primary); background: #eef2ff; border-width: 2px; }
+        .check-box { 
+            width: 20px; height: 20px; border: 2px solid #ccc; 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        .selected .check-box { background: var(--brand-primary); border-color: var(--brand-primary); }
+        .selected .check-box i { color: white; display: block !important; }
+    </style>
+</head>
+<body>
+    <div class="mpg-app">
+        <div class="mpg-sidebar">
+            <div class="sidebar-header"><i class="fas fa-box-open" style="color: gold;"></i> SMART SCHOOL</div>
+            <div class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-th-large"></i> หน้าหลัก
+                </a>
+                <a href="borrow.html" class="nav-item">
+                    <i class="fas fa-cart-plus"></i> เบิกพัสดุ
+                </a>
+                <a href="return.html" class="nav-item active">
+                    <i class="fas fa-undo"></i> คืนพัสดุ
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <i class="fas fa-search-plus"></i> คลังพัสดุ
+                </a>
+                <a href="summary.html" class="nav-item">
+                    <i class="fas fa-list-alt"></i> รายงานสรุป
+                </a>
+                <div id="adminLinkPlaceholder"></div>
+            </div>
+            <div class="sidebar-footer" style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+                <a href="index.html" class="nav-item" style="color: #ff7675;" onclick="localStorage.clear()">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </div>
+        </div>
+
+        <div class="mpg-main">
+            <div class="top-bar">
+                <div style="font-weight: 700;">ส่งคืนพัสดุ (Item Returns)</div>
+                <div id="userNameDisplay">...</div>
+            </div>
+
+            <div class="content-body">
+                <div class="mpg-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin:0; font-size: 1.1rem;">รายการพัสดุที่คุณถือครองอยู่</h2>
+                        <button class="btn" onclick="selectAll()">เลือกทั้งหมด</button>
+                    </div>
+
+                    <div id="returnsList">
+                        <div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</div>
+                    </div>
+
+                    <div style="margin-top: 25px; border-top: 2px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>เลือกแล้ว: <span id="selectedCount" style="color: var(--brand-primary);">0</span> รายการ</strong>
+                        </div>
+                        <button class="btn btn-primary" id="btnReturn" onclick="confirmReturn()" style="padding: 10px 30px;">
+                            <i class="fas fa-check-circle"></i> ยืนยันการส่งคืน
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxgR3YK2xU4aXjI4DgSk9eny_V2gZYvvLzPfpWq6IhC4BDuBR5IO_QNOHR4h3zLPqDU/exec";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('smart_school_user'));
+            if (!user) { window.location.href = 'index.html'; return; }
+            document.getElementById('userNameDisplay').innerText = user.name || user.username;
+            if (user.role === 'ผู้ดูแลระบบ' || user.role === 'Admin') document.getElementById('adminLinkPlaceholder').innerHTML = `<a href="admin_dashboard.html" class="nav-item"><i class="fas fa-lock"></i> Admin Portal</a>`;
+            loadMyBorrows(user.user_id);
+        });
+
+        async function loadMyBorrows(uid) {
+            const list = document.getElementById('returnsList');
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "get_my_borrows", user_id: uid }) });
+                const r = await res.json();
+                if (r.status === "success" && r.data.length > 0) {
+                    list.innerHTML = r.data.map(item => `
+                        <div class="return-item" data-trx-id="${item.transaction_id}" onclick="this.classList.toggle('selected'); updateCount();">
+                            <div class="check-box"><i class="fas fa-check" style="display:none;"></i></div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700;">${item.item_name}</div>
+                                <div class="mono" style="font-size: 11px; color: #666;">ID: ${item.item_id} | จำนวน: ${item.qty}</div>
+                            </div>
+                            <div style="text-align: right; font-size: 0.8rem;">
+                                <div>ยืมเมื่อ: ${new Date(item.date).toLocaleDateString('th-TH')}</div>
+                                <span class="mpg-badge badge-danger">ค้างส่ง</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-check-circle" style="font-size: 3rem; color: #28a745; margin-bottom: 10px;"></i><h3>ไม่พบพัสดุค้างส่ง</h3><p>คุณคืนพัสดุครบถ้วนแล้ว</p></div>';
+                }
+            } catch (e) { list.innerHTML = '<div>Error.</div>'; }
+        }
+
+        function updateCount() {
+            document.getElementById('selectedCount').innerText = document.querySelectorAll('.return-item.selected').length;
+        }
+
+        function selectAll() {
+            const items = document.querySelectorAll('.return-item');
+            const allSelected = Array.from(items).every(i => i.classList.contains('selected'));
+            items.forEach(i => { if(allSelected) i.classList.remove('selected'); else i.classList.add('selected'); });
+            updateCount();
+        }
+
+        async function confirmReturn() {
+            const selected = document.querySelectorAll('.return-item.selected');
+            if (!selected.length) return alert('กรุณาเลือกอย่างน้อย 1 รายการ');
+            if (!confirm(`ยืนยันการคืนพัสดุ ${selected.length} รายการ?`)) return;
+
+            const ids = Array.from(selected).map(i => i.dataset.trxId);
+            const btn = document.getElementById('btnReturn');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึก...';
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'return_items', transaction_ids: ids }) });
+                const r = await res.json();
+                if (r.status === 'success') { alert('คืนสำเร็จ!'); location.reload(); }
+            } catch (e) { alert('ล้มเหลว'); }
+            finally { btn.disabled = false; btn.innerHTML = 'ยืนยันการส่งคืน'; }
+        }
+    </script>
+</body>
+</html>
