@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการสายงานอนุมัติ — ระบบเอกสารอิเล็กทรอนิกส์</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
+    <!-- SweetAlert2 for Premium Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* ── Template Cards Grid ── */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .template-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--sp-5);
+            transition: all var(--duration-slow) var(--ease-spring);
+            position: relative;
+            overflow: hidden;
+        }
+        .template-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--color-primary);
+        }
+        .template-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .template-card-header {
+            display: flex; align-items: flex-start;
+            justify-content: space-between; gap: 12px;
+            margin-bottom: 14px;
+        }
+        .template-card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+        .template-card-meta  { font-size: 12px; color: var(--color-text-muted); margin-top: 3px; }
+        .template-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+        /* ── Step Route Preview (inside card) ── */
+        .route-preview {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            margin-top: 12px;
+        }
+        .route-preview {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px;
+            background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #f1f5f9;
+            margin-top: 12px;
+        }
+        .route-node {
+            font-size: 11px; font-weight: 700;
+            padding: 6px 14px;
+            border-radius: var(--radius-full);
+            background: #fff;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+            display: flex; align-items: center; gap: 4px;
+        }
+        .route-node.first { 
+            background: linear-gradient(135deg, #fff7ed, #ffedd5); 
+            border-color: #fdba74; color: #c2410c; 
+        }
+        .route-arrow { 
+            color: #cbd5e1; display: flex; align-items: center;
+        }
+
+        /* ── Drag-to-Reorder Step Builder ── */
+        .step-list { display: flex; flex-direction: column; gap: 6px; min-height: 56px; padding: 4px 0; }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            cursor: grab;
+            transition: all var(--duration-fast) var(--ease-smooth);
+            user-select: none;
+        }
+        .step-item:active { cursor: grabbing; }
+        .step-item.dragging {
+            opacity: 0.4;
+            box-shadow: none;
+        }
+        .step-item.drag-over {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+            box-shadow: 0 0 0 2px rgba(234,88,12,0.15);
+        }
+        .step-item.is-first {
+            border-color: var(--color-primary-muted);
+            background: var(--color-primary-light);
+        }
+        .step-drag-handle {
+            color: var(--color-text-faint);
+            cursor: grab;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .step-drag-handle:hover { color: var(--color-text-muted); }
+        .step-num {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--color-bg); border: 1px solid var(--color-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; color: var(--color-text-muted);
+            flex-shrink: 0;
+        }
+        .step-item.is-first .step-num {
+            background: var(--color-primary); border-color: var(--color-primary); color: #fff;
+        }
+        .step-input {
+            flex: 1; border: none; background: transparent;
+            font-size: 13px; font-weight: 500; font-family: var(--font-sans);
+            color: var(--color-text); padding: 0; outline: none;
+        }
+        .step-input::placeholder { color: var(--color-text-faint); }
+        .step-input:focus { outline: none; }
+
+        /* Cascading dept→person selects (admin step builder) */
+        .step-selects {
+            flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0;
+        }
+        .step-select {
+            width: 100%; padding: 5px 28px 5px 10px;
+            border: 1px solid var(--color-border); border-radius: 7px;
+            background: var(--color-surface);
+            font-size: 12px; font-weight: 500; font-family: var(--font-sans);
+            color: var(--color-text); outline: none; cursor: pointer;
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            transition: border-color 0.15s;
+        }
+        .step-select:focus { border-color: var(--color-primary); outline: none; }
+        .step-select.person-sel { color: var(--color-text-muted); }
+        .step-select.person-sel.has-value { color: var(--color-text); }
+        .step-delete {
+            background: none; border: none; cursor: pointer;
+            color: var(--color-text-faint); padding: 3px; border-radius: 4px;
+            line-height: 1; flex-shrink: 0;
+            transition: color var(--duration-fast), background var(--duration-fast);
+        }
+        .step-delete:hover { color: var(--color-danger); background: var(--color-danger-light); }
+
+        .step-drop-zone {
+            height: 36px;
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-md);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--color-text-faint);
+            transition: all var(--duration-base);
+        }
+        .step-drop-zone.visible { display: flex; }
+        .step-drop-zone.active { border-color: var(--color-primary); background: var(--color-primary-light); color: var(--color-primary); }
+
+        /* ── Mode Tab ── */
+        .mode-tabs { display: flex; gap: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+        .mode-tab {
+            flex: 1; padding: 9px 12px; font-size: 13px; font-weight: 600;
+            background: var(--color-surface); border: none; cursor: pointer;
+            color: var(--color-text-muted); font-family: var(--font-sans);
+            transition: all var(--duration-base);
+        }
+        .mode-tab.active { background: var(--color-primary); color: #fff; }
+        .mode-tab:not(.active):hover { background: var(--color-bg); color: var(--color-text); }
+
+        /* ── Doc-type checkboxes ── */
+        .doctype-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .doctype-chip {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: var(--radius-full);
+            border: 1px solid var(--color-border); background: var(--color-surface);
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all var(--duration-fast);
+            user-select: none;
+        }
+        .doctype-chip.selected {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+            color: var(--color-primary);
+        }
+        .doctype-chip input[type="checkbox"] { display: none; }
+
+        /* ── Sticky header banner ── */
+        .admin-notice {
+            display: flex; align-items: center; gap: 10px;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid #fde68a; border-radius: var(--radius-md);
+            padding: 10px 16px; margin-bottom: 20px;
+            font-size: 13px; font-weight: 500; color: #92400e;
+        }
+    </style>
+</head>
+<body data-page-id="workflowAdmin">
+<div class="app-wrapper">
+    <div id="sidebar-container" class="app-sidebar"></div>
+    <div class="app-main">
+        <header id="navbar-container" class="app-navbar"></header>
+        <main class="app-content">
+            <div class="container-lg">
+
+                <!-- Page Header -->
+                <div class="page-header anim-fade-up">
+                    <div class="page-header-left">
+                        <h1>จัดการสายงานอนุมัติ</h1>
+                        <p>กำหนดเส้นทางและลำดับขั้นตอนผู้พิจารณาสำหรับเอกสารแต่ละประเภท</p>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-secondary btn-sm" onclick="resetAllTemplates()" id="btn-reset">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            รีเซ็ตเป็นค่าเริ่มต้น
+                        </button>
+                        <button class="btn btn-primary" onclick="openCreateModal()">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4"/></svg>
+                            สร้างสายงานใหม่
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin notice -->
+                <div class="admin-notice anim-fade-up anim-stagger-1">
+                    <span style="font-size:20px;">⚙️</span>
+                    <span>การเปลี่ยนแปลงสายงานจะมีผลทันทีกับเอกสารใหม่ที่สร้างหลังจากนี้ เอกสารที่อยู่ในระบบแล้วจะไม่ได้รับผลกระทบ</span>
+                </div>
+
+                <!-- Template Cards -->
+                <div id="template-grid" class="template-grid anim-fade-up anim-stagger-2">
+                    <div class="card" style="padding:40px;text-align:center;">
+                        <div class="skeleton skeleton-card" style="height:140px;margin-bottom:12px;"></div>
+                        <div class="skeleton skeleton-text" style="width:60%;margin:0 auto;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Create / Edit Template Modal -->
+<div id="template-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:680px;">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-title-text">สร้างสายงานใหม่</div>
+            <button class="btn-icon" onclick="closeModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+
+            <!-- Mode selector -->
+            <div class="form-group">
+                <label class="form-label">โหมดสายงาน</label>
+                <div class="mode-tabs">
+                    <button class="mode-tab active" id="mode-auto" onclick="setMode('auto')">
+                        🤖 อัตโนมัติ (ตามประเภทเอกสาร)
+                    </button>
+                    <button class="mode-tab" id="mode-manual" onclick="setMode('manual')">
+                        ✏️ กำหนดเอง (สายงานเฉพาะ)
+                    </button>
+                </div>
+                <div class="form-hint" id="mode-hint">โหมดอัตโนมัติ: ระบบจะจับคู่สายงานนี้กับประเภทเอกสารที่เลือก</div>
+            </div>
+
+            <div id="manual-warning" style="display:none;" class="admin-notice" style="margin-bottom:16px;">
+                <span>💡</span>
+                <span>โหมดกำหนดเอง: ผู้ส่งจะเลือกสายงานนี้ได้โดยตรงโดยไม่ขึ้นกับประเภทเอกสาร</span>
+            </div>
+
+            <!-- Template Name -->
+            <div class="form-group">
+                <label class="form-label" for="tpl-name">ชื่อสายงาน</label>
+                <input type="text" id="tpl-name" class="form-input" placeholder="เช่น สายงานพัสดุ > รองคณบดีฝ่ายบริหาร > คณบดี">
+            </div>
+
+            <!-- Doc Types (shown in auto mode) -->
+            <div id="doctype-section" class="form-group">
+                <label class="form-label">ใช้กับประเภทเอกสาร</label>
+                <div class="doctype-grid" id="doctype-chips"></div>
+                <div class="form-hint">เลือกได้มากกว่า 1 ประเภท (เอกสารของประเภทที่เลือกจะใช้สายงานนี้)</div>
+            </div>
+
+            <!-- Step Builder -->
+            <div class="form-group" style="margin-bottom:0;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <label class="form-label" style="margin:0;">ขั้นตอนการพิจารณา</label>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="addStep()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4"/></svg>
+                        เพิ่มขั้นตอน
+                    </button>
+                </div>
+                <div class="form-hint" style="margin-bottom:10px;">
+                    🖱️ ลากแถบซ้ายเพื่อเรียงลำดับใหม่ — ขั้นตอนแรกสุดคือ "ผู้ร่าง" (ลบไม่ได้)
+                </div>
+                <div id="step-list" class="step-list"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
+            <button class="btn btn-primary" id="btn-save-template" onclick="saveTemplate()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                บันทึกสายงาน
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div id="delete-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:400px;">
+        <div class="modal-header">
+            <div class="modal-title" style="color:var(--color-danger)">ยืนยันการลบสายงาน</div>
+            <button class="btn-icon" onclick="document.getElementById('delete-modal').classList.remove('active')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>คุณต้องการลบสายงาน <strong id="delete-name"></strong> ใช่หรือไม่?</p>
+            <p class="text-muted text-sm">การลบจะมีผลทันที เอกสารใหม่ที่ตรงกับประเภทนี้จะใช้สายงานอื่นหรือสายงานเริ่มต้น</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('delete-modal').classList.remove('active')">ยกเลิก</button>
+            <button class="btn btn-danger" id="btn-confirm-delete">ยืนยันลบ</button>
+        </div>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script>
+/* ──────────────────────────────────────────────
+   CONSTANTS & STATE
+────────────────────────────────────────────── */
+// DOC_TYPES constant removed, using mockDocumentTypes from core.js
+
+let editingTemplateId = null;
+let currentMode = 'auto';
+let dragSrcIdx = null;
+let realPeopleByDept = {}; // Store real users fetched from server
+
+/* ──────────────────────────────────────────────
+   RENDER TEMPLATE CARDS
+────────────────────────────────────────────── */
+function renderTemplateGrid() {
+    const templates = WorkflowEngine.getAllTemplates();
+    const grid = document.getElementById('template-grid');
+
+    if (templates.length === 0) {
+        grid.innerHTML = `
+            <div class="card" style="grid-column:1/-1;">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                    </div>
+                    <div class="empty-state-title">ยังไม่มีสายงานในระบบ</div>
+                    <div class="empty-state-desc">กดปุ่ม "สร้างสายงานใหม่" เพื่อเริ่มต้นกำหนดเส้นทางการอนุมัติ</div>
+                    <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openCreateModal()">สร้างสายงานใหม่</button>
+                </div>
+            </div>`;
+        return;
+    }
+
+    grid.innerHTML = templates.map((tpl, i) => {
+        const docTypeLabels = tpl.docTypes && tpl.docTypes.length > 0
+            ? tpl.docTypes.map(d => mockDocumentTypes.find(x => x.value === d)?.label || d).join(', ')
+            : 'ทุกประเภท (กำหนดเอง)';
+
+        const routeHTML = (tpl.steps || []).map((s, si) => {
+            // Try to find a sub-title for the step label from mockPeopleByDept
+            let sub = '';
+            if (typeof mockPeopleByDept !== 'undefined') {
+                for (const [, people] of Object.entries(mockPeopleByDept)) {
+                    const found = people.find(p => p.name === s);
+                    if (found) { sub = found.title; break; }
+                }
+            }
+            return `
+                ${si > 0 ? '<span class="route-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 18l6-6-6-6"/></svg></span>' : ''}
+                <span class="route-node ${si === 0 ? 'first' : ''}" title="${sub || s}">
+                    ${si === 0 ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20V10m0 10l-4-4m4 4l4-4M12 4v2"/></svg>' : ''}
+                    ${s}
+                </span>`;
+        }).join('');
+
+        return `
+            <div class="template-card anim-fade-up" style="animation-delay:${i * 0.06}s;">
+                <div class="template-card-header">
+                    <div>
+                        <div class="template-card-title">${tpl.name}</div>
+                        <div class="template-card-meta">
+                            ${tpl.docTypes && tpl.docTypes.length > 0
+                                ? `<span style="color:var(--color-primary);">●</span> อัตโนมัติ:`
+                                : `<span style="color:#7c3aed;">●</span> กำหนดเอง:`}
+                            ${docTypeLabels}
+                        </div>
+                    </div>
+                    <div class="template-actions">
+                        <button class="btn-icon btn-sm" title="แก้ไข" onclick="openEditModal('${tpl.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="btn-icon btn-sm" title="ลบ" onclick="confirmDelete('${tpl.id}', '${tpl.name.replace(/'/g,'\\\'')}')" style="color:var(--color-danger)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-faint);margin-bottom:8px;">
+                    ${tpl.steps ? tpl.steps.length : 0} ขั้นตอน
+                </div>
+                <div class="route-preview">${routeHTML}</div>
+            </div>`;
+    }).join('');
+}
+
+/* ──────────────────────────────────────────────
+   MODAL OPEN / CLOSE
+────────────────────────────────────────────── */
+function openCreateModal() {
+    editingTemplateId = null;
+    currentMode = 'auto';
+    document.getElementById('modal-title-text').textContent = 'สร้างสายงานใหม่';
+    document.getElementById('tpl-name').value = '';
+    setMode('auto');
+    resetDocTypeChips([]);
+    setSteps(['ผู้ร่าง', 'หัวหน้างาน', 'คณบดี']);
+    document.getElementById('template-modal').classList.add('active');
+    document.getElementById('tpl-name').focus();
+}
+
+function openEditModal(id) {
+    const tpl = WorkflowEngine.getTemplateById(id);
+    if (!tpl) return;
+    editingTemplateId = id;
+    document.getElementById('modal-title-text').textContent = 'แก้ไขสายงาน';
+    document.getElementById('tpl-name').value = tpl.name;
+    const hasDocTypes = tpl.docTypes && tpl.docTypes.length > 0;
+    setMode(hasDocTypes ? 'auto' : 'manual');
+    resetDocTypeChips(tpl.docTypes || []);
+    setSteps(tpl.steps || ['ผู้ร่าง']);
+    document.getElementById('template-modal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('template-modal').classList.remove('active');
+}
+
+/* ──────────────────────────────────────────────
+   MODE SWITCHING
+────────────────────────────────────────────── */
+function setMode(mode) {
+    currentMode = mode;
+    const hints = {
+        auto:   'โหมดอัตโนมัติ: ระบบจับคู่สายงานนี้กับประเภทเอกสารที่เลือกไว้ด้านล่าง',
+        manual: 'โหมดกำหนดเอง: ผู้ส่งสามารถเลือกสายงานนี้โดยตรง ไม่ผูกกับประเภทเอกสาร',
+    };
+    document.getElementById('mode-auto').classList.toggle('active', mode === 'auto');
+    document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
+    document.getElementById('mode-hint').textContent = hints[mode];
+    document.getElementById('doctype-section').style.display = mode === 'auto' ? '' : 'none';
+    document.getElementById('manual-warning').style.display = mode === 'manual' ? '' : 'none';
+}
+
+/* ──────────────────────────────────────────────
+   DOC TYPE CHIPS
+────────────────────────────────────────────── */
+function resetDocTypeChips(selected = []) {
+    const container = document.getElementById('doctype-chips');
+    container.innerHTML = mockDocumentTypes.map(dt => `
+        <label class="doctype-chip ${selected.includes(dt.value) ? 'selected' : ''}" data-value="${dt.value}">
+            <input type="checkbox" value="${dt.value}" ${selected.includes(dt.value) ? 'checked' : ''} onchange="toggleChip(this)">
+            ${dt.label}
+        </label>`).join('');
+}
+
+function toggleChip(input) {
+    const chip = input.closest('.doctype-chip');
+    chip.classList.toggle('selected', input.checked);
+}
+
+function getSelectedDocTypes() {
+    return Array.from(document.querySelectorAll('#doctype-chips input:checked')).map(i => i.value);
+}
+
+/* ──────────────────────────────────────────────
+   STEP BUILDER (cascading dept → person)
+────────────────────────────────────────────── */
+
+function buildAdminDeptOptions() {
+    if (typeof mockDepartments === 'undefined') return '';
+    return mockDepartments.map(group => `
+        <optgroup label="${group.label}">
+            ${group.options.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+        </optgroup>`).join('');
+}
+
+function loadAdminPeopleOptions(personSel, deptValue, selectedEmail = '') {
+    const deptData = realPeopleByDept[deptValue] || [];
+    if (deptData.length === 0) {
+        // Fallback if no users in this department yet
+        personSel.innerHTML = `<option value="">— ยังไม่มีผู้ใช้ในฝ่ายนี้ —</option>`;
+        personSel.disabled = true;
+    } else {
+        personSel.disabled = false;
+        personSel.innerHTML =
+            `<option value="">— เลือกบุคคล (ระบุเจาะจง) —</option>` +
+            deptData.map(p => {
+                return `<option value="${p.email}" ${
+                    selectedEmail === p.email ? 'selected' : ''
+                }>${p.name} (${p.email})</option>`;
+            }).join('');
+    }
+    personSel.classList.toggle('has-value', !!(personSel.value && personSel.value !== ''));
+}
+
+function onAdminDeptChange(deptSel) {
+    const item = deptSel.closest('.step-item');
+    const personSel = item.querySelector('.person-sel');
+    const deptValue = deptSel.value;
+    if (!deptValue) {
+        personSel.innerHTML = '<option value="">— เลือกฝ่ายก่อน —</option>';
+        personSel.disabled = true;
+        personSel.classList.remove('has-value');
+        return;
+    }
+    loadAdminPeopleOptions(personSel, deptValue);
+}
+
+function getAdminStepValue(item) {
+    const input = item.querySelector('.step-input');
+    if (input) return input.value.trim();
+    const personSel = item.querySelector('.person-sel');
+    const deptSel   = item.querySelector('.dept-sel');
+    const person = personSel ? personSel.value.trim() : '';
+    const dept   = deptSel   ? deptSel.value.trim()   : '';
+    return person || dept || '';
+}
+
+function setSteps(steps) {
+    const list = document.getElementById('step-list');
+    list.innerHTML = '';
+    steps.forEach((s, i) => addStepItem(s, i === 0));
+    updateStepNumbers();
+}
+
+function addStep() {
+    addStepItem('', false);
+    updateStepNumbers();
+    // focus first dept select of new row
+    const sels = document.querySelectorAll('#step-list .dept-sel');
+    if (sels.length) sels[sels.length - 1].focus();
+}
+
+function addStepItem(label = '', isFirst = false) {
+    const list = document.getElementById('step-list');
+    const item = document.createElement('div');
+    item.className = 'step-item' + (isFirst ? ' is-first' : '');
+    item.draggable = !isFirst;
+
+    const deptOpts = buildAdminDeptOptions();
+
+    if (isFirst) {
+        item.innerHTML = `
+            <div class="step-drag-handle" style="opacity:0.3;cursor:default;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="8" cy="6" r="1" fill="currentColor"/><circle cx="8" cy="12" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="18" r="1" fill="currentColor"/>
+                    <circle cx="16" cy="6" r="1" fill="currentColor"/><circle cx="16" cy="12" r="1" fill="currentColor"/>
+                    <circle cx="16" cy="18" r="1" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="step-num">1</div>
+            <input class="step-input" type="text" placeholder="ผู้ร่าง / ผู้ยื่นเรื่อง" value="${label}" readonly
+                style="flex:1;border:1px solid var(--color-border);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--color-bg);">
+            <span class="badge badge-orange" style="font-size:10px;white-space:nowrap;">ผู้ร่าง</span>`;
+    } else {
+        item.innerHTML = `
+            <div class="step-drag-handle" title="ลากเพื่อจัดเรียง">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="8" cy="6" r="1" fill="currentColor"/><circle cx="8" cy="12" r="1" fill="currentColor"/>
+                    <circle cx="8" cy="18" r="1" fill="currentColor"/>
+                    <circle cx="16" cy="6" r="1" fill="currentColor"/><circle cx="16" cy="12" r="1" fill="currentColor"/>
+                    <circle cx="16" cy="18" r="1" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="step-num">2</div>
+            <div class="step-selects">
+                <select class="step-select dept-sel" onchange="onAdminDeptChange(this)">
+                    <option value="">— เลือกฝ่าย/สายงาน —</option>
+                    ${deptOpts}
+                </select>
+                <select class="step-select person-sel" disabled>
+                    <option value="">— เลือกฝ่ายก่อน —</option>
+                </select>
+            </div>
+            <button class="step-delete" title="ลบขั้นตอนนี้" onclick="removeStep(this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>`;
+
+        // Pre-populate selects if label given (editing template)
+        if (label) {
+            const deptSel   = item.querySelector('.dept-sel');
+            const personSel = item.querySelector('.person-sel');
+            
+            // Check if label is a department name or email
+            let matchedDept = '';
+            for (const [dept, people] of Object.entries(realPeopleByDept)) {
+                if (dept === label) {
+                    matchedDept = dept;
+                    break;
+                }
+                const found = people.find(p => p.email === label);
+                if (found) {
+                    matchedDept = dept;
+                    break;
+                }
+            }
+
+            if (matchedDept) {
+                deptSel.value = matchedDept;
+                loadAdminPeopleOptions(personSel, matchedDept, label);
+            }
+        }
+    }
+
+    if (!isFirst) {
+        item.addEventListener('dragstart', onDragStart);
+        item.addEventListener('dragend',   onDragEnd);
+    }
+    item.addEventListener('dragover',  onDragOver);
+    item.addEventListener('dragleave', onDragLeave);
+    item.addEventListener('drop',      onDrop);
+
+    list.appendChild(item);
+}
+
+function removeStep(btn) {
+    btn.closest('.step-item').remove();
+    updateStepNumbers();
+}
+
+function updateStepNumbers() {
+    document.querySelectorAll('#step-list .step-num').forEach((el, i) => {
+        el.textContent = i + 1;
+    });
+}
+
+function getSteps() {
+    return Array.from(document.querySelectorAll('#step-list .step-item'))
+        .map(item => getAdminStepValue(item))
+        .filter(Boolean);
+}
+
+/* ──────────────────────────────────────────────
+   DRAG AND DROP REORDER
+────────────────────────────────────────────── */
+function onDragStart(e) {
+    dragSrcIdx = getItemIndex(this);
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragSrcIdx);
+}
+
+function onDragEnd() {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.step-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragSrcIdx = null;
+}
+
+function onDragOver(e) {
+    e.preventDefault();
+    const item = e.currentTarget;
+    if (!item.classList.contains('is-first') && dragSrcIdx !== null) {
+        item.classList.add('drag-over');
+    }
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function onDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function onDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const target = e.currentTarget;
+    target.classList.remove('drag-over');
+
+    const targetIdx = getItemIndex(target);
+    if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+    // Don't allow dragging before the first item
+    if (targetIdx === 0) return;
+
+    const list = document.getElementById('step-list');
+    const items = Array.from(list.children);
+    const srcEl = items[dragSrcIdx];
+
+    if (dragSrcIdx < targetIdx) {
+        list.insertBefore(srcEl, items[targetIdx].nextSibling || null);
+    } else {
+        list.insertBefore(srcEl, items[targetIdx]);
+    }
+    updateStepNumbers();
+}
+
+function getItemIndex(el) {
+    return Array.from(document.querySelectorAll('#step-list .step-item')).indexOf(el);
+}
+
+/* ──────────────────────────────────────────────
+   SAVE TEMPLATE
+────────────────────────────────────────────── */
+async function saveTemplate() {
+    const name  = document.getElementById('tpl-name').value.trim();
+    const steps = getSteps();
+    const docTypes = currentMode === 'auto' ? getSelectedDocTypes() : [];
+    const btn   = document.getElementById('btn-save-template');
+
+    if (!name) { UI.showToast('กรุณาระบุชื่อสายงาน', 'error'); return; }
+    if (steps.length < 2) { UI.showToast('ต้องมีอย่างน้อย 2 ขั้นตอน (ผู้ร่าง + ผู้พิจารณา)', 'error'); return; }
+    if (currentMode === 'auto' && docTypes.length === 0) {
+        UI.showToast('กรุณาเลือกประเภทเอกสารอย่างน้อย 1 ประเภท', 'error'); return;
+    }
+
+    const tpl = {
+        id: editingTemplateId || WorkflowEngine.newTemplateId(),
+        name, steps, docTypes,
+        updatedAt: new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }),
+    };
+
+    UI.setLoadingState(btn, true);
+    try {
+        await WorkflowEngine.saveTemplate(tpl);
+        closeModal();
+        renderTemplateGrid();
+        UI.showToast(editingTemplateId ? 'อัปเดตสายงานเรียบร้อย' : 'สร้างสายงานใหม่สำเร็จ', 'success');
+    } catch (err) {
+        UI.showToast(err.message || 'บันทึกล้มเหลว', 'error');
+    } finally {
+        UI.setLoadingState(btn, false);
+    }
+}
+
+/* ──────────────────────────────────────────────
+   DELETE TEMPLATE
+────────────────────────────────────────────── */
+function confirmDelete(id, name) {
+    UI.confirm('ยืนยันการลบสายงาน', `คุณต้องการลบสายงาน "${name}" ใช่หรือไม่? ไม่สามารถเรียกคืนได้`, 'ยืนยันลบ', 'ยกเลิก').then(confirmed => {
+        if (!confirmed) return;
+        WorkflowEngine.deleteTemplate(id);
+        renderTemplateGrid();
+        UI.showToast('ลบสายงานเรียบร้อยแล้ว', 'info');
+    });
+}
+
+/* ──────────────────────────────────────────────
+   RESET ALL
+────────────────────────────────────────────── */
+async function resetAllTemplates() {
+    const confirmed = await UI.confirm('รีเซ็ตสายงานถาวร', 'ต้องการรีเซ็ตสายงานทั้งหมดกลับเป็นค่าเริ่มต้นใช่หรือไม่? ข้อมูลการแก้ไขปัจจุบันจะถูกลบออก', 'รีเซ็ตทั้งหมด', 'ยกเลิก');
+    if (!confirmed) return;
+    WorkflowEngine.resetToDefaults();
+    renderTemplateGrid();
+    UI.showToast('รีเซ็ตสายงานเรียบร้อยแล้ว', 'info');
+}
+
+/* ──────────────────────────────────────────────
+   MODAL OVERLAY CLOSE
+────────────────────────────────────────────── */
+document.getElementById('template-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('template-modal')) closeModal();
+});
+document.getElementById('delete-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('delete-modal'))
+        document.getElementById('delete-modal').classList.remove('active');
+});
+
+async function init() {
+    UI.renderLayout('workflowAdmin');
+    try {
+        // Fetch both templates and real participants from server
+        const [tpls, participants] = await Promise.all([
+            WorkflowEngine.syncTemplates(),
+            API.getWorkflowParticipants()
+        ]);
+        realPeopleByDept = participants;
+        renderTemplateGrid();
+    } catch (e) {
+        console.error(e);
+        UI.showToast('ไม่สามารถดึงข้อมูลบุคลากรได้', 'error');
+        renderTemplateGrid();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
