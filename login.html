@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เข้าสู่ระบบ | KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="sidebar-logo-icon">
+          <span data-icon="monitor"></span>
+        </div>
+      </div>
+      <h1 class="t-subheading mb-2">ยินดีต้อนรับกลับมา</h1>
+      <p class="t-small t-secondary">เข้าสู่ระบบเพื่อเริ่มเรียนรู้วันนี้</p>
+    </div>
+
+    <form id="loginForm" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-2">
+        <label class="t-xs" style="color: var(--neutral-800);">อีเมล</label>
+        <input type="email" id="email" class="input" placeholder="your@email.com" required>
+      </div>
+      
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+          <label class="t-xs" style="color: var(--neutral-800);">รหัสผ่าน</label>
+          <a href="#" class="t-xs t-primary-color" style="text-decoration:none;">ลืมรหัสผ่าน?</a>
+        </div>
+        <input type="password" id="password" class="input" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
+    </form>
+
+    <div class="mt-12 t-center">
+      <p class="t-small t-secondary">
+        ยังไม่มีบัญชี? <a href="register.html" class="t-primary-color fw-bold" style="text-decoration:none;">สมัครสมาชิกฟรี</a>
+      </p>
+    </div>
+  </div>
+
+  <div id="globalLoader" class="loader-overlay">
+    <div class="spinner"></div>
+    <p class="t-small fw-bold mt-4">กำลังตรวจสอบข้อมูล...</p>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (window.Auth && Auth.redirectIfAuth) Auth.redirectIfAuth();
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      window.UI?.showLoading('กำลังตรวจสอบข้อมูล...');
+      
+      try {
+        const res = await Auth.login(email, password);
+        if (res.ok) {
+          // ใช้ redirectIfAuth เพื่อส่งไปหน้า Dashboard ที่ถูกต้องตาม Role
+          Auth.redirectIfAuth();
+        } else {
+          alert(res.error || 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง');
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง');
+      } finally {
+        window.UI?.hideLoading();
+      }
+    });
+  </script>
+</body>
+</html>

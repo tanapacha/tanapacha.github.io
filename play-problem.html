@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แก้ปัญหาและตอบคำถาม — KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body style="background:var(--bg-app);">
+
+<header style="background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);position:sticky;top:0;z-index:50;">
+  <div style="max-width:900px;margin:0 auto;padding:0 var(--sp-8);height:68px;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-6);">
+    <div class="flex items-center gap-4">
+      <a href="javascript:history.back()" class="btn btn-ghost btn-sm">
+        <span data-icon="left"></span> ออก
+      </a>
+      <div>
+        <div class="fw-semibold t-small" id="problemTitle">โจทย์ปัญหาบทเรียน</div>
+        <div class="t-small t-secondary">ท้าทายความคิด · KIDDO CS</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2" style="background:var(--bg-raised);padding:var(--sp-2) var(--sp-4);border-radius:var(--radius-full);">
+        <span data-icon="monitor" style="width:14px;height:14px;"></span>
+        <span id="timerDisplay" class="fw-semibold t-small">10:00</span>
+      </div>
+      <span class="t-small t-secondary" id="questionCounter">ข้อ 1 / 5</span>
+    </div>
+  </div>
+  <div class="progress" style="border-radius:0;height:3px;">
+    <div class="progress-fill" id="quizProgress" style="width:20%;"></div>
+  </div>
+</header>
+
+<main style="max-width:760px;margin:0 auto;padding:var(--sp-10) var(--sp-8);">
+  <div id="questionArea" class="anim-fade-up">
+    <div class="t-label t-secondary" style="margin-bottom:var(--sp-4);" id="questionNum">ข้อที่ 1</div>
+    <div class="quiz-question" id="questionText">กำลังโหลดคำถาม...</div>
+    <div style="display:flex;flex-direction:column;gap:var(--sp-3);" id="optionsArea"></div>
+    <div id="feedbackArea" style="display:none;margin-top:var(--sp-6);">
+      <div id="feedbackCard" class="alert">
+        <span id="feedbackText" style="display:flex;align-items:center;gap:var(--sp-2);"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-between items-center" style="margin-top:var(--sp-8);">
+    <button class="btn btn-ghost btn-sm" id="prevBtn" disabled onclick="prevQ()">
+      <span data-icon="left"></span> ก่อนหน้า
+    </button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextQ()" disabled>
+      ข้อถัดไป <span data-icon="right"></span>
+    </button>
+  </div>
+</main>
+
+<dialog id="resultModal" style="border:none;border-radius:var(--radius-xl);padding:0;width:min(500px,90vw);box-shadow:var(--shadow-lg);background:var(--bg-surface);">
+  <div style="padding:var(--sp-10);text-align:center;">
+    <div style="color:var(--color-primary-500); margin-bottom:var(--sp-4); display:flex; justify-content:center;" id="resultEmoji">
+       <span data-icon="award" style="width:64px;height:64px;display:block;"></span>
+    </div>
+    <h2 class="t-subheading" style="margin-bottom:var(--sp-2);" id="resultTitle">ยอดเยี่ยมมาก!</h2>
+    <p class="t-body t-secondary" id="resultDesc">คุณทำภารกิจสำเร็จแล้ว!</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:var(--sp-8);margin:var(--sp-8) 0;padding:var(--sp-6);background:var(--bg-raised);border-radius:var(--radius-lg);">
+      <div>
+        <div class="stat-num" id="resultScore">0</div>
+        <div class="stat-label">คะแนนที่ได้</div>
+      </div>
+      <div style="width:1px;height:40px;background:var(--border-subtle);"></div>
+      <div>
+        <div class="stat-num" id="resultPercent">0%</div>
+        <div class="stat-label">ความถูกต้อง</div>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-center">
+      <button class="btn btn-outline" onclick="location.reload()">ลองอีกครั้ง</button>
+      <a href="dashboard.html" class="btn btn-primary">กลับหน้าหลัก</a>
+    </div>
+  </div>
+</dialog>
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+  Auth.requireAuth();
+
+  let questions = [];
+  let current = 0, score = 0;
+  const answers = [];
+
+  async function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const lessonId = urlParams.get('id');
+    
+    if (lessonId) {
+      document.getElementById('problemTitle').textContent = `โจทย์ปัญหา: บทเรียน ${lessonId}`;
+      
+      try {
+        const res = await ApiService.getQuizzes(lessonId);
+        if (res.status === 'success') {
+          // กรองและจัดรูปแบบข้อมูลให้ตรงกับที่ครูเซฟ (OptionA, OptionB, OptionC, OptionD)
+          questions = res.data.filter(q => String(q.LessonID) === String(lessonId)).map(q => ({
+            q: q.Question || 'ไม่มีคำถาม',
+            opts: [q.OptionA || '-', q.OptionB || '-', q.OptionC || '-', q.OptionD || '-'], // ป้องกัน undefined
+            ans: (q.Answer || '').trim().toLowerCase(), // คำตอบ a, b, c, หรือ d
+            explain: q.Title || 'คำอธิบายเพิ่มเติม'
+          }));
+          
+          if (questions.length === 0) {
+            document.getElementById('questionText').innerHTML = `
+              <div class="t-center p-8">
+                <p class="mb-4">ยังไม่มีโจทย์ปัญหาในบทเรียน ${lessonId}</p>
+                <a href="dashboard.html" class="btn btn-outline btn-sm">กลับหน้าหลัก</a>
+              </div>
+            `;
+            return;
+          }
+          
+          render();
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('questionText').textContent = 'เกิดข้อผิดพลาดในการโหลดโจทย์';
+      }
+    }
+    
+    startTimer(document.getElementById('timerDisplay'), 600);
+  }
+
+  function render() {
+    if(!questions[current]) return;
+    const q = questions[current];
+    document.getElementById('questionNum').textContent = `ข้อที่ ${current+1}`;
+    document.getElementById('questionText').textContent = q.q;
+    document.getElementById('questionCounter').textContent = `ข้อ ${current+1} / ${questions.length}`;
+    document.getElementById('quizProgress').style.width = `${((current+1)/questions.length)*100}%`;
+
+    const keys = ['a','b','c','d'];
+    const area = document.getElementById('optionsArea');
+    area.innerHTML = q.opts.map((opt,i)=>`
+      <button class="quiz-option${answers[current]===keys[i]?' selected':''}" onclick="selectOption(this,'${keys[i]}')" ${answers[current]!==undefined?'disabled':''}>
+        <span class="quiz-option-key">${['ก','ข','ค','ง'][i]}</span>
+        <span class="quiz-option-text">${opt}</span>
+      </button>`).join('');
+
+    const fb = document.getElementById('feedbackArea');
+    if(answers[current]!==undefined) showFeedback(answers[current]);
+    else fb.style.display='none';
+
+    document.getElementById('prevBtn').disabled = current===0;
+    document.getElementById('nextBtn').disabled = answers[current]===undefined;
+    document.getElementById('nextBtn').textContent = current===questions.length-1 ? 'ส่งคำตอบ' : 'ข้อถัดไป →';
+  }
+
+  function selectOption(el, key) {
+    if(answers[current]!==undefined) return;
+    answers[current]=key;
+    if(key===questions[current].ans) score++;
+    render();
+  }
+
+  function showFeedback(key) {
+    const isCorrect = key===questions[current].ans;
+    const fb=document.getElementById('feedbackArea'), fc=document.getElementById('feedbackCard'), ft=document.getElementById('feedbackText');
+    fb.style.display='flex';
+    fc.className=`alert ${isCorrect?'alert-success':'alert-error'}`;
+    ft.innerHTML=`<span>${isCorrect?'ถูกต้อง!':'ไม่ถูกต้อง ·'} ${questions[current].explain}</span>`;
+  }
+
+  function nextQ() {
+    if(current<questions.length-1){current++;render();}
+    else showResult();
+  }
+  function prevQ() { if(current>0){current--;render();} }
+
+  async function showResult() {
+    const pct = Math.round(score/questions.length*100);
+    document.getElementById('resultScore').textContent = `${score}/${questions.length}`;
+    document.getElementById('resultPercent').textContent = `${pct}%`;
+    document.getElementById('resultModal').showModal();
+
+    // บันทึกคะแนนลงฐานข้อมูล
+    const user = Auth.get();
+    const urlParams = new URLSearchParams(window.location.search);
+    const lessonId = urlParams.get('id');
+    
+    if (user && lessonId) {
+      await ApiService.saveQuizGrade({
+        studentId: user.id,
+        lessonId: lessonId,
+        score: score,
+        maxScore: questions.length
+      });
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

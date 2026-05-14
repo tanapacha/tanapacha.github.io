@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>โจทย์ปัญหา | KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body style="background:var(--bg-app);">
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Learning Menu</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>แบบฝึกหัด</a>
+      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>สมุดพก</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar" style="background: var(--grad-primary); color: white; border: none;">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">...</div>
+          <div class="sidebar-user-role" data-user="role">นักเรียน</div>
+        </div>
+        <button data-action="logout" class="btn-logout" title="ออกจากระบบ">
+          <span data-icon="logout"></span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header anim-reveal">
+      <div>
+        <h1 class="t-display">โจทย์ปัญหา</h1>
+        <p class="t-body">ทดสอบความรู้ผ่าน Google Form ที่คุณครูจัดเตรียมไว้ให้</p>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="anim-reveal delay-1">
+        <div class="flex items-center gap-4 mb-8">
+          <div class="badge badge-primary">ภารกิจใหม่</div>
+          <h2 class="t-subheading">โจทย์ปัญหาทั้งหมด</h2>
+        </div>
+        
+        <div id="quizContainer" class="grid-auto">
+            <div class="p-12 t-center t-secondary">
+              <div class="spinner mb-4" style="margin: 0 auto;"></div>
+              <p>กำลังโหลดโจทย์ปัญหา...</p>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  async function initQuizzes() {
+    const user = Auth.requireAuth();
+    if (!user) return;
+
+    // Update sidebar grade label
+    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
+    if (gradeLabel && user.grade) {
+      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    }
+    
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const filterId = urlParams.get('id'); // รับรหัสบทเรียนเพื่อกรองอัตโนมัติ
+
+      const [qRes, lRes] = await Promise.all([
+        ApiService.getQuizzes(null, user.grade), 
+        ApiService.getLessons(user.grade)
+      ]);
+      
+      // ตรวจสอบแต่ละ response แยกกัน (ไม่ให้พังทั้งหมดถ้าผิดแค่อันเดียว)
+      if (qRes.status !== 'success') {
+        console.error('Quiz API Error:', qRes.message);
+        document.getElementById('quizContainer').innerHTML = `<div class="card p-12 t-center"><div class="t-secondary mb-4">ไม่สามารถโหลดโจทย์ปัญหาได้</div><p class="t-xs t-secondary">${qRes.message || 'กรุณาลองรีเฟรชหน้าเว็บ'}</p><button onclick="location.reload()" class="btn btn-outline btn-sm mt-4">ลองใหม่</button></div>`;
+        return;
+      }
+
+      const lessons = (lRes.status === 'success') ? lRes.data : [];
+      let quizzes = qRes.data;
+
+
+        // ถ้ามีรหัสบทเรียนส่งมา ให้กรองเหลือแค่โจทย์ของบทนั้น
+        if (filterId) {
+          quizzes = quizzes.filter(q => String(q.LessonID) === String(filterId));
+        }
+
+        const container = document.getElementById('quizContainer');
+        if (quizzes.length === 0) {
+          container.innerHTML = `
+            <div class="card p-12 t-center anim-fade-up" style="grid-column: 1/-1;">
+              <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
+                <span data-icon="task" style="width:32px; height:32px;"></span>
+              </div>
+              <h3 class="t-title mb-2">ยังไม่มีโจทย์ปัญหา</h3>
+              <p class="t-secondary t-sm">${filterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาสำหรับชั้นของคุณในขณะนี้'}</p>
+            </div>
+          `;
+          if (window.app && window.app.initIcons) window.app.initIcons();
+          return;
+        }
+
+        container.innerHTML = quizzes.map(quiz => {
+          const lesson = lessons.find(l => String(l.ID) === String(quiz.LessonID));
+          let lessonInfo = 'ทั่วไป';
+          if (lesson) {
+            lessonInfo = lesson.Category ? `${lesson.Category} : ${lesson.Title}` : lesson.Title;
+          }
+          
+          // ระบบตรวจจับลิงก์แบบยืดหยุ่นสูง + ระบบเดาใจ (Smart Recovery)
+          let rawUrl = String(quiz.QuizURL || quiz['Quiz URL'] || quiz.Link || '').trim();
+          const pointsStr = String(quiz.Points || '').trim();
+          
+          // ถ้าช่องลิงก์ปกติไม่ใช่ลิงก์ แต่ช่อง Points ดันเป็นลิงก์ (กรณีครูกรอกผิดช่อง)
+          if (!rawUrl.includes('http') && pointsStr.includes('http')) {
+             rawUrl = pointsStr;
+          }
+
+          const urlStr = rawUrl.toLowerCase();
+          const isExternal = urlStr.includes('http');
+          const finalLink = isExternal ? rawUrl : `play-problem.html?id=${quiz.LessonID}`;
+          const target = isExternal ? '_blank' : '_self';
+          
+          // ดึงวิดีโอการสอนจากบทเรียนที่เกี่ยวข้อง (ตามคำขอ: "วิดีโอก็ต้องเป็นวิดีโอการสอนที่ลิงค์")
+          const lessonVideo = lesson ? lesson.VideoURL : '';
+          const hasVideo = lessonVideo && lessonVideo.includes('http');
+
+          return `
+            <div class="card flex flex-col anim-fade-up">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="avatar" style="background:var(--color-amber-500); color:white; border:none;">
+                  <span data-icon="task"></span>
+                </div>
+                <div>
+                  <div class="fw-bold t-sm">${quiz.Title}</div>
+                  <div class="t-xs t-secondary">${lessonInfo}</div>
+                </div>
+              </div>
+              <p class="t-small t-secondary mb-8 flex-1">คลิกปุ่มด้านล่างเพื่อเริ่มทำแบบทดสอบ${isExternal ? 'ผ่านลิงก์ภายนอก' : 'ในระบบ KIDDO'}</p>
+              
+              <div class="flex flex-col gap-2">
+                ${hasVideo ? `
+                  <a href="${lessonVideo}" target="_blank" class="btn btn-outline btn-block" style="border-color:var(--color-primary-500); color:var(--color-primary-600);">
+                    <span data-icon="video"></span> ดูวิดีโอการสอน
+                  </a>
+                ` : ''}
+                <a href="${finalLink}" target="${target}" class="btn btn-primary btn-block">
+                  เริ่มทำโจทย์ปัญหา
+                </a>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        if (window.app && window.app.initIcons) window.app.initIcons();
+
+    } catch (err) {
+      console.error("Quiz error:", err);
+      document.getElementById('quizContainer').innerHTML = `
+        <div class="card p-12 t-center" style="grid-column: 1/-1;">
+          <div class="t-secondary mb-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>
+          <p class="t-xs t-secondary">${err.message || 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'}</p>
+          <button onclick="location.reload()" class="btn btn-outline btn-sm mt-4">ลองใหม่</button>
+        </div>`;
+    }
+  }
+
+  initQuizzes();
+</script>
+</body>
+</html>

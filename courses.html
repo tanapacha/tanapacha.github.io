@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายวิชา — KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">บทเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>แบบฝึกหัด</a>
+      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>ส่งงาน<span class="badge badge-warning nav-badge">1</span></a>
+      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
+    </div>
+
+    <div class="sidebar-section" id="teacherSection" style="display:none;">
+      <div class="sidebar-section-label">สำหรับคุณครู</div>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item">
+        <span class="nav-icon" data-icon="users"></span> จัดการเนื้อหา
+      </a>
+      <a href="teacher-create-quiz.html" class="sidebar-nav-item">
+        <span class="nav-icon" data-icon="task"></span> สร้างแบบฝึกหัด
+      </a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item">
+        <span class="nav-icon" data-icon="chart"></span> ดูคะแนนนักเรียน
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">—</div>
+          <div class="sidebar-user-role" data-user="role">—</div>
+        </div>
+        <a href="#" data-action="logout" class="btn btn-ghost btn-icon btn-sm" title="ออกจากระบบ" style="flex-shrink:0;">
+          <span data-icon="logout"></span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="t-subheading">รายวิชาเรียน</h1>
+        <p class="t-small t-secondary">เลือกวิชาที่ต้องการเรียนต่อ</p>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="grid-auto anim-fade-up">
+
+        <!-- Math -->
+        <a href="lesson.html" class="course-card" style="--subject-color: var(--color-primary-500);">
+          <div class="course-card-banner">
+            <span data-icon="book" style="width:64px;height:64px;color:rgba(255,255,255,0.8);position:relative;z-index:1;"></span>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-code">MATH · ป.4</div>
+            <div class="course-card-title">คณิตศาสตร์</div>
+            <div class="course-card-teacher">กำลังโหลด...</div>
+            <div class="course-card-footer">
+              <div style="flex:1;">
+                <div class="flex justify-between t-small t-secondary" style="margin-bottom:var(--sp-1);">
+                  <span>3 / 6 บท</span><span>60%</span>
+                </div>
+                <div class="progress"><div class="progress-fill" style="width:60%;background:var(--subject-color);"></div></div>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Science -->
+        <a href="lesson.html" class="course-card" style="--subject-color: var(--color-amber-500);">
+          <div class="course-card-banner">
+            <span data-icon="sparkles" style="width:64px;height:64px;color:rgba(255,255,255,0.8);position:relative;z-index:1;"></span>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-code">SCI · ป.4</div>
+            <div class="course-card-title">วิทยาศาสตร์</div>
+            <div class="course-card-teacher">อ.รัตนา ชัยมงคล</div>
+            <div class="course-card-footer">
+              <div style="flex:1;">
+                <div class="flex justify-between t-small t-secondary" style="margin-bottom:var(--sp-1);">
+                  <span>2 / 5 บท</span><span>40%</span>
+                </div>
+                <div class="progress"><div class="progress-fill" style="width:40%;background:var(--subject-color);"></div></div>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Thai -->
+        <a href="lesson.html" class="course-card" style="--subject-color: var(--color-success);">
+          <div class="course-card-banner">
+            <span data-icon="book" style="width:64px;height:64px;color:rgba(255,255,255,0.8);position:relative;z-index:1;"></span>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-code">THAI · ป.4</div>
+            <div class="course-card-title">ภาษาไทย</div>
+            <div class="course-card-teacher">อ.ชัยยะ พูนทรัพย์</div>
+            <div class="course-card-footer">
+              <div style="flex:1;">
+                <div class="flex justify-between t-small t-secondary" style="margin-bottom:var(--sp-1);">
+                  <span>4 / 5 บท</span><span>80%</span>
+                </div>
+                <div class="progress"><div class="progress-fill" style="width:80%;background:var(--subject-color);"></div></div>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <!-- English -->
+        <a href="lesson.html" class="course-card" style="--subject-color: var(--color-error);">
+          <div class="course-card-banner">
+            <span data-icon="monitor" style="width:64px;height:64px;color:rgba(255,255,255,0.8);position:relative;z-index:1;"></span>
+          </div>
+          <div class="course-card-body">
+            <div class="course-card-code">ENG · ป.4</div>
+            <div class="course-card-title">ภาษาอังกฤษ</div>
+            <div class="course-card-teacher">Mr.John Smith</div>
+            <div class="course-card-footer">
+              <div style="flex:1;">
+                <div class="flex justify-between t-small t-secondary" style="margin-bottom:var(--sp-1);">
+                  <span>1 / 6 บท</span><span>20%</span>
+                </div>
+                <div class="progress"><div class="progress-fill" style="width:20%;background:var(--subject-color);"></div></div>
+              </div>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>Auth.requireAuth();</script>
+</body>
+</html>

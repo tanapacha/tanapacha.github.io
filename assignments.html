@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ศูนย์แบบฝึกหัด | KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    .cat-tabs {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 24px;
+      -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .cat-tabs::-webkit-scrollbar { display: none; }
+    .cat-tab {
+      padding: 10px 20px; border-radius: 999px; background: white; border: 1px solid var(--border-subtle);
+      color: var(--text-secondary); font-size: var(--text-sm); font-weight: 700; cursor: pointer; white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .cat-tab.active {
+      background: var(--color-primary-500); color: white; border-color: var(--color-primary-500);
+      box-shadow: var(--shadow-md);
+    }
+    .mission-card .cat-badge {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800;
+      color: var(--color-primary-500); margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body style="background:var(--bg-app);">
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main Menu</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="assignments.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="upload"></span>แบบฝึกหัด</a>
+      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>สมุดพก</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar" style="background: var(--grad-primary); color: white; border: none;">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">—</div>
+          <div class="sidebar-user-role" data-user="role">นักเรียน</div>
+        </div>
+        <button data-action="logout" class="btn-logout" title="ออกจากระบบ">
+          <span data-icon="logout"></span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="t-display">ศูนย์แบบฝึกหัด</h1>
+        <p class="t-body">สร้างสรรค์ผลงานและฝึกฝนทักษะผ่านภารกิจสนุกๆ</p>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <!-- Hub View -->
+      <div id="hubView" class="anim-fade-up">
+        <div id="categoryTabs" class="cat-tabs">
+           <button class="cat-tab active" onclick="filterMissions('all')">ทั้งหมด</button>
+        </div>
+
+        <div id="missionGrid" class="mission-grid">
+           <div class="p-20 t-center t-secondary" style="grid-column: 1/-1;">
+             <div class="spinner mb-4" style="margin: 0 auto;"></div>
+             <p>กำลังเตรียมภารกิจ...</p>
+           </div>
+        </div>
+      </div>
+
+      <!-- Detail View -->
+      <div id="detailView" class="anim-fade-up" style="display:none;">
+        <button class="btn btn-ghost mb-6" onclick="showHub()">
+          <span data-icon="left"></span> กลับไปหน้าภารกิจ
+        </button>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="icon-box" style="background:var(--color-primary-50); color:var(--color-primary-600); width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+                <span data-icon="clipboard"></span>
+              </div>
+              <div>
+                 <div id="detCategory" class="t-xs t-primary-color fw-bold uppercase mb-1">—</div>
+                 <h2 id="detTitle" class="t-subheading">ชื่อภารกิจ</h2>
+              </div>
+            </div>
+            <div class="t-body t-secondary mb-8">
+              <h4 class="fw-bold t-sm t-primary-color mb-2">คำชี้แจง:</h4>
+              <p id="detInstr" style="line-height:1.6; white-space:pre-wrap;">คำอธิบาย...</p>
+            </div>
+            <div class="rubric-box mb-6">
+              <h4 class="fw-bold mb-2">เกณฑ์การให้คะแนน:</h4>
+              <div id="detCriteria" style="white-space:pre-line;">เกณฑ์...</div>
+            </div>
+            <div class="flex justify-between t-xs">
+              <span>คะแนนเต็ม: <strong id="detPoints">10</strong></span>
+              <span>กำหนดส่ง: <strong id="detDeadline">-</strong></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="t-title mb-6">ส่งผลงาน</h2>
+            <form id="submissionForm">
+              <div class="form-group mb-6">
+                <label class="form-label">ลิงก์ผลงาน (ถ้ามี)</label>
+                <input type="url" id="projLink" class="input" placeholder="https://...">
+              </div>
+              <div class="form-group mb-6">
+                <label class="form-label">ข้อความถึงคุณครู</label>
+                <textarea id="studentNote" class="input" rows="3" placeholder="เขียนบันทึก..."></textarea>
+              </div>
+              <div class="file-preview-box" onclick="document.getElementById('fileInput').click()" style="cursor:pointer; border-style:dashed; padding:30px;">
+                <span data-icon="upload" style="width:32px; height:32px; color:var(--color-primary-500); margin-bottom:8px;"></span>
+                <p class="fw-bold t-sm">แนบไฟล์งาน</p>
+                <input type="file" id="fileInput" style="display:none;" onchange="handleFile(this)">
+                <div id="fileName" class="t-xs t-primary-color mt-2"></div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block btn-lg mt-8">
+                <span data-icon="send"></span> ยืนยันการส่งภารกิจ
+              </button>
+            </form>
+            <div id="successView" style="display:none; text-align:center; padding: 40px 0;">
+               <div class="avatar avatar-lg bg-success text-white mx-auto mb-4"><span data-icon="check"></span></div>
+               <h3 class="t-subheading mb-2">ส่งภารกิจสำเร็จ!</h3>
+               <button class="btn btn-outline" onclick="showHub()">กลับไปหน้าภารกิจ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  let allMissions = [], allLessons = [], userSubmissions = [];
+  let selectedMissionId = null, currentFilter = 'all';
+
+  async function init() {
+    const user = Auth.requireAuth();
+    if (!user) return;
+
+    // Update sidebar grade label
+    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
+    if (gradeLabel && user.grade) {
+      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    }
+
+    try {
+      const [mRes, sRes, lRes] = await Promise.all([
+        ApiService.getTasks(user.grade), 
+        ApiService.getAssignments(), 
+        ApiService.getLessons(user.grade)
+      ]);
+      if (mRes.status === 'success') allMissions = mRes.data;
+      if (sRes.status === 'success') userSubmissions = sRes.data.filter(s => s.StudentID === user.id);
+      if (lRes.status === 'success') allLessons = lRes.data;
+
+      renderTabs();
+      
+      // Auto-Jump Logic
+      const urlParams = new URLSearchParams(window.location.search);
+      const autoId = urlParams.get('id');
+      if (autoId) {
+        // หาว่า autoId นี้ตรงกับ LessonID ของภารกิจไหนบ้าง
+        const relatedMissions = allMissions.filter(m => String(m.LessonID) === String(autoId));
+        if (relatedMissions.length > 0) {
+           const lesson = allLessons.find(l => String(l.ID) === String(autoId));
+           if (lesson) filterMissions(lesson.Category || lesson.Title); // กรองตามชื่อบททันที
+           if (relatedMissions.length === 1) openMission(relatedMissions[0].ID); // ถ้ามีชิ้นเดียว เปิดเลย
+        }
+      } else {
+        renderGrid();
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  function renderTabs() {
+    const tabs = document.getElementById('categoryTabs');
+    const cats = [...new Set(allLessons.map(l => l.Category || l.Title))].filter(Boolean);
+    tabs.innerHTML = `<button class="cat-tab ${currentFilter==='all'?'active':''}" onclick="filterMissions('all')">ทั้งหมด</button>` + 
+      cats.map(c => `<button class="cat-tab ${currentFilter===c?'active':''}" onclick="filterMissions('${c}')">${c}</button>`).join('');
+  }
+
+  function filterMissions(cat) {
+    currentFilter = cat;
+    renderTabs();
+    renderGrid();
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('missionGrid');
+    let filtered = allMissions;
+    if (currentFilter !== 'all') {
+      const lessonIdsInCat = allLessons.filter(l => (l.Category || l.Title) === currentFilter).map(l => String(l.ID));
+      filtered = allMissions.filter(m => {
+        const mId = String(m.LessonID || '').trim();
+        // 1. เช็กว่ารหัสตรงไหม 
+        if (lessonIdsInCat.includes(mId)) return true;
+        // 2. เช็กว่าชื่อบทตรงไหม
+        if (mId === currentFilter) return true;
+        // 3. (Smart Match) เช็กว่าชื่อบทเรียนมีอยู่ในชื่อภารกิจไหม (เช่น "เพลง")
+        if (currentFilter.includes(mId) && mId.length > 1) return true;
+        return false;
+      });
+    }
+
+    if (filtered.length === 0) {
+      const user = Auth.get();
+      grid.innerHTML = `
+        <div class="card p-12 t-center anim-fade-up" style="grid-column: 1/-1;">
+          <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
+            <span data-icon="upload" style="width:32px; height:32px;"></span>
+          </div>
+          <h3 class="t-title mb-2">ยังไม่มีแบบฝึกหัดในขณะนี้</h3>
+          <p class="t-secondary t-sm">${currentFilter === 'all' ? `คุณครูยังไม่ได้เพิ่มแบบฝึกหัดสำหรับชั้น ${user.grade || ''}` : `ยังไม่มีแบบฝึกหัดในหมวดหมู่ ${currentFilter}`}</p>
+        </div>
+      `;
+      if (window.app && window.app.initIcons) window.app.initIcons();
+      return;
+    }
+
+    grid.innerHTML = filtered.map(m => {
+      const sub = userSubmissions.find(s => s.LessonID === m.ID);
+      const lesson = allLessons.find(l => String(l.ID) === String(m.LessonID)) || allLessons.find(l => l.Category === m.LessonID);
+      let categoryName = 'ภารกิจทั่วไป';
+      if (lesson) {
+        categoryName = lesson.Category || lesson.Title;
+      } else if (m.LessonID && m.LessonID !== 'ทั่วไป' && m.LessonID !== '') {
+        categoryName = `รหัสในชีท: ${m.LessonID}`;
+      }
+
+      let statusBadge = `<div class="badge" style="background:var(--neutral-100); color:var(--text-secondary); position:absolute; top:20px; right:20px;">ยังไม่ได้ทำ</div>`;
+      if (sub) {
+        statusBadge = sub.Status === 'graded' 
+          ? `<div class="badge badge-success mission-status">ผ่านแล้ว (${sub.Score}/10)</div>`
+          : `<div class="badge badge-warning mission-status">ส่งแล้ว / รอตรวจ</div>`;
+      }
+
+      return `
+        <div class="mission-card ${sub ? (sub.Status==='graded'?'done':'pending'):''}" onclick="openMission('${m.ID}')">
+          ${statusBadge}
+          <div class="icon-box"><span data-icon="clipboard"></span></div>
+          <div>
+            <div class="cat-badge">${categoryName}</div>
+            <h3 class="t-title t-truncate">${m.Title}</h3>
+            <p class="t-xs t-secondary mt-1">กำหนดส่ง: ${m.Deadline || '-'}</p>
+          </div>
+          <div class="mission-footer">
+            <span class="t-xs fw-bold t-primary-color">${m.MaxPoints || 10} คะแนน</span>
+            <button class="btn ${sub?'btn-ghost':'btn-primary'} btn-sm">${sub?'ดูรายละเอียด':'เริ่มภารกิจ'}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    window.app.initIcons();
+  }
+
+  function openMission(id) {
+    const m = allMissions.find(x => x.ID === id);
+    if (!m) return;
+    selectedMissionId = id;
+    document.getElementById('hubView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'block';
+
+    const lesson = allLessons.find(l => String(l.ID) === String(m.LessonID)) || allLessons.find(l => l.Category === m.LessonID);
+    document.getElementById('detCategory').textContent = lesson ? (lesson.Category || lesson.Title) : (m.LessonID || 'ทั่วไป');
+    document.getElementById('detTitle').textContent = m.Title;
+    document.getElementById('detInstr').textContent = m.Instructions || 'ไม่มีคำชี้แจงเพิ่มเติม';
+    document.getElementById('detCriteria').textContent = m.Criteria || 'ไม่มีเกณฑ์ระบุไว้';
+    document.getElementById('detPoints').textContent = m.MaxPoints || 10;
+    document.getElementById('detDeadline').textContent = m.Deadline || '-';
+    
+    document.getElementById('submissionForm').style.display = 'block';
+    document.getElementById('successView').style.display = 'none';
+    document.getElementById('fileName').textContent = '';
+  }
+
+  function showHub() {
+    document.getElementById('hubView').style.display = 'block';
+    document.getElementById('detailView').style.display = 'none';
+  }
+
+  function handleFile(input) {
+    if (input.files && input.files[0]) document.getElementById('fileName').textContent = `📎 ${input.files[0].name}`;
+  }
+
+  document.getElementById('submissionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = Auth.get(), btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.innerHTML = 'กำลังส่ง...';
+    
+    const fileInput = document.getElementById('fileInput');
+    let fileData = {};
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0], reader = new FileReader();
+      const base64 = await new Promise(r => { reader.onload = () => r(reader.result); reader.readAsDataURL(file); });
+      fileData = { fileBase64: base64, fileName: file.name, mimeType: file.type };
+    }
+
+    try {
+      const res = await ApiService.submitAssignment(user.id, user.name, selectedMissionId, fileData);
+      if (res.status === 'success') {
+        document.getElementById('submissionForm').style.display = 'none';
+        document.getElementById('successView').style.display = 'block';
+        const subRes = await ApiService.getAssignments();
+        if (subRes.status === 'success') userSubmissions = subRes.data.filter(s => s.StudentID === user.id);
+      } else alert(res.message);
+    } catch (err) { alert("เกิดข้อผิดพลาด"); }
+    finally { btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> ยืนยันการส่งภารกิจ'; window.app.initIcons(); }
+  });
+
+  init();
+</script>
+</body>
+</html>

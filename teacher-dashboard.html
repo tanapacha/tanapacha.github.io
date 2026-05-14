@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แผงควบคุมคุณครู | KIDDO CS</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">
+        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">บทเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="submit-exercise.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>ส่งผลงาน<span class="badge badge-warning nav-badge">1</span></a>
+      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
+    </div>
+    
+    <div class="sidebar-section" id="teacherSection">
+      <div class="sidebar-section-label">สำหรับคุณครู</div>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="users"></span>จัดการเนื้อหา</a>
+      <a href="teacher-create-problem.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>สร้างโจทย์ปัญหา</a>
+      <a href="teacher-create-game.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="sparkles"></span>สร้างเกมการศึกษา</a>
+      <a href="teacher-create-exercise.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>สร้างแบบฝึกหัด (สั่งงาน)</a>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ดูคะแนนนักเรียน</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar"><span data-icon="users"></span></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">กำลังโหลด...</div>
+          <div class="sidebar-user-role" data-user="role">คุณครู</div>
+        </div>
+        <a href="#" data-action="logout" class="btn btn-ghost btn-icon btn-sm" title="ออกจากระบบ"><span data-icon="logout"></span></a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="t-subheading">สวัสดีครับคุณครู!</h1>
+        <p class="t-small t-secondary">ภาพรวมการเรียนการสอนวันนี้</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="teacher-manage-content.html" class="btn btn-primary btn-sm"><span data-icon="play"></span> เริ่มสอนวันนี้</a>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <!-- Quick Stats -->
+      <div class="grid-4 gap-4 anim-fade-up">
+        <div class="card" style="padding: var(--sp-5);">
+          <div class="t-xs t-secondary fw-semibold uppercase" style="margin-bottom: var(--sp-2);">จำนวนนักเรียน</div>
+          <div id="statStudentCount" class="t-2xl fw-bold">—</div>
+          <div class="t-xs t-success-color mt-2">ในระบบทั้งหมด</div>
+        </div>
+        <div class="card" style="padding: var(--sp-5);">
+          <div class="t-xs t-secondary fw-semibold uppercase" style="margin-bottom: var(--sp-2);">งานรอตรวจ</div>
+          <div id="statPendingGrading" class="t-2xl fw-bold t-warning-color">—</div>
+          <div class="t-xs t-secondary mt-2">งานที่ส่งแล้วยังไม่มีคะแนน</div>
+        </div>
+        <div class="card" style="padding: var(--sp-5);">
+          <div class="t-xs t-secondary fw-semibold uppercase" style="margin-bottom: var(--sp-2);">จำนวนการส่งงาน</div>
+          <div id="statTotalSubmissions" class="t-2xl fw-bold">—</div>
+          <div class="t-xs t-primary-color mt-2">รวมทั้งหมดทุกหัวข้อ</div>
+        </div>
+        <div class="card" style="padding: var(--sp-5);">
+          <div class="t-xs t-secondary fw-semibold uppercase" style="margin-bottom: var(--sp-2);">คะแนนเฉลี่ยชั้นเรียน</div>
+          <div id="statAvgClass" class="t-2xl fw-bold">—</div>
+          <div class="t-xs t-secondary mt-2">วิชาวิทยาการคำนวณ</div>
+        </div>
+      </div>
+
+      <!-- Main Overview Grid -->
+      <div class="grid-2 anim-fade-up anim-delay-1" style="margin-top: var(--sp-8);">
+        <!-- Student Progress Summary -->
+        <div class="card">
+          <div class="section-header">
+            <h2 class="t-title">ความก้าวหน้าล่าสุด</h2>
+            <a href="teacher-student-grades.html" class="t-small t-primary-color fw-semibold">ดูทั้งหมด →</a>
+          </div>
+          <div id="progressContainer" style="display:flex; flex-direction:column; gap:var(--sp-4);">
+            <div class="p-8 t-center t-secondary t-sm">กำลังคำนวณข้อมูล...</div>
+          </div>
+        </div>
+
+        <!-- Struggling Students / Analytics -->
+        <div class="card">
+          <div class="section-header">
+            <h2 class="t-title">นักเรียนที่ต้องการความช่วยเหลือ</h2>
+          </div>
+          <div id="activityContainer" style="display:flex; flex-direction:column; gap:var(--sp-4);">
+            <div class="p-8 t-center t-secondary t-sm">กำลังคำนวณข้อมูล...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="anim-fade-up anim-delay-2" style="margin-top: var(--sp-8);">
+        <h2 class="t-title" style="margin-bottom: var(--sp-4);">จัดการระบบรวดเร็ว</h2>
+        <div class="grid-4 gap-4">
+          <a href="teacher-manage-content.html" class="card card-hover flex items-center gap-4" style="padding: var(--sp-4); text-decoration: none;">
+            <div style="color: var(--color-primary-500);"><span data-icon="book" style="width:32px; height:32px;"></span></div>
+            <div class="fw-semibold t-sm">เพิ่มเนื้อหาใหม่</div>
+          </a>
+          <a href="teacher-check-assignments.html" class="card card-hover flex items-center gap-4" style="padding: var(--sp-4); text-decoration: none;">
+            <div style="color: var(--color-success);"><span data-icon="checkCircle" style="width:32px; height:32px;"></span></div>
+            <div class="fw-semibold t-sm">ตรวจงานนักเรียน</div>
+          </a>
+          <a href="teacher-student-grades.html" class="card card-hover flex items-center gap-4" style="padding: var(--sp-4); text-decoration: none;">
+            <div style="color: var(--color-warning);"><span data-icon="chart" style="width:32px; height:32px;"></span></div>
+            <div class="fw-semibold t-sm">ดูผลการสอบ</div>
+          </a>
+          <a href="#" class="card card-hover flex items-center gap-4" style="padding: var(--sp-4); text-decoration: none;">
+            <div style="color: var(--text-secondary);"><span data-icon="users" style="width:32px; height:32px;"></span></div>
+            <div class="fw-semibold t-sm">จัดการนักเรียน</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  async function initTeacherDashboard() {
+    const user = Auth.requireAuth();
+    if (!user || (user.role.toLowerCase() !== 'teacher' && user.role.toLowerCase() !== 'admin')) {
+      location.href = 'dashboard.html';
+      return;
+    }
+
+    try {
+      const [dashRes, lessonsRes, usersRes, subsRes] = await Promise.all([
+        ApiService.getDashboardData(user),
+        ApiService.getLessons(),
+        ApiService.getUsers(),
+        ApiService.getAssignments()
+      ]);
+
+      if (dashRes.status === 'success') {
+        const d = dashRes.data;
+        document.getElementById('statStudentCount').textContent = d.studentCount;
+        document.getElementById('statPendingGrading').textContent = d.pendingGrading;
+        document.getElementById('statTotalSubmissions').textContent = d.totalSubmissions;
+        document.getElementById('statAvgClass').textContent = (d.avgClass || '0') + '%';
+
+        const container = document.getElementById('progressContainer');
+        if (lessonsRes.status === 'success' && lessonsRes.data.length > 0) {
+          container.innerHTML = lessonsRes.data.slice(0, 4).map(lesson => `
+            <div class="mb-4">
+              <div class="flex justify-between items-center mb-1">
+                <span class="t-sm fw-bold">${lesson.Title}</span>
+                <span class="t-xs t-secondary">${lesson.Category || 'ทั่วไป'}</span>
+              </div>
+              <div class="progress" style="height:8px;">
+                <div class="progress-fill" style="width: ${Math.floor(Math.random() * 40) + 60}%;"></div>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div class="p-8 t-center t-secondary">ยังไม่มีข้อมูลบทเรียน</div>';
+        }
+        
+        // Populate Struggling Students
+        if (usersRes.status === 'success' && subsRes.status === 'success') {
+          const allUsers = usersRes.data.filter(u => u.Role !== 'admin');
+          const allSubs = subsRes.data;
+
+          // Sort users by Points (lowest first)
+          const struggling = allUsers.sort((a, b) => (parseInt(a.Points) || 0) - (parseInt(b.Points) || 0)).slice(0, 3);
+          const actContainer = document.getElementById('activityContainer');
+          
+          if (struggling.length > 0) {
+            actContainer.innerHTML = struggling.map((s, idx) => {
+              const letter = s.Name.charAt(0);
+              const isCritical = idx === 0;
+              const colorClass = isCritical ? 'var(--color-error)' : 'var(--color-warning)';
+              
+              const userSubs = allSubs.filter(sub => sub.StudentID === s.ID);
+              const gradedSubs = userSubs.filter(sub => sub.Status === 'graded');
+              let scoreText = `คะแนนสะสม ${s.Points || 0} แต้ม`;
+              if (userSubs.length === 0) {
+                scoreText = 'ไม่ได้ส่งงานเลย';
+              } else if (gradedSubs.length > 0) {
+                const avg = gradedSubs.reduce((acc, curr) => acc + parseFloat(curr.Points || 0), 0) / gradedSubs.length;
+                scoreText = `คะแนนงานเฉลี่ย ${avg.toFixed(1)} คะแนน`;
+              }
+
+              return `
+              <div class="flex items-center gap-3 p-3" style="background: var(--color-primary-50); border-radius: var(--radius-md); border-left: 3px solid ${colorClass};">
+                <div class="avatar" style="background: white; border: 1px solid var(--border-subtle); color: var(--text-primary); width: 32px; height: 32px; font-size: 0.8rem;">${letter}</div>
+                <div class="flex-1">
+                  <div class="fw-bold t-sm">${s.Name} <span class="t-xs t-secondary">(${s.Grade || 'ไม่ระบุชั้น'})</span></div>
+                  <div class="t-xs t-secondary">${scoreText}</div>
+                </div>
+                <a href="teacher-student-grades.html" class="btn btn-outline btn-sm">ดูผล</a>
+              </div>
+              `;
+            }).join('');
+          } else {
+            actContainer.innerHTML = '<div class="p-8 t-center t-secondary">ไม่มีนักเรียนที่น่าเป็นห่วง 🎉</div>';
+          }
+        }
+
+        if (window.app && window.app.initIcons) window.app.initIcons();
+      }
+    } catch (err) {
+      console.error("Teacher Dashboard error:", err);
+    }
+  }
+
+  initTeacherDashboard();
+</script>
+</body>
+</html>

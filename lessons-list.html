@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บทเรียน | KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    /* Accordion Styles */
+    .chapter-card {
+      background: white;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
+      margin-bottom: var(--sp-4);
+      overflow: hidden;
+      transition: all 0.3s var(--ease-premium);
+    }
+    .chapter-header {
+      padding: var(--sp-6) var(--sp-8);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .chapter-header:hover { background: var(--neutral-50); }
+    .chapter-header .chevron {
+      transition: transform 0.3s ease;
+    }
+    .chapter-card.active {
+      border-color: var(--color-primary-200);
+      box-shadow: var(--shadow-md);
+    }
+    .chapter-card.active .chapter-header {
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--color-primary-50);
+    }
+    .chapter-card.active .chevron { transform: rotate(180deg); }
+
+    .lesson-list {
+      display: none;
+      flex-direction: column;
+      background: white;
+    }
+    .chapter-card.active .lesson-list { display: flex; }
+
+    .lesson-item {
+      padding: var(--sp-5) var(--sp-8);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-6);
+      border-bottom: 1px solid var(--neutral-50);
+      transition: background 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+    .lesson-item:last-child { border-bottom: none; }
+    .lesson-item:hover { background: var(--neutral-50); }
+    
+    .lesson-icon {
+      width: 42px; height: 42px;
+      border-radius: var(--radius-md);
+      background: var(--neutral-100);
+      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .lesson-item:hover .lesson-icon {
+      background: var(--color-primary-500);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Learning Menu</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>แบบฝึกหัด</a>
+      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>สมุดพก</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar" style="background: var(--grad-primary); color: white; border: none;">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">...</div>
+          <div class="sidebar-user-role" data-user="role">นักเรียน</div>
+        </div>
+        <button data-action="logout" class="btn-logout" title="ออกจากระบบ">
+          <span data-icon="logout"></span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header anim-reveal">
+      <div>
+        <h1 class="t-display">บทเรียนทั้งหมด</h1>
+        <p class="t-body">เลือกบทเรียนที่ต้องการศึกษาด้านล่างนี้ได้เลย</p>
+      </div>
+    </header>
+
+    <div class="page-body anim-reveal delay-1">
+      <div id="chaptersContainer" class="flex flex-col">
+        <!-- Chapters will be injected here -->
+        <div class="p-12 t-center t-secondary">กำลังเตรียมสื่อการสอน...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  async function initLessons() {
+    const user = Auth.requireAuth();
+    if (!user) return;
+
+    // Update sidebar grade label
+    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
+    if (gradeLabel && user.grade) {
+      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    }
+
+    // Pass student's grade for server-side filtering
+    const userGrade = (user.role === 'user' && user.grade) ? user.grade : null;
+
+    try {
+      const res = await ApiService.getLessons(userGrade);
+      const container = document.getElementById('chaptersContainer');
+      
+      if (res.status === 'success') {
+        const lessons = res.data;
+        if (!lessons || lessons.length === 0) {
+          container.innerHTML = `
+            <div class="card p-12 t-center anim-fade-up">
+              <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
+                <span data-icon="bookOpen" style="width:32px; height:32px;"></span>
+              </div>
+              <h3 class="t-title mb-2">ยังไม่มีบทเรียนในชั้นนี้</h3>
+              <p class="t-secondary t-sm">คุณครูยังไม่ได้เพิ่มบทเรียนสำหรับชั้น ${user.grade || ''} <br>ลองกลับมาดูใหม่อีกครั้งในภายหลังนะครับ</p>
+            </div>
+          `;
+          if (window.app && window.app.initIcons) window.app.initIcons();
+          return;
+        }
+        // Group by Category (Instead of non-existent Chapter)
+        const categories = [];
+        lessons.forEach(l => {
+          const cat = (l.Category || 'ทั่วไป').trim();
+          if (!categories.includes(cat)) categories.push(cat);
+        });
+        
+        container.innerHTML = categories.map((name, idx) => {
+          const chapterLessons = lessons.filter(l => (l.Category || 'ทั่วไป').trim() === name);
+          
+          // Refine display title: If it already contains "บทที่", use it as is.
+          // Otherwise, add "บทที่ X: " prefix.
+          let displayTitle = name;
+          if (!name.includes('บทที่') && name !== 'ทั่วไป' && name !== 'บทนำ') {
+            displayTitle = `บทที่ ${idx + 1}: ${name}`;
+          } else if (name === 'ทั่วไป' || name === 'บทนำ') {
+            displayTitle = `บทเรียนเสริม/ทั่วไป`;
+          }
+          
+          return `
+            <div class="chapter-card" id="chap-${idx}">
+              <div class="chapter-header" onclick="toggleChapter(${idx})">
+                <div class="flex items-center gap-5">
+                  <div class="avatar" style="background:var(--color-primary-50); color:var(--color-primary-600); font-weight:800;">${idx + 1}</div>
+                  <div>
+                    <div class="t-title">${displayTitle}</div>
+                    <div class="t-xs t-secondary mt-1">${chapterLessons.length} บทเรียนย่อยในหน่วยนี้</div>
+                  </div>
+                </div>
+                <div class="chevron"><span data-icon="right" style="transform:rotate(90deg); display:block;"></span></div>
+              </div>
+              <div class="lesson-list">
+                ${chapterLessons.map(lesson => `
+                  <a href="play-lesson.html?id=${lesson.ID}" class="lesson-item">
+                    <div class="lesson-icon">
+                      <span data-icon="${lesson.Type === 'video' ? 'play' : 'book'}"></span>
+                    </div>
+                    <div class="flex-1">
+                      <div class="fw-bold t-sm">${lesson.Title}</div>
+                      <div class="t-xs t-secondary">${lesson.Category || 'เนื้อหาเรียนรู้'}</div>
+                    </div>
+                    <div class="btn btn-outline btn-sm">เข้าเรียน</div>
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        if (window.app && window.app.initIcons) window.app.initIcons();
+        
+        // Auto-open first chapter
+        if (categories.length > 0) toggleChapter(0);
+      }
+    } catch (err) {
+      console.error("Lessons list error:", err);
+    }
+  }
+
+  function toggleChapter(idx) {
+    const card = document.getElementById(`chap-${idx}`);
+    if (card) {
+      card.classList.toggle('active');
+    }
+  }
+
+  initLessons();
+</script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจงานนักเรียน | KIDDO CS</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <style>
+    .grading-layout {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: var(--sp-6);
+      height: calc(100vh - 180px);
+    }
+    .submission-list {
+      background: white;
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .submission-items { flex: 1; overflow-y: auto; }
+    .submission-item {
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--neutral-100);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      transition: 0.2s;
+    }
+    .submission-item:hover { background: var(--color-primary-50); }
+    .submission-item.active { background: var(--color-primary-50); border-left: 4px solid var(--color-primary-500); }
+    
+    .grading-panel {
+      background: white;
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .grading-content { flex: 1; padding: var(--sp-8); overflow-y: auto; }
+  </style>
+</head>
+<body style="background:var(--bg-app);">
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Teacher Menu</div>
+      <a href="teacher-dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>แดชบอร์ด</a>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>จัดการเนื้อหา</a>
+      <a href="teacher-create-exercise.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>สั่งงานใหม่</a>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+    </div>
+    <div class="sidebar-footer">
+       <a href="#" data-action="logout" class="sidebar-nav-item t-danger"><span class="nav-icon" data-icon="logout"></span>ออกจากระบบ</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 class="t-display">ตรวจงานและให้คะแนน</h1>
+        <p class="t-body">ชื่นชมและแนะนำเพื่อให้นักเรียนพัฒนาทักษะได้ดียิ่งขึ้น</p>
+      </div>
+    </header>
+
+    <div class="page-body">
+      <div class="grading-layout anim-fade-up">
+        <!-- Sidebar: List -->
+        <div class="submission-list">
+          <div class="p-5 border-bottom bg-raised">
+             <div class="flex justify-between items-center mb-3">
+                <span class="t-xs fw-bold uppercase t-secondary">รายการส่งงาน</span>
+                <span id="pCount" class="badge badge-warning">0</span>
+             </div>
+             <select id="filterGrade" class="input t-small mb-2" style="height:32px;" onchange="renderSubs()">
+               <option value="" disabled selected>-- เลือกระดับชั้น --</option>
+               <option value="ป.3">ป.3</option>
+               <option value="ป.4">ป.4</option>
+               <option value="ป.5">ป.5</option>
+               <option value="ป.6">ป.6</option>
+             </select>
+             <select id="filterStatus" class="input t-small" style="height:32px;" onchange="renderSubs()">
+               <option value="pending">รอตรวจ</option>
+               <option value="graded">ตรวจแล้ว</option>
+             </select>
+          </div>
+          <div id="subContainer" class="submission-items">
+             <div class="p-10 t-center t-secondary t-sm">กำลังโหลดข้อมูล...</div>
+          </div>
+        </div>
+
+        <!-- Main: Grading Area -->
+        <div id="gradingArea" class="grading-panel" style="display:none;">
+           <div class="grading-content">
+              <div class="grid-2 mb-8">
+                 <div class="flex items-center gap-4">
+                    <div id="sAvatar" class="avatar avatar-lg" style="background:var(--grad-primary); color:white; border:none;">?</div>
+                    <div>
+                       <h2 id="sName" class="t-subheading mb-1">ชื่อนักเรียน</h2>
+                       <div id="lName" class="badge badge-primary">ชื่อภารกิจ</div>
+                    </div>
+                 </div>
+                 <div class="flex flex-col items-end gap-2">
+                    <div class="t-small t-secondary">ให้คะแนน (เต็ม 10)</div>
+                    <input type="number" id="gradeScore" class="input t-center t-lg" value="10" style="width:100px; height:50px; font-weight:800;">
+                 </div>
+              </div>
+
+              <div class="grid-2 gap-8">
+                 <div>
+                    <h3 class="t-title mb-4">ผลงานที่ส่ง</h3>
+                    <div class="card p-6 border-dashed t-center" style="background:var(--neutral-50);">
+                       <span data-icon="file" style="width:48px; height:48px; margin-bottom:12px; opacity:0.3;"></span>
+                       <p id="fName" class="fw-bold mb-4">ไฟล์ผลงาน</p>
+                       <a id="fLink" href="#" target="_blank" class="btn btn-outline btn-block">
+                         <span data-icon="play"></span> เปิดดูผลงาน
+                       </a>
+                    </div>
+
+                    <div class="mt-6">
+                       <h3 class="t-title mb-3">เกณฑ์คะแนน (Rubric)</h3>
+                       <div id="rubricBox" class="rubric-box">กำลังโหลดเกณฑ์...</div>
+                    </div>
+                 </div>
+
+                 <div>
+                    <h3 class="t-title mb-4">ให้รางวัลสติกเกอร์</h3>
+                    <div class="sticker-selector">
+                       <div class="sticker-btn active" data-sticker="excellent"><span data-icon="star" style="color:var(--color-amber-500);"></span><span class="sticker-label">ยอดเยี่ยม</span></div>
+                       <div class="sticker-btn" data-sticker="creative"><span data-icon="sparkles" style="color:var(--color-purple-500);"></span><span class="sticker-label">สร้างสรรค์</span></div>
+                       <div class="sticker-btn" data-sticker="good_effort"><span data-icon="award" style="color:var(--color-success);"></span><span class="sticker-label">พยายามดี</span></div>
+                       <div class="sticker-btn" data-sticker="fast"><span data-icon="zap" style="color:var(--color-amber-500);"></span><span class="sticker-label">รวดเร็ว</span></div>
+                    </div>
+
+                    <h3 class="t-title mb-4">บันทึกคำชม/คำแนะนำ</h3>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                       <span class="quick-comment-chip" onclick="addComment('ทำได้ดีมากครับ ตั้งใจแบบนี้ต่อไปนะ!')">👍 ทำได้ดีมาก</span>
+                       <span class="quick-comment-chip" onclick="addComment('มีความคิดสร้างสรรค์ที่ยอดเยี่ยมมาก')">🎨 สร้างสรรค์</span>
+                       <span class="quick-comment-chip" onclick="addComment('ลองปรับปรุงตรงส่วนนี้นะครับ จะสมบูรณ์ขึ้น')">💡 ข้อแนะนำเพิ่ม</span>
+                       <span class="quick-comment-chip" onclick="addComment('ส่งงานได้รวดเร็วทันใจมากครับ')">⚡ รวดเร็ว</span>
+                    </div>
+                    <textarea id="gradeComment" class="input" rows="4" placeholder="พิมพ์ข้อความของคุณครูที่นี่..."></textarea>
+                 </div>
+              </div>
+           </div>
+
+           <div class="p-6 border-top bg-raised flex justify-end gap-3">
+              <button class="btn btn-ghost" onclick="resetGrading()">ข้ามไปก่อน</button>
+              <button class="btn btn-primary btn-lg" onclick="confirmGrade()">
+                 <span data-icon="checkCircle"></span> บันทึกผลการตรวจ
+              </button>
+           </div>
+        </div>
+
+        <div id="emptyArea" class="grading-panel flex items-center justify-center t-secondary" style="background:var(--neutral-50); border-style:dashed;">
+           <div class="t-center">
+              <span data-icon="clipboard" style="width:64px; height:64px; opacity:0.1; margin-bottom:20px;"></span>
+              <p>เลือกงานจากทางด้านซ้ายเพื่อเริ่มตรวจ</p>
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  let missions = [];
+  let subs = [];
+  let users = [];
+  let activeSub = null;
+
+  async function start() {
+    Auth.requireAuth();
+    if (Auth.get()?.role !== 'admin') location.href = 'dashboard.html';
+
+    const [mRes, sRes, uRes] = await Promise.all([ApiService.getTasks(), ApiService.getAssignments(), ApiService.getUsers()]);
+    if (mRes.status === 'success') missions = mRes.data;
+    if (uRes.status === 'success') users = uRes.data;
+    if (sRes.status === 'success') {
+      subs = sRes.data;
+      renderSubs();
+    }
+  }
+
+  function renderSubs() {
+    const filter = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : 'pending';
+    const gradeFilter = document.getElementById('filterGrade') ? document.getElementById('filterGrade').value : '';
+    const container = document.getElementById('subContainer');
+    
+    if (!gradeFilter) {
+      document.getElementById('pCount').textContent = '0';
+      container.innerHTML = '<div class="p-10 t-center t-secondary t-sm" style="color:var(--color-slate-400);">กรุณาเลือกระดับชั้นเพื่อแสดงข้อมูล</div>';
+      return;
+    }
+
+    let filteredSubs = subs.filter(s => s.Status === filter);
+    filteredSubs = filteredSubs.filter(s => {
+      const studentUser = users.find(u => u.ID === s.StudentID);
+      if (!studentUser) return false;
+      const sGrade = String(studentUser.Grade || '').split('/')[0].trim();
+      return sGrade === gradeFilter;
+    });
+
+    document.getElementById('pCount').textContent = filteredSubs.length;
+
+    if (filteredSubs.length === 0) {
+      container.innerHTML = '<div class="p-10 t-center t-secondary t-sm">ไม่มีข้อมูล</div>';
+      return;
+    }
+
+    container.innerHTML = filteredSubs.map(s => {
+      const m = missions.find(x => x.ID === s.LessonID);
+      return `
+        <div class="submission-item" onclick="loadSub('${s.SubmissionID}')" id="item-${s.SubmissionID}">
+           <div class="avatar" style="width:36px; height:36px; background:var(--neutral-100); border:none;">${s.StudentName.charAt(0)}</div>
+           <div class="flex-1 min-w-0">
+              <div class="fw-bold t-sm t-truncate">${s.StudentName}</div>
+              <div class="t-xs t-secondary t-truncate">${m ? m.Title : s.LessonID}</div>
+           </div>
+           <span class="t-xs t-secondary">${new Date(s.Timestamp).toLocaleDateString('th-TH')}</span>
+        </div>
+      `;
+    }).join('');
+    window.app.initIcons();
+  }
+
+  function loadSub(id) {
+    activeSub = subs.find(s => s.SubmissionID === id);
+    if (!activeSub) return;
+
+    document.querySelectorAll('.submission-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(`item-${id}`).classList.add('active');
+
+    document.getElementById('emptyArea').style.display = 'none';
+    document.getElementById('gradingArea').style.display = 'flex';
+
+    document.getElementById('sName').textContent = activeSub.StudentName;
+    document.getElementById('sAvatar').textContent = activeSub.StudentName.charAt(0);
+    document.getElementById('fName').textContent = activeSub.FileType || 'ไฟล์งานนักเรียน';
+    document.getElementById('fLink').href = activeSub.FileUrl;
+
+    const m = missions.find(x => x.ID === activeSub.LessonID);
+    document.getElementById('lName').textContent = m ? m.Title : activeSub.LessonID;
+    document.getElementById('rubricBox').textContent = m ? (m.Criteria || 'ไม่มีเกณฑ์คะแนนระบุไว้') : 'ไม่พบข้อมูลภารกิจ';
+
+    document.getElementById('gradeScore').value = 10;
+    document.getElementById('gradeComment').value = '';
+  }
+
+  function addComment(txt) {
+    document.getElementById('gradeComment').value = txt;
+  }
+
+  async function confirmGrade() {
+    if (!activeSub) return;
+    const btn = document.querySelector('.btn-primary');
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+    const score = document.getElementById('gradeScore').value;
+    const comment = document.getElementById('gradeComment').value;
+    const sticker = document.querySelector('.sticker-btn.active').dataset.sticker;
+
+    try {
+      const res = await ApiService.gradeAssignment(activeSub.SubmissionID, score, sticker, comment);
+      if (res.status === 'success') {
+        resetGrading();
+        const sRes = await ApiService.getAssignments();
+        subs = sRes.data;
+        renderSubs();
+      }
+    } catch (err) { alert("เกิดข้อผิดพลาด"); }
+    finally { btn.disabled = false; btn.textContent = 'บันทึกผลการตรวจ'; }
+  }
+
+  function resetGrading() {
+    document.getElementById('gradingArea').style.display = 'none';
+    document.getElementById('emptyArea').style.display = 'flex';
+    activeSub = null;
+  }
+
+  document.querySelectorAll('.sticker-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sticker-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  start();
+</script>
+</body>
+</html>

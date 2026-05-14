@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ผลสัมฤทธิ์ | KIDDO LEARNING</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
+      <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Learning Menu</div>
+      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>แบบฝึกหัด</a>
+      <a href="report.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="chart"></span>สมุดพก</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar" style="background: var(--grad-primary); color: white; border: none;">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">...</div>
+          <div class="sidebar-user-role" data-user="role">นักเรียน</div>
+        </div>
+        <button data-action="logout" class="btn-logout" title="ออกจากระบบ">
+          <span data-icon="logout"></span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="page-header anim-reveal">
+      <div>
+        <h1 class="t-display">เส้นทางความสำเร็จ</h1>
+        <p class="t-body">บันทึกทุกก้าวของการเรียนรู้และความภาคภูมิใจ</p>
+      </div>
+      <button onclick="window.print()" class="btn btn-outline">
+        <span data-icon="upload" style="transform:rotate(180deg);"></span> พิมพ์รายงาน
+      </button>
+    </header>
+
+    <div class="page-body">
+      <!-- High-level Summary -->
+      <div class="grid-4 mb-12 anim-reveal delay-1">
+        <div class="card stat-item" style="border-top: 6px solid var(--color-primary-500);">
+          <span class="stat-label">คะแนนเฉลี่ยรวม</span>
+          <div id="avgScore" class="stat-value" style="color:var(--color-primary-500);">0.0</div>
+          <div class="t-xs fw-bold t-secondary">เต็ม 10 คะแนน</div>
+        </div>
+        <div class="card stat-item" style="border-top: 6px solid var(--color-success);">
+          <span class="stat-label">ภารกิจที่สำเร็จ</span>
+          <div id="topicsPassed" class="stat-value" style="color:var(--color-success);">0</div>
+          <div class="t-xs fw-bold t-secondary">งานที่ส่งแล้ว</div>
+        </div>
+        <div class="card stat-item" style="border-top: 6px solid var(--color-amber-500);">
+          <span class="stat-label">โจทย์ที่ทำแล้ว</span>
+          <div id="quizzesDone" class="stat-value" style="color:var(--color-amber-500);">0</div>
+          <div class="t-xs fw-bold t-secondary">จากบทเรียนทั้งหมด</div>
+        </div>
+        <div class="card stat-item" style="border-top: 6px solid var(--color-purple-500);">
+          <span class="stat-label">ความขยันเข้าเรียน</span>
+          <div id="attendance" class="stat-value" style="color:var(--color-purple-500);">100%</div>
+          <div class="t-xs fw-bold t-secondary">สถานะ: ดีเยี่ยม</div>
+        </div>
+      </div>
+
+      <div class="grid-2 anim-reveal delay-2">
+        <!-- Topic breakdown -->
+        <div class="card">
+          <div class="section-header">
+            <h2 class="t-title">ผลงานและรางวัล</h2>
+            <span data-icon="award" style="color:var(--color-primary-500);"></span>
+          </div>
+          <div id="topicContainer" class="flex flex-col gap-6">
+            <div class="p-12 t-center t-secondary">กำลังรวบรวมความสำเร็จ...</div>
+          </div>
+        </div>
+
+        <!-- Recent activities -->
+        <div class="card">
+          <div class="section-header">
+            <h2 class="t-title">บันทึกกิจกรรมล่าสุด</h2>
+          </div>
+          <div id="historyContainer" class="flex flex-col gap-4">
+            <div class="p-12 t-center t-secondary t-sm">กำลังโหลดประวัติ...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script>
+  const STICKER_MAP = {
+    'excellent': { icon: 'star', color: 'var(--color-amber-500)', label: 'ยอดเยี่ยม' },
+    'creative': { icon: 'sparkles', color: 'var(--color-purple-500)', label: 'สร้างสรรค์' },
+    'good_effort': { icon: 'award', color: 'var(--color-success)', label: 'พยายามดี' },
+    'fast': { icon: 'zap', color: 'var(--color-coral-500)', label: 'รวดเร็ว' }
+  };
+
+  async function initReport() {
+    const user = Auth.requireAuth();
+    if (!user) return;
+
+    try {
+      const [dashRes, gradesRes, subRes, lessonsRes] = await Promise.all([
+        ApiService.getDashboardData(user),
+        ApiService.getGrades(user.id),
+        ApiService.getAssignments(),
+        ApiService.getLessons()
+      ]);
+      
+      if (dashRes.status === 'success' && gradesRes.status === 'success' && subRes.status === 'success') {
+        const quizGrades = gradesRes.data;
+        const assignments = subRes.data.filter(s => s.StudentID === user.id);
+        const lessons = lessonsRes.data;
+
+        const allScores = [
+          ...quizGrades.map(g => (g.Score/g.MaxScore)*10),
+          ...assignments.filter(a => a.Status === 'graded').map(a => parseFloat(a.Score))
+        ];
+        const avg = allScores.length > 0 ? (allScores.reduce((a,b)=>a+b,0)/allScores.length).toFixed(1) : "0.0";
+
+        document.getElementById('avgScore').textContent = avg;
+        document.getElementById('topicsPassed').textContent = assignments.filter(a => a.Status === 'graded').length;
+        document.getElementById('quizzesDone').textContent = quizGrades.length;
+
+        renderGradeList(lessons, quizGrades, assignments);
+      }
+    } catch (err) {
+      console.error("Report error:", err);
+    }
+  }
+
+  function renderGradeList(lessons, quizGrades, assignments) {
+    const topicContainer = document.getElementById('topicContainer');
+    const historyContainer = document.getElementById('historyContainer');
+
+    const historyItems = [
+      ...quizGrades.map(g => ({ title: `Quiz: ${g.LessonID}`, status: 'ทำแล้ว', date: g.Timestamp, score: `${g.Score}/${g.MaxScore}` })),
+      ...assignments.map(a => ({ title: `งาน: ${a.LessonID}`, status: a.Status==='graded'?'ตรวจแล้ว':'รอตรวจ', date: a.Timestamp, score: a.Score ? `${a.Score}/10` : '-' }))
+    ].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    historyContainer.innerHTML = historyItems.slice(0, 8).map(h => `
+      <div class="flex justify-between items-center p-4" style="background:var(--neutral-50); border-radius:var(--radius-lg);">
+        <div>
+          <div class="t-sm fw-bold">${h.title}</div>
+          <div class="t-xs t-secondary">${new Date(h.date).toLocaleDateString('th-TH')}</div>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="t-sm fw-bold">${h.score}</span>
+          <div class="badge ${h.status==='ตรวจแล้ว'||h.status==='ทำแล้ว'?'badge-success':'badge-warning'}">${h.status}</div>
+        </div>
+      </div>
+    `).join('') || '<div class="p-8 t-center t-secondary">ยังไม่มีข้อมูล</div>';
+
+    const graded = assignments.filter(s => s.Status === 'graded');
+    topicContainer.innerHTML = graded.map(s => {
+      const lesson = lessons.find(l => l.ID === s.LessonID);
+      const sticker = STICKER_MAP[s.Sticker] || null;
+      return `
+        <div class="flex gap-6 p-6" style="background:white; border-radius:var(--radius-xl); border: 2px solid var(--neutral-100); position:relative;">
+          <div class="avatar avatar-lg" style="background:${sticker ? sticker.color : 'var(--color-primary-500)'}; color:white; border:none; box-shadow: 0 4px 12px oklch(0% 0 0 / 0.1);">
+            <span data-icon="${sticker ? sticker.icon : 'award'}"></span>
+          </div>
+          <div class="flex-1">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h4 class="fw-bold t-md">${lesson ? lesson.Title : s.LessonID}</h4>
+                <div class="badge badge-primary" style="margin-top:6px;">${sticker ? sticker.label : 'ผ่านเกณฑ์'}</div>
+              </div>
+              <div class="t-subheading fw-bold" style="color:var(--color-primary-500);">${s.Score}/10</div>
+            </div>
+            ${s.TeacherComment ? `
+              <div class="mt-4 p-4" style="background:var(--neutral-50); border-radius:var(--radius-md); font-style: italic; font-size: 13px; color: var(--text-secondary);">
+                "${s.TeacherComment}" — คุณครู
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="p-12 t-center t-secondary">มาร่วมทำภารกิจเพื่อสะสมสติกเกอร์กันเถอะ!</div>';
+    
+    if (window.app && window.app.initIcons) window.app.initIcons();
+  }
+
+  initReport();
+</script>
+</body>
+</html>
