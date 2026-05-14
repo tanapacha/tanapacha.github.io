@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>พิจารณาอนุมัติ — ระบบเอกสารอิเล็กทรอนิกส์</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
+    <!-- SweetAlert2 for Premium Alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .filter-bar .form-input { width: auto; min-width: 200px; }
+        .filter-select { width: auto; min-width: 160px; }
+        
+        /* ── Drawer & Overlays ── */
+        .drawer-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0); pointer-events: none;
+            z-index: 400; transition: background 0.3s;
+        }
+        .drawer-overlay.open { background: rgba(15,23,42,0.4); pointer-events: auto; }
+        .drawer {
+            position: fixed; top: 0; right: -520px; width: 100%; max-width: 500px; height: 100%;
+            background: var(--color-surface); border-left: 1px solid var(--color-border);
+            box-shadow: -12px 0 48px rgba(0,0,0,0.15);
+            z-index: 401; transition: right 0.38s var(--ease-spring);
+            display: flex; flex-direction: column;
+        }
+        .drawer.open { right: 0; }
+        .drawer-header { padding: 22px 20px 18px; border-bottom: 2px solid var(--color-border); flex-shrink: 0; display: flex; align-items: flex-start; gap: 12px; }
+        .drawer-body { flex: 1; overflow-y: auto; padding: 20px; }
+        .drawer-footer { padding: 18px 20px; border-top: 1px solid var(--color-border); display: flex; gap: 10px; background: #f8fafc; }
+
+        .drawer-title { font-size: 18px; font-weight: 800; color: var(--color-text); line-height: 1.3; }
+        .drawer-subtitle { font-size: 12px; color: var(--color-text-muted); font-weight: 600; margin-top: 4px; }
+
+        /* Bulk Action Bar */
+        .bulk-bar {
+            position: fixed; bottom: -80px; left: 50%; transform: translateX(-50%);
+            background: #0f172a; color: #fff; padding: 12px 28px;
+            border-radius: var(--radius-full); box-shadow: var(--shadow-xl);
+            display: flex; align-items: center; gap: 24px; z-index: 300;
+            transition: all 0.35s var(--ease-spring);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .bulk-bar.visible { bottom: 32px; }
+        .bulk-count { font-weight: 800; color: #fb923c; font-size: 14px; }
+
+        /* Row selection */
+        .data-table tr.selected { background: var(--color-primary-light) !important; }
+        .data-table tr { cursor: pointer; transition: background 0.1s; }
+    </style>
+</head>
+<body data-page-id="approval">
+<div class="app-wrapper">
+    <div id="sidebar-container" class="app-sidebar"></div>
+    <div class="app-main">
+        <header id="navbar-container" class="app-navbar"></header>
+        <main class="app-content">
+            <div class="container-lg">
+
+                <!-- Page Header -->
+                <div class="page-header anim-fade-up">
+                    <div class="page-header-left">
+                        <h1>กล่องพิจารณาอนุมัติ</h1>
+                        <p>เอกสารอิเล็กทรอนิกส์ทั้งหมดที่รอให้คุณพิจารณาสั่งการตามสายงาน</p>
+                    </div>
+                    <div id="pending-count-badge"></div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="card p-0 anim-fade-up anim-stagger-1" style="margin-bottom:16px;">
+                    <div style="padding:14px 16px;">
+                        <div class="filter-bar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                            <input type="text" class="form-input" id="search-input"
+                                   placeholder="ค้นหาหัวเรื่องหรือรหัสเอกสาร..." style="min-width:280px;"
+                                   oninput="filterTable()">
+                            <select class="form-input filter-select" id="type-filter" onchange="filterTable()">
+                                <option value="">ทุกประเภท</option>
+                            </select>
+                            <select class="form-input filter-select" id="sort-filter" onchange="filterTable()">
+                                <option value="newest">เรียงตาม: ล่าสุด</option>
+                                <option value="urgent">เรียงตาม: ด่วนก่อน</option>
+                                <option value="oldest">เรียงตาม: เก่าสุด</option>
+                            </select>
+                            <span class="result-count" id="result-count">— รายการ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Card -->
+                <div class="card p-0 anim-fade-up anim-stagger-2">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this, event)" style="width:16px;height:16px;cursor:pointer;"></th>
+                                    <th>รหัส</th>
+                                    <th>หัวเรื่องแฟ้มเอกสาร</th>
+                                    <th>ผู้ยื่น</th>
+                                    <th>ขั้นตอน</th>
+                                    <th>วันที่</th>
+                                    <th style="text-align:right;">พิจารณา</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approval-tbody">
+                                <!-- JS items here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Floating Bulk Action Bar -->
+<div class="bulk-bar" id="bulk-bar">
+    <div>เลือกแล้ว <span class="bulk-count" id="selected-count">0</span> รายการ</div>
+    <div style="width:1px;height:16px;background:rgba(255,255,255,0.2);"></div>
+    <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary btn-sm" onclick="bulkApprove()" style="background:#16a34a;border-color:#16a34a;">อนุมัติทั้งหมด</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearSelection()" style="background:transparent;color:#fff;border-color:rgba(255,255,255,0.3);">ยกเลิก</button>
+    </div>
+</div>
+
+<!-- Slide-in Approval Drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="approval-drawer">
+    <div class="drawer-header">
+        <div style="flex:1;">
+            <div class="drawer-title">พิจารณาสั่งการ</div>
+            <div class="drawer-subtitle" id="modal-doc-id">DOC-2024-001</div>
+        </div>
+        <button class="btn-icon" onclick="closeDrawer()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    </div>
+    <div class="drawer-body">
+        <!-- Doc info -->
+        <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:12px;padding:18px;margin-bottom:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <p style="font-size:16px;font-weight:800;color:var(--color-text);line-height:1.4;margin:0;" id="modal-doc-title"></p>
+                <div id="modal-file-link-container"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="modal-doc-meta"></div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">บันทึกความเห็น / ข้อสั่งการ</label>
+            <textarea class="form-input" id="modal-comment" rows="4"
+                      style="font-size:15px;"
+                      placeholder="ระบุความเห็นหรือข้อสั่งการเพิ่มเติม (ถ้ามี)"></textarea>
+        </div>
+
+        <div style="margin-top:24px;">
+            <div class="text-xs fw-800 text-muted" style="text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                สายงานการพิจารณา
+            </div>
+            <div id="modal-stepper"></div>
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <button class="btn btn-danger flex-1" id="btn-reject" style="font-weight:700;">
+            ตีกลับเอกสาร
+        </button>
+        <button class="btn btn-success flex-1" id="btn-approve" style="font-weight:700;">
+            ลงนามอนุมัติ
+        </button>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script>
+    // Using mockDocumentTypes from core.js instead of hardcoded map
+    const getDocTypeLabel = (val) => {
+        const found = mockDocumentTypes.find(t => t.value === val);
+        return found ? found.label : (val || '—');
+    };
+
+    let allDocs = [];
+    let currentDocId = null;
+    let selectedIds = new Set();
+
+    async function loadTable() {
+        const user = API.getUser();
+        if (!user || !user.email) {
+            UI.showToast('กรุณาลงชื่อเข้าสู่ระบบก่อน', 'error');
+            setTimeout(() => location.href = 'index.html', 1500);
+            return;
+        }
+
+        const tbody = document.getElementById('approval-tbody');
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted);">
+            <div class="skeleton-text" style="width:30%;margin:0 auto 12px;"></div>
+            กำลังโหลดข้อมูลเอกสาร...
+        </td></tr>`;
+
+        try {
+            const res = await API.getPendingDocuments(user.email);
+            if (res && res.status === 'error') throw new Error(res.message);
+            allDocs = Array.isArray(res) ? res : [];
+            
+            WorkflowEngine.setLastLoadedDocs(allDocs);
+            renderPendingBadge(allDocs.length);
+            filterTable();
+
+            // 👑 Auto-open deep link doc if present
+            const deepId = UI.getQueryParam('id');
+            if (deepId && WorkflowEngine.getById(deepId)) {
+                console.log('[DeepLink] Auto-opening document:', deepId);
+                setTimeout(() => openDrawer(deepId), 500); 
+            }
+        } catch (err) {
+            console.error('Load Error:', err);
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-danger);">
+                <div style="font-size:24px;margin-bottom:12px;">❌</div>
+                <div>เกิดข้อผิดพลาดในการโหลดข้อมูล: ${err.message}</div>
+                <button class="btn btn-secondary btn-sm" style="margin-top:12px;" onclick="loadTable()">ลองใหม่อีกครั้ง</button>
+            </td></tr>`;
+        }
+    }
+
+    function renderPendingBadge(count) {
+        const el = document.getElementById('pending-count-badge');
+        if (count > 0) {
+            el.innerHTML = `<div class="badge badge-orange" style="padding:6px 12px;font-size:13px;">⏳ ${count} รายการรอพิจารณา</div>`;
+        } else { el.innerHTML = ''; }
+    }
+
+    function toggleSelectAll(checkbox, e) {
+        e.stopPropagation();
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+            const id = cb.dataset.id;
+            if (checkbox.checked) selectedIds.add(id);
+            else selectedIds.delete(id);
+            cb.closest('tr').classList.toggle('selected', checkbox.checked);
+        });
+        updateBulkBar();
+    }
+
+    function toggleSelectRow(id, e) {
+        e.stopPropagation();
+        const cb = document.querySelector(`.row-checkbox[data-id="${id}"]`);
+        if (e.target.tagName !== 'INPUT') cb.checked = !cb.checked;
+        
+        if (cb.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+        
+        cb.closest('tr').classList.toggle('selected', cb.checked);
+        updateBulkBar();
+    }
+
+    function updateBulkBar() {
+        const bar = document.getElementById('bulk-bar');
+        const count = document.getElementById('selected-count');
+        count.textContent = selectedIds.size;
+        bar.classList.toggle('visible', selectedIds.size > 0);
+    }
+
+    function clearSelection() {
+        selectedIds.clear();
+        document.getElementById('select-all').checked = false;
+        document.querySelectorAll('.row-checkbox').forEach(cb => {
+            cb.checked = false;
+            cb.closest('tr').classList.remove('selected');
+        });
+        updateBulkBar();
+    }
+
+    async function bulkApprove() {
+        const count = selectedIds.size;
+        const confirmed = await UI.confirm('ยืนยันการอนุมัติ', `คุณต้องการอนุมัติเอกสารทั้งหมด ${count} รายการที่เลือกใช่หรือไม่?`, 'อนุมัติทั้งหมด', 'ยกเลิก');
+        if (!confirmed) return;
+        
+        UI.showToast(`กำลังดำเนินการอนุมัติ ${count} รายการ...`, 'info');
+        
+        for (const id of selectedIds) {
+            await WorkflowEngine.approveDocument(id, 'อนุมัติผ่านระบบ Bulk Action');
+        }
+        
+        UI.showToast(`อนุมัติสำเร็จ ${count} รายการ`, 'success');
+        clearSelection();
+        loadTable();
+    }
+
+    function filterTable() {
+        const q     = document.getElementById('search-input').value.toLowerCase();
+        const type  = document.getElementById('type-filter').value;
+        const sort  = document.getElementById('sort-filter').value;
+
+        let filtered = allDocs.filter(doc => {
+            if (!doc) return false;
+            const title = (doc.title || '').toLowerCase();
+            const id = (doc.id || '').toLowerCase();
+            const matchQ    = !q || title.includes(q) || id.includes(q);
+            const matchType = !type || doc.docType === type;
+            return matchQ && matchType;
+        });
+
+        if (sort === 'urgent') filtered.sort((a,b) => (b.isUrgent ? 1 : 0) - (a.isUrgent ? 1 : 0));
+        else if (sort === 'oldest') filtered.reverse();
+        else filtered.sort((a,b) => b.id.localeCompare(a.id)); // Default ID sort
+
+        document.getElementById('result-count').textContent = `${filtered.length} รายการ`;
+        renderApprovalTable(filtered);
+    }
+
+    function renderApprovalTable(docs) {
+        const tbody = document.getElementById('approval-tbody');
+        if (docs.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        </div>
+                        <div class="empty-state-title">ไม่มีเอกสารรอพิจารณา</div>
+                        <div class="empty-state-desc">คุณดำเนินการครบทุกรายการแล้ว ระบบจะแจ้งเตือนเมื่อมีเอกสารใหม่</div>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = docs.map(doc => {
+            const currentStep = doc.workflowSteps[doc.currentStepIndex];
+            const currentStepTitle = (typeof currentStep === 'object' ? currentStep.title : currentStep) || '—';
+            const isSelected = selectedIds.has(doc.id);
+            return `
+                <tr ${doc.isUrgent ? 'class="' + (isSelected?'selected ':'') + 'is-urgent"' : (isSelected?'class="selected"':'')} onclick="toggleSelectRow('${doc.id}', event)">
+                    <td><input type="checkbox" class="row-checkbox" data-id="${doc.id}" ${isSelected?'checked':''} onclick="toggleSelectRow('${doc.id}', event)" style="width:16px;height:16px;cursor:pointer;"></td>
+                    <td class="mono fw-700" style="font-size:12px;">${doc.id}</td>
+                    <td>
+                        <div style="font-weight:700;font-size:15px;color:var(--color-text);">${doc.title.length>52 ? doc.title.substring(0,52)+'…' : doc.title}</div>
+                        <div style="display:flex;gap:8px;margin-top:6px;">
+                            <span class="badge badge-gray">${getDocTypeLabel(doc.docType)}</span>
+                            ${doc.isUrgent ? '<span class="badge badge-red">ด่วน</span>' : ''}
+                        </div>
+                    </td>
+                    <td class="text-muted text-sm">${doc.senderName}</td>
+                    <td>
+                        <div class="text-sm fw-700" style="color:var(--color-primary);">${currentStepTitle}</div>
+                        <div class="text-sm text-muted fw-500">ขั้นตอนที่ ${doc.currentStepIndex + 1}/${doc.workflowSteps.length}</div>
+                    </td>
+                    <td class="text-muted text-sm fw-500">${doc.submittedDate}</td>
+                    <td style="text-align:right;">
+                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openDrawer('${doc.id}')">พิจารณา</button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    function openDrawer(docId) {
+        const doc = WorkflowEngine.getById(docId);
+        if (!doc) return;
+        currentDocId = docId;
+        const currentStep = doc.workflowSteps[doc.currentStepIndex];
+        const currentStepTitle = (typeof currentStep === 'object' ? currentStep.title : currentStep) || '—';
+
+        document.getElementById('modal-doc-id').textContent = `รหัสเอกสาร: ${doc.id}`;
+        document.getElementById('modal-doc-title').textContent = doc.title;
+        document.getElementById('modal-comment').value = '';
+        document.getElementById('modal-doc-meta').innerHTML = `
+            <div><div class="text-xs text-muted fw-800" style="text-transform:uppercase;">ผู้ยื่นเรื่อง</div><div class="text-sm fw-700 mt-1">${doc.senderName}</div></div>
+            <div><div class="text-xs text-muted fw-800" style="text-transform:uppercase;">ประเภท</div><div class="text-sm fw-700 mt-1">${getDocTypeLabel(doc.docType)}</div></div>
+            <div><div class="text-xs text-muted fw-800" style="text-transform:uppercase;">ขั้นตอนปัจจุบัน</div><div class="text-sm fw-700 mt-1" style="color:var(--color-primary);">${currentStepTitle}</div></div>
+            <div><div class="text-xs text-muted fw-800" style="text-transform:uppercase;">วันที่ยื่น</div><div class="text-sm fw-700 mt-1">${doc.submittedDate}</div></div>
+        `;
+        document.getElementById('modal-stepper').innerHTML =
+            WorkflowEngine.renderStepperHTML(doc.workflowSteps, doc.currentStepIndex);
+        
+        // 📁 File Link
+        const fileContainer = document.getElementById('modal-file-link-container');
+        if (doc.fileLink) {
+            fileContainer.innerHTML = `<a href="${doc.fileLink}" target="_blank" class="btn btn-outline btn-sm" style="background:#fff; border-color:#cbd5e1; color:#475569; padding:6px 10px; font-size:11px; white-space:nowrap;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                ดูเอกสารแนบ
+            </a>`;
+        } else {
+            fileContainer.innerHTML = '';
+        }
+
+        // 🔒 Permissions Check
+        const currentUser = WorkflowEngine.getCurrentUser();
+        const footer = document.querySelector('.drawer-footer');
+        const lowAssigned = (doc.assignedTo || '').toLowerCase().trim();
+        const lowEmail = (currentUser.email || '').toLowerCase().trim();
+        const lowDept = (currentUser.dept || '').toLowerCase().trim();
+
+        const isMyTurn = (lowAssigned === lowEmail) || 
+                         (lowAssigned === lowDept) || 
+                         (lowAssigned === 'dept:' + lowDept);
+
+        if (!isMyTurn) {
+            console.log('[Auth Check] Not your turn:', lowAssigned, 'vs', lowEmail, '/', lowDept);
+            footer.style.display = 'none';
+        } else {
+            footer.style.display = 'flex';
+        }
+
+        document.getElementById('drawer-overlay').classList.add('open');
+        document.getElementById('approval-drawer').classList.add('open');
+    }
+
+    function closeDrawer() {
+        document.getElementById('drawer-overlay').classList.remove('open');
+        document.getElementById('approval-drawer').classList.remove('open');
+        currentDocId = null;
+    }
+
+    // Drawer overlay handles close via onclick="closeDrawer()" defined in HTML
+
+    document.getElementById('btn-approve').addEventListener('click', async () => {
+        if (!currentDocId) return;
+        const comment = document.getElementById('modal-comment').value;
+        const btn = document.getElementById('btn-approve');
+        UI.setLoadingState(btn, true);
+        await new Promise(r => setTimeout(r, 600));
+        const result = await WorkflowEngine.approveDocument(currentDocId, comment);
+        UI.setLoadingState(btn, false);
+        UI.showToast(result.msg, result.success ? 'success' : 'error');
+        closeDrawer();
+        loadTable();
+    });
+
+    document.getElementById('btn-reject').addEventListener('click', async () => {
+        if (!currentDocId) return;
+        const reason = document.getElementById('modal-comment').value;
+        if (!reason.trim()) {
+            UI.showToast('กรุณาระบุเหตุผลการตีกลับก่อน', 'error');
+            document.getElementById('modal-comment').focus();
+            return;
+        }
+        const btn = document.getElementById('btn-reject');
+        UI.setLoadingState(btn, true);
+        await new Promise(r => setTimeout(r, 600));
+        const result = await WorkflowEngine.rejectDocument(currentDocId, reason);
+        UI.setLoadingState(btn, false);
+        UI.showToast(result.msg, 'error');
+        closeDrawer();
+        loadTable();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        UI.renderLayout('approval');
+        
+        // Populate DocType Filter
+        const typeFilter = document.getElementById('type-filter');
+        mockDocumentTypes.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.value;
+            opt.textContent = t.label.replace(/^[^a-zA-Z0-9ก-ฮ]+/, '').trim(); // Remove emoji for cleaner filter
+            typeFilter.appendChild(opt);
+        });
+
+        loadTable();
+    });
+</script>
+</body>
+</html>
