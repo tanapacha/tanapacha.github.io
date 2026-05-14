@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรไฟล์บัญชี — ระบบเอกสารอิเล็กทรอนิกส์</title>
+    <!-- CSS Architecture -->
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
+</head>
+<body data-page-id="profile">
+    <div class="app-wrapper">
+        <div id="sidebar-container" class="app-sidebar"></div>
+
+        <div class="app-main">
+            <header id="navbar-container" class="app-navbar"></header>
+
+            <main class="app-content">
+                <div class="container-sm">
+                    
+                    <div class="mb-6">
+                        <h1 style="font-size: 24px; margin-bottom: 4px;">ตั้งค่าบัญชีส่วนตัว</h1>
+                        <p class="text-muted" style="font-size: 14px;">จัดการข้อมูลส่วนตัวและการตั้งค่าการแจ้งเตือน</p>
+                    </div>
+
+                    <div class="card mb-6" style="display: flex; gap: 24px; align-items: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: #FEE2E2; color: #B91C1C; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700;">
+                            ผ
+                        </div>
+                        <div>
+                            <h2 style="font-size: 20px; margin: 0 0 4px;">ผู้บริหารระบบ</h2>
+                            <p class="text-muted" style="margin: 0 0 12px; font-size: 14px;">admin@npu.ac.th</p>
+                            <button class="btn btn-secondary">อัปโหลดรูปภาพใหม่</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label class="form-label" for="fullname">ชื่อ-นามสกุล เต็ม</label>
+                                <input type="text" id="fullname" class="form-input" value="ผู้บริหารระบบ" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="email">อีเมลองค์กร</label>
+                                <input type="email" id="email" class="form-input" value="admin@npu.ac.th" readonly style="background: var(--color-bg); opacity: 0.8; cursor: not-allowed;">
+                            </div>
+
+                            <div class="form-group mb-6">
+                                <label class="form-label" for="dept">สังกัดฝ่ายงาน</label>
+                                <input type="text" id="dept" class="form-input" value="ศูนย์คอมพิวเตอร์" required>
+                            </div>
+
+                            <div style="border-top: 1px solid var(--color-border); padding-top: 24px; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary" id="btn-saveProfile">บันทึกการเปลี่ยนแปลง</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- JS Architecture -->
+    <script src="core.js"></script>
+
+    <script>
+        function loadProfileData() {
+            const user = WorkflowEngine.getCurrentUser();
+            if (!user || !user.email) {
+                // If no session, redirect to login
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Update Avatar / Header
+            const avatar = document.querySelector('.card.mb-6 div[style*="width: 80px"]');
+            if (avatar) avatar.textContent = user.initial;
+            
+            const nameHeader = document.querySelector('.card.mb-6 h2');
+            if (nameHeader) nameHeader.textContent = user.name;
+            
+            const emailHeader = document.querySelector('.card.mb-6 p.text-muted');
+            if (emailHeader) emailHeader.textContent = user.email;
+
+            // Update Form Fields
+            document.getElementById('fullname').value = user.name;
+            document.getElementById('email').value = user.email;
+            
+            // For Dept, show both Group and Position (Duty) if available
+            // User object structure: { name, initial, dept, email, position, ... }
+            const deptField = document.getElementById('dept');
+            let displayDept = user.dept; // This was stored as GroupLabel in register.html
+            if (user.position && user.position !== user.dept) {
+                displayDept += ' (' + user.position + ')';
+            }
+            deptField.value = displayDept;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfileData();
+
+            document.getElementById('profile-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-saveProfile');
+                UI.setLoadingState(btn, true);
+
+                // Simulation: In a real app, this would call API.updateUserProfile
+                setTimeout(() => {
+                    UI.setLoadingState(btn, false);
+                    UI.showToast('บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว', 'success');
+                }, 600);
+            });
+        });
+    </script>
+</body>
+</html>

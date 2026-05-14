@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประวัติการดำเนินการ — ระบบเอกสารอิเล็กทรอนิกส์</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
+</head>
+<body data-page-id="history">
+<div class="app-wrapper">
+    <div id="sidebar-container" class="app-sidebar"></div>
+    <div class="app-main">
+        <header id="navbar-container" class="app-navbar"></header>
+        <main class="app-content">
+            <div class="container-lg">
+
+                <div class="page-header anim-fade-up">
+                    <div class="page-header-left">
+                        <h1>ประวัติการดำเนินการ</h1>
+                        <p>ค้นหาและเรียกดูเอกสารย้อนหลังที่ได้รับการพิจารณาเสร็จสิ้นแล้ว</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="exportCSV()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        ส่งออก CSV
+                    </button>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="card p-0 anim-fade-up anim-stagger-1" style="margin-bottom:16px;">
+                    <div style="padding:14px 16px;">
+                        <div class="filter-bar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                            <input type="text" class="form-input" id="search-input"
+                                   placeholder="ค้นหาหัวเรื่องหรือรหัสเอกสาร..."
+                                   style="min-width:260px;" oninput="filterTable()">
+                            <select class="form-input" id="status-filter" onchange="filterTable()" style="width:auto;min-width:160px;">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="approved">อนุมัติแล้ว</option>
+                                <option value="rejected">ถูกตีกลับ</option>
+                                <option value="pending">รอพิจารณา</option>
+                            </select>
+                            <select class="form-input" id="type-filter" onchange="filterTable()" style="width:auto;min-width:150px;">
+                                <option value="">ทุกประเภท</option>
+                                <option value="finance">การเงิน/พัสดุ</option>
+                                <option value="academic">วิชาการ</option>
+                                <option value="hr">บุคลากร</option>
+                                <option value="project">โครงการ</option>
+                                <option value="travel">เดินทางราชการ</option>
+                            </select>
+                            <span class="result-count" id="result-count">— รายการ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="card p-0 anim-fade-up anim-stagger-2">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>รหัสเอกสาร</th>
+                                    <th>หัวเรื่อง</th>
+                                    <th>ผู้ยื่น</th>
+                                    <th>ประเภท</th>
+                                    <th>วันที่อัปเดต</th>
+                                    <th>สถานะสุดท้าย</th>
+                                    <th style="text-align:right;">สายงาน</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <tr><td colspan="7"><div class="skeleton skeleton-row" style="border-radius:0;"></div></td></tr>
+                                <tr><td colspan="7"><div class="skeleton skeleton-row" style="border-radius:0;animation-delay:0.1s"></div></td></tr>
+                                <tr><td colspan="7"><div class="skeleton skeleton-row" style="border-radius:0;animation-delay:0.2s"></div></td></tr>
+                                <tr><td colspan="7"><div class="skeleton skeleton-row" style="border-radius:0;animation-delay:0.3s"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Timeline Modal -->
+<div id="timeline-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:560px;">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="modal-title"></div>
+                <div id="modal-id" style="font-size:12px;color:var(--color-text-muted);margin-top:2px;"></div>
+            </div>
+            <button class="btn-icon" onclick="closeModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script>
+    const docTypeLabels = {
+        finance: 'การเงิน/พัสดุ', academic: 'วิชาการ', hr: 'บุคลากร',
+        project: 'โครงการ', travel: 'เดินทางราชการ', general: 'ทั่วไป',
+    };
+
+    let allDocs = [];
+
+    function filterTable() {
+        const q      = document.getElementById('search-input').value.toLowerCase();
+        const status = document.getElementById('status-filter').value;
+        const type   = document.getElementById('type-filter').value;
+
+        let filtered = allDocs.filter(doc => {
+            const matchQ      = !q || doc.title.toLowerCase().includes(q) || doc.id.toLowerCase().includes(q);
+            const matchStatus = !status || doc.status === status;
+            const matchType   = !type || doc.docType === type;
+            return matchQ && matchStatus && matchType;
+        });
+
+        document.getElementById('result-count').textContent = `${filtered.length} รายการ`;
+        renderTable(filtered);
+    }
+
+    function renderTable(docs) {
+        const tbody = document.getElementById('history-tbody');
+        if (!docs || docs.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div class="empty-state-title">ไม่พบเอกสารที่ค้นหา</div>
+                        <div class="empty-state-desc">ลองเปลี่ยนเงื่อนไขการค้นหาหรือตัวกรองแล้วลองใหม่</div>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = docs.map(doc => `
+            <tr>
+                <td class="mono fw-600" style="font-size:12px;">${doc.id}</td>
+                <td style="font-weight:600;font-size:13px;">${doc.title.length > 48 ? doc.title.substring(0,48)+'…' : doc.title}</td>
+                <td class="text-muted text-sm">${doc.senderName}</td>
+                <td><span class="badge badge-gray">${docTypeLabels[doc.docType] || doc.docType}</span></td>
+                <td class="text-muted text-sm">${doc.updatedDate}</td>
+                <td>${WorkflowEngine.renderBadge(doc.status)}</td>
+                <td style="text-align:right;">
+                    <button style="font-size:13px;font-weight:600;color:var(--color-primary);background:none;border:none;cursor:pointer;padding:0;" onclick="openModal('${doc.id}')">ดู →</button>
+                </td>
+            </tr>`).join('');
+    }
+
+    function openModal(docId) {
+        const doc = WorkflowEngine.getById(docId);
+        if (!doc) return;
+        document.getElementById('modal-title').textContent = doc.title.length > 50 ? doc.title.substring(0,50)+'…' : doc.title;
+        document.getElementById('modal-id').textContent = doc.id;
+        document.getElementById('modal-body').innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                ${WorkflowEngine.renderBadge(doc.status)}
+                <div style="display:flex; gap:8px; align-items:center;">
+                    ${doc.fileLink ? `<a href="${doc.fileLink}" target="_blank" class="btn btn-outline btn-sm" style="padding:4px 10px; font-size:11px;">📄 ดูเอกสารแนบ</a>` : ''}
+                    <span class="text-xs text-faint">อัปเดต: ${doc.updatedDate || doc.submittedDate}</span>
+                </div>
+            </div>
+            ${WorkflowEngine.renderStepperHTML(doc.workflowSteps, doc.currentStepIndex)}
+            ${doc.rejectedReason ? `<div class="wf-step__comment" style="margin-top:16px;"><strong>เหตุผลตีกลับ:</strong> ${doc.rejectedReason}</div>` : ''}
+        `;
+        document.getElementById('timeline-modal').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('timeline-modal').classList.remove('active');
+    }
+    document.getElementById('timeline-modal').addEventListener('click', e => {
+        if (e.target === document.getElementById('timeline-modal')) closeModal();
+    });
+
+    function exportCSV() {
+        UI.showToast('กำลังเตรียมไฟล์ CSV...', 'info');
+        setTimeout(() => UI.showToast('ส่งออกข้อมูลสำเร็จ (Demo)', 'success'), 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await API.getRecentDocuments();
+            if (res && res.status === 'error') throw new Error(res.message);
+            allDocs = Array.isArray(res) ? res : [];
+            
+            document.getElementById('result-count').textContent = `${allDocs.length} รายการ`;
+            renderTable(allDocs);
+        } catch (e) {
+            console.error('History Load Error:', e);
+            UI.showToast('ไม่สามารถโหลดข้อมูลประวัติได้', 'error');
+        }
+    });
+</script>
+</body>
+</html>
