@@ -213,7 +213,25 @@ function migrateSchemaIfNeeded() {
   const sheet = ss.getSheetByName(CONFIG.SHEETS.LESSONS);
   if (!sheet) return;
   
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  // --- [AUTO FIX] แก้ไขปัญหาคอลัมน์เลื่อน (Header Shift) อัตโนมัติ ---
+  // หากพบคอลัมน์ L (12) เป็นช่องว่าง และ คอลัมน์ M (13) มีหัวตารางเป็น VideoURL
+  // เราจะเลื่อนหัวตารางกลับมาให้ถูกต้องทันที (L=VideoURL, M=SlideURL, N=Grade)
+  let rawHeaders = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
+  if (rawHeaders.indexOf("VideoURL") === 12 && (!rawHeaders[11] || rawHeaders[11] === "")) {
+    sheet.getRange(1, 12).setValue("VideoURL").setFontWeight("bold").setBackground("#f3f3f3");
+    sheet.getRange(1, 13).setValue("SlideURL").setFontWeight("bold").setBackground("#f3f3f3");
+    sheet.getRange(1, 14).setValue("Grade").setFontWeight("bold").setBackground("#f3f3f3");
+    
+    // ล้างคอลัมน์ O (15) ที่เคยเลื่อนไป
+    if (rawHeaders[14] === "Grade" || sheet.getRange(1, 15).getValue() === "Grade") {
+      sheet.getRange(1, 15).clearContent().clearFormat();
+    }
+    logSystem("AUTO_FIX", "Shifted Lessons headers back to L, M, N to fix misalignment.");
+    // โหลด headers ใหม่เพื่อใช้ในขั้นตอนถัดไป
+    rawHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  }
+
+  const headers = rawHeaders;
   
   // ตรวจสอบว่ามีคอลัมน์ "Category" หรือยัง
   // ถ้ายังไม่มี → เพิ่มคอลัมน์ B ใหม่ (เลื่อนคอลัมน์เดิมไปขวาทั้งหมด)
@@ -325,9 +343,9 @@ function doPost(e) {
     // เดิม: ถูกเรียกทุก POST request → ช้ามากเพราะ GAS ต้องอ่านทุก Sheet ทุกครั้ง
     // ใหม่: ใช้ PropertiesService เป็น Flag — รันเพียงครั้งเดียวหลัง Deploy ใหม่
     const props = PropertiesService.getScriptProperties();
-    if (!props.getProperty('SCHEMA_MIGRATED_V3')) {
+    if (!props.getProperty('SCHEMA_MIGRATED_V4')) {
       migrateSchemaIfNeeded();
-      props.setProperty('SCHEMA_MIGRATED_V3', 'true');
+      props.setProperty('SCHEMA_MIGRATED_V4', 'true');
     }
     let payload = JSON.parse(e.postData.contents);
     let action = payload.action;
