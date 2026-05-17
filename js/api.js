@@ -38,14 +38,18 @@ const ApiService = {
     localStorage.setItem('API_CACHE_' + key, JSON.stringify(entry));
   },
 
-  /**
-   * ส่งคำขอแบบ POST ไปยัง Google Apps Script
-   */
-  async post(action, payload, showLoader = true) {
-    if (showLoader) window.UI?.showLoading(action === 'login' ? 'กำลังตรวจสอบ...' : 'กำลังบันทึกข้อมูล...');
+  async post(action, payload, showLoader = true, retryCount = 0) {
+    const maxRetries = 2; // เพิ่มจำนวนครั้งในการลองใหม่สูงสุดเป็น 2 ครั้ง (รวม 3 ครั้ง)
+    
+    if (showLoader && retryCount === 0) {
+       window.UI?.showLoading(action === 'login' ? 'กำลังตรวจสอบ...' : 'กำลังบันทึกข้อมูล...');
+    } else if (showLoader && retryCount > 0) {
+       window.UI?.showLoading(`กำลังพยายามเชื่อมต่อใหม่ (ครั้งที่ ${retryCount})...`);
+    }
     
     const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), 15000);
+    // เพิ่มเวลา timeout เป็น 60 วินาทีให้ครอบคลุมการทำงานที่ช้าสุดๆ ของ Google Apps Script (Cold Starts)
+    const id = setTimeout(() => controller.abort(), 60000); 
 
     try {
       const user = window.Auth ? window.Auth.get() : null;
@@ -59,54 +63,74 @@ const ApiService = {
       });
       clearTimeout(id);
       
-      const result = await response.json();
+      // อ่านผลลัพธ์เป็นข้อความก่อน ป้องกันกรณีที่ Google ส่งหน้า Error HTML กลับมาแทน JSON
+      const text = await response.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (parseErr) {
+        console.error('[KIDDO POST] GAS returned non-JSON:', text.slice(0, 200));
+        throw new Error("Backend_Error"); // โยน Error ไปให้ระบบ Retry จัดการต่อ
+      }
       
-      if (showLoader) {
-        if (result.status === 'success') {
-          window.UI?.toast(result.message || 'ดำเนินการสำเร็จ', 'success');
-        } else {
-          window.UI?.toast(result.message || 'เกิดข้อผิดพลาด', 'error');
-        }
+      // แสดงข้อความสำเร็จหรือผิดพลาด เฉพาะการทำงานครั้งแรก หรือสำเร็จในการ retry (หลีกเลี่ยงการ toast ซ้ำซ้อน)
+      if (showLoader && retryCount === 0 && result.status !== 'success') {
+         // กรณีโหลดครั้งแรกแล้วเฟลจาก backend (ไม่ถึงขั้น error ของ catch) ให้แสดงข้อความ
+         window.UI?.toast(result.message || 'เกิดข้อผิดพลาด', 'error');
+      } else if (showLoader && result.status === 'success') {
+         window.UI?.toast(result.message || 'ดำเนินการสำเร็จ', 'success');
       }
       
       return result;
     } catch (error) {
       clearTimeout(id);
-      // Retry logic (max 2 retries for non-login actions)
-      if (action !== 'login' && !this._retryCount) {
-        this._retryCount = (this._retryCount || 0) + 1;
-        console.warn(`[KIDDO API] Retrying ${action}... (attempt ${this._retryCount})`);
-        await new Promise(r => setTimeout(r, 1000 * this._retryCount));
-        const retryResult = await this.post(action, payload, false);
-        this._retryCount = 0;
-        return retryResult;
+      
+      // ระบบ Retry แบบอัตโนมัติ (ทำสำหรับทุก Action รวมถึง Login ด้วยเพราะมีโอกาสเจอ Cold Start)
+      if (retryCount < maxRetries) {
+        console.warn(`[KIDDO API] Retrying ${action}... (attempt ${retryCount + 1})`);
+        // รอเวลาแบบทวีคูณ (1 วินาที, 2 วินาที) ก่อนลองใหม่ ช่วยให้ลดภาระเซิร์ฟเวอร์
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retryCount)));
+        return this.post(action, payload, showLoader, retryCount + 1);
       }
-      this._retryCount = 0;
+      
       console.error("API POST Error:", error);
-      const msg = error.name === 'AbortError' ? "การเชื่อมต่อหมดเวลา" : "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้";
+      const isTimeout = error.name === 'AbortError';
+      const msg = isTimeout 
+        ? "เซิร์ฟเวอร์ไม่ตอบสนองชั่วคราว กรุณาลองใหม่อีกครั้ง" 
+        : "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ หรือเซิร์ฟเวอร์มีปัญหา";
+        
       if (showLoader) window.UI?.toast(msg, 'error');
       return { status: "error", message: msg };
     } finally {
-      if (showLoader) window.UI?.hideLoading();
+      // ซ่อน Loader เมื่อทำงานเสร็จหรือสิ้นสุดการทำงานทั้งหมด (ถ้าเป็นการเรียกซ้อนกัน จะเคลียร์ตอนจบลูปหลัก)
+      if (showLoader && retryCount === 0) window.UI?.hideLoading();
     }
   },
 
-  /**
-   * ส่งคำขอแบบ GET ไปยัง Google Apps Script
-   */
-  async get(action, params = {}, useCache = true) {
+  async get(action, params = {}, useCache = true, retryCount = 0) {
+    const maxRetries = 2;
     const silent = params.silent === true;
-    if (!silent) window.UI?.showLoading('กำลังโหลดข้อมูล...');
+    
+    if (!silent && retryCount === 0) {
+       window.UI?.showLoading('กำลังโหลดข้อมูล...');
+    } else if (!silent && retryCount > 0) {
+       window.UI?.showLoading(`กำลังพยายามโหลดข้อมูลใหม่ (ครั้งที่ ${retryCount})...`);
+    }
     
     const cacheKey = `GET_${action}_${JSON.stringify(params)}`;
 
-    if (useCache) {
+    // ดึงจาก Cache (ดึงเฉพาะตอนเรียกครั้งแรกเท่านั้น ไม่ดึงตอน retry)
+    if (useCache && retryCount === 0) {
       const cached = this._getCached(cacheKey);
       if (cached) {
         if (!silent) window.UI?.hideLoading();
         return cached;
       }
     }
+
+    const controller = new AbortController();
+    // 30s timeout สำหรับ GET เพื่อป้องกันผู้ใช้ค้างหน้าโหลดไปเรื่อยๆ หากเน็ตหลุด
+    const id = setTimeout(() => controller.abort(), 30000); 
 
     try {
       const url = new URL(API_CONFIG.BASE_URL);
@@ -116,23 +140,41 @@ const ApiService = {
         if (key !== 'silent') url.searchParams.append(key, params[key]);
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(id);
+      
       // Bug Fix: parse as text first, then JSON (per Debug Skill Section 3.3)
       const text = await response.text();
       let result;
       try {
         result = JSON.parse(text);
       } catch (parseErr) {
-        console.error('[KIDDO] GAS returned non-JSON:', text.slice(0, 200));
-        return { status: "error", message: "Backend ส่งข้อมูลผิดปกติ กรุณาลองใหม่" };
+        console.error('[KIDDO GET] GAS returned non-JSON:', text.slice(0, 200));
+        throw new Error("Backend_Error");
       }
+      
       if (useCache) this._setCache(cacheKey, result);
       return result;
     } catch (error) {
+      clearTimeout(id);
+      
+      // Retry Logic สำหรับ GET
+      if (retryCount < maxRetries) {
+        console.warn(`[KIDDO API GET] Retrying ${action}... (attempt ${retryCount + 1})`);
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retryCount)));
+        return this.get(action, params, useCache, retryCount + 1);
+      }
+      
       console.error("API Error:", error);
-      return { status: "error", message: error.message };
+      const isTimeout = error.name === 'AbortError';
+      const msg = isTimeout 
+        ? "เซิร์ฟเวอร์ตอบสนองช้าเกินไป กรุณาลองใหม่" 
+        : "ข้อมูลเซิร์ฟเวอร์ผิดปกติ กรุณาลองใหม่";
+        
+      if (!silent && retryCount === maxRetries) window.UI?.toast(msg, 'error');
+      return { status: "error", message: msg };
     } finally {
-      if (!silent) window.UI?.hideLoading();
+      if (!silent && retryCount === 0) window.UI?.hideLoading();
     }
   },
 
