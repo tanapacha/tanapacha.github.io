@@ -48,13 +48,18 @@ const ApiService = {
     }
     
     const controller = new AbortController();
-    // เพิ่มเวลา timeout เป็น 60 วินาทีให้ครอบคลุมการทำงานที่ช้าสุดๆ ของ Google Apps Script (Cold Starts)
-    const id = setTimeout(() => controller.abort(), 60000); 
+    // เพิ่มเวลา timeout เป็น 5 นาที (300,000 ms) เพื่อรองรับการอัปโหลดไฟล์ PDF ขนาดใหญ่!
+    const id = setTimeout(() => controller.abort(), 300000); 
 
     try {
       const user = window.Auth ? window.Auth.get() : null;
-      const token = user ? (user.token || user.id) : null; // ใช้ session token จาก login response
+      const token = user ? (user.token || user.id) : null; 
       const data = { action: action, token: token, ...payload };
+      
+      // ถ้ามีการอัปโหลดไฟล์ ให้ปิดระบบ Retry อัตโนมัติ เพราะจะทำให้รอนานมาก (เช่น อัปไฟล์ 10MB ไม่ผ่าน แล้วให้รออัปใหม่ 3 รอบ)
+      const isFileUpload = (payload.slideFile && payload.slideFile.base64) || (payload.fileBase64);
+      const actualMaxRetries = isFileUpload ? 0 : maxRetries;
+
       const response = await fetch(API_CONFIG.BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -86,7 +91,7 @@ const ApiService = {
       clearTimeout(id);
       
       // ระบบ Retry แบบอัตโนมัติ (ทำสำหรับทุก Action รวมถึง Login ด้วยเพราะมีโอกาสเจอ Cold Start)
-      if (retryCount < maxRetries) {
+      if (retryCount < actualMaxRetries) {
         console.warn(`[KIDDO API] Retrying ${action}... (attempt ${retryCount + 1})`);
         // รอเวลาแบบทวีคูณ (1 วินาที, 2 วินาที) ก่อนลองใหม่ ช่วยให้ลดภาระเซิร์ฟเวอร์
         await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retryCount)));
