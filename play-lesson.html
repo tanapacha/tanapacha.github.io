@@ -134,7 +134,7 @@
         <span data-icon="left"></span> กลับหน้าหลัก
       </a>
       <div class="flex items-center gap-3">
-        <div class="avatar avatar-sm" style="background:var(--grad-primary); color:white; border:none;">
+        <div class="avatar avatar-sm" style="background:var(--color-primary-500); color:white; border:none;">
            <span data-icon="monitor"></span>
         </div>
         <div>
@@ -181,11 +181,11 @@
 
     try {
       const res = await ApiService.getLessons();
-      if (res.status !== 'success') return;
+      if (res.status !== 'success') throw new Error(res.message || "Failed to load lessons");
       
       const all = res.data;
       const current = all.find(l => l.ID === lessonId);
-      if (!current) return;
+      if (!current) throw new Error("ไม่พบข้อมูลบทเรียนย่อยนี้ในระบบ");
 
       // 1. Sidebar Rendering
       const groups = {};
@@ -342,7 +342,23 @@
           }
         }
       } catch(e) { console.error("Quiz Link Error:", e); }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      document.getElementById('lessonContent').innerHTML = `
+        <div class="card p-16 t-center animate-in" style="max-width: 600px; margin: 40px auto; border: 1.5px solid var(--border-subtle);">
+          <div class="avatar mb-6 animate-pulse" style="margin:0 auto; width:80px; height:80px; background:var(--color-error-50); color:var(--color-error-500); border:none; border-radius: 24px;">
+            <span data-icon="alert" style="width:40px; height:40px;"></span>
+          </div>
+          <h3 class="t-title mb-4" style="font-size: 1.5rem; color: var(--color-error-600);">ไม่สามารถเชื่อมต่อระบบได้</h3>
+          <p class="t-body">เกิดข้อผิดพลาดในการโหลดเนื้อหาบทเรียนย่อยนี้<br><span class="t-xs t-secondary">${err.message || ''}</span></p>
+          <div class="flex gap-4 justify-center mt-8">
+            <button onclick="location.reload()" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">ลองใหม่อีกครั้ง</button>
+            <a href="lessons-list.html" class="btn btn-outline" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">กลับไปหน้ารายการ</a>
+          </div>
+        </div>
+      `;
+      if (window.UI && window.UI.initIcons) window.UI.initIcons();
+    }
   }
 
   function getEmbedUrl(url) {

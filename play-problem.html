@@ -24,7 +24,7 @@
     </div>
 
     <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2" style="background:var(--bg-raised);padding:var(--sp-2) var(--sp-4);border-radius:var(--radius-full);">
+      <div class="flex items-center gap-2" style="background:var(--bg-raised);padding:var(--sp-2) var(--sp-4);border-radius:var(--radius-sm);">
         <span data-icon="monitor" style="width:14px;height:14px;"></span>
         <span id="timerDisplay" class="fw-semibold t-small">10:00</span>
       </div>
@@ -112,20 +112,43 @@
           }));
           
           if (questions.length === 0) {
-            document.getElementById('questionText').innerHTML = `
-              <div class="t-center p-8">
-                <p class="mb-4">ยังไม่มีโจทย์ปัญหาในบทเรียน ${lessonId}</p>
-                <a href="dashboard.html" class="btn btn-outline btn-sm">กลับหน้าหลัก</a>
+            document.querySelector('main').innerHTML = `
+              <div class="card p-16 t-center animate-in" style="max-width: 600px; margin: 40px auto; border: 1.5px solid var(--border-subtle);">
+                <div class="avatar mb-6" style="margin:0 auto; width:80px; height:80px; background:var(--neutral-100); color:var(--neutral-400); border:none; border-radius: 24px;">
+                  <span data-icon="task" style="width:40px; height:40px;"></span>
+                </div>
+                <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีโจทย์ปัญหา</h3>
+                <p class="t-body">คุณครูยังไม่ได้เพิ่มโจทย์ปัญหาสำหรับบทเรียนนี้ครับ <br>ลองกลับมาดูใหม่อีกครั้งในภายหลังนะครับ</p>
+                <div class="flex gap-4 justify-center mt-8">
+                  <a href="dashboard.html" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">กลับหน้าหลัก</a>
+                  <a href="quiz-list.html" class="btn btn-outline" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">ดูโจทย์อื่นๆ</a>
+                </div>
               </div>
             `;
+            if (window.UI && window.UI.initIcons) window.UI.initIcons();
             return;
           }
           
           render();
+        } else {
+          throw new Error(res.message || "Failed to fetch quizzes");
         }
       } catch (err) {
         console.error(err);
-        document.getElementById('questionText').textContent = 'เกิดข้อผิดพลาดในการโหลดโจทย์';
+        document.querySelector('main').innerHTML = `
+          <div class="card p-16 t-center animate-in" style="max-width: 600px; margin: 40px auto; border: 1.5px solid var(--border-subtle);">
+            <div class="avatar mb-6 animate-pulse" style="margin:0 auto; width:80px; height:80px; background:var(--color-error-50); color:var(--color-error-500); border:none; border-radius: 24px;">
+              <span data-icon="alert" style="width:40px; height:40px;"></span>
+            </div>
+            <h3 class="t-title mb-4" style="font-size: 1.5rem; color: var(--color-error-600);">ไม่สามารถดึงโจทย์ได้</h3>
+            <p class="t-body">เกิดปัญหาในการเชื่อมต่อข้อมูลโจทย์ปัญหาในระบบ<br><span class="t-xs t-secondary">${err.message || ''}</span></p>
+            <div class="flex gap-4 justify-center mt-8">
+              <button onclick="location.reload()" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">ลองใหม่อีกครั้ง</button>
+              <a href="quiz-list.html" class="btn btn-outline" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">กลับหน้าหลักโจทย์</a>
+            </div>
+          </div>
+        `;
+        if (window.UI && window.UI.initIcons) window.UI.initIcons();
       }
     }
     

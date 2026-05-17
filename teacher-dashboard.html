@@ -16,36 +16,45 @@
 <body>
 
 <div class="app">
-  <aside class="sidebar glass-sidebar">
+  <aside class="sidebar">
     <div class="sidebar-logo">
-      <img src="kiddo_learning_logo_1778753164138.png" style="width: 48px; height: 48px; object-fit: contain;">
+      <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
       <div class="sidebar-logo-text">KIDDO</div>
     </div>
     
+    
+    
     <div class="sidebar-section">
-      <div class="sidebar-section-label">เมนูการจัดการ</div>
-      <a href="teacher-dashboard.html" class="sidebar-nav-item">
-        <span class="nav-icon" data-icon="home"></span>แผงควบคุม
-      </a>
-      <a href="teacher-manage-content.html" class="sidebar-nav-item">
-        <span class="nav-icon" data-icon="bookOpen"></span>จัดการเนื้อหา
-      </a>
-      <a href="teacher-create-exercise.html" class="sidebar-nav-item">
-        <span class="nav-icon" data-icon="upload"></span>สั่งงานใหม่
-      </a>
-      <a href="teacher-check-assignments.html" class="sidebar-nav-item">
-        <span class="nav-icon" data-icon="checkCircle"></span>ตรวจงาน
-      </a>
-      <a href="teacher-student-grades.html" class="sidebar-nav-item">
-        <span class="nav-icon" data-icon="chart"></span>จัดการคะแนน
-      </a>
+      <div class="sidebar-section-label">เมนูการเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard.html"><span class="nav-icon" data-icon="home"></span>หน้าแรก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item" data-page="lessons-list.html"><span class="nav-icon" data-icon="bookOpen"></span>บทเรียนของฉัน</a>
+      <a href="assignments.html" class="sidebar-nav-item" data-page="assignments.html"><span class="nav-icon" data-icon="upload"></span>ภารกิจและส่งงาน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item" data-page="quiz-list.html"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="report.html" class="sidebar-nav-item" data-page="report.html"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
     </div>
+
+    <!-- Admin Only Section -->
+    <div class="sidebar-section admin-only" style="margin-top: var(--sp-4); display: none;">
+      <div class="sidebar-section-label">เมนูการจัดการ (ครู)</div>
+      <a href="teacher-dashboard.html" class="sidebar-nav-item" data-page="teacher-dashboard.html"><span class="nav-icon" data-icon="home"></span>แผงควบคุม</a>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item" data-page="teacher-manage-content.html"><span class="nav-icon" data-icon="bookOpen"></span>จัดการเนื้อหา</a>
+      <div class="flex flex-col gap-1 mb-2" style="padding-left: 2.75rem; border-left: 1.5px solid var(--border-subtle); margin-left: 1.25rem;">
+        <a href="teacher-create-lesson.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-lesson.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างบทเรียน</a>
+        <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-exercise.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
+        <a href="teacher-create-problem.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-problem.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างโจทย์</a>
+        <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-game.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
+      </div>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
+    </div>
+    
+    
 
     
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="avatar skeleton" id="userAvatarSkeleton" style="width:40px; height:40px;"></div>
-        <div class="avatar" id="userAvatar" style="display:none; background: var(--grad-primary); color: white; border: none;"></div>
+        <div class="avatar skeleton" id="userAvatarSkeleton" style="width:36px; height:36px;"></div>
+        <div class="avatar" id="userAvatar" style="display:none; background: var(--color-primary-500); color: white; border: none;"></div>
         <div class="sidebar-user-info">
           <div class="sidebar-user-name" data-user="name">กำลังโหลด...</div>
           <div class="sidebar-user-role">คุณครูแอดมิน</div>
@@ -58,13 +67,13 @@
   </aside>
 
   <main class="main-content">
-    <header class="page-header glass-header">
+    <header class="page-header">
       <div class="animate-in">
-        <h1 class="t-title" style="font-size: 1.5rem;">สวัสดีครับคุณครู! 👋</h1>
+        <h1 class="t-title" style="font-size: 1.5rem;">สวัสดีครับคุณครู!</h1>
         <p class="t-small t-secondary">สรุปภาพรวมการจัดการเรียนรู้ของคุณวันนี้</p>
       </div>
       <div class="flex gap-3">
-        <a href="teacher-manage-content.html" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: var(--radius-full);">
+        <a href="teacher-manage-content.html" class="btn btn-primary" style="height: 44px; padding: 0 24px;">
           <span data-icon="plus" style="margin-right: 8px;"></span> สร้างเนื้อหาใหม่
         </a>
       </div>
@@ -216,15 +225,15 @@
     // Render Care List
     const careHTML = data.strugglingStudents?.length
       ? data.strugglingStudents.map(s => `
-        <div class="flex items-center gap-4 p-4" style="background: var(--neutral-50); border-radius: var(--radius-lg);">
-          <div class="avatar" style="background: var(--grad-error); color: white; border: none;">${s.name.charAt(0)}</div>
+        <div class="flex items-center gap-4 p-4" style="background: var(--neutral-50); border-radius: var(--radius-md);">
+          <div class="avatar" style="background: var(--color-error); color: white; border: none;">${s.name.charAt(0)}</div>
           <div class="flex-1">
              <div class="fw-bold">${s.name}</div>
              <div class="t-xs t-secondary">${s.reason}</div>
           </div>
           <div class="t-error-color fw-bold">${s.score}%</div>
         </div>`).join('')
-      : `<div class="p-12 t-center t-secondary">นร. ทุกคนเรียนรู้ได้ดีเยี่ยม! ✨</div>`;
+      : `<div class="p-12 t-center t-secondary">นักเรียนทุกคนเรียนรู้ได้ดีเยี่ยม!</div>`;
 
     document.getElementById('activityContainer').innerHTML = careHTML;
     UI.initIcons();

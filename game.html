@@ -127,25 +127,57 @@
     const lessonId = urlParams.get('lessonId');
 
     if (!quizId && !lessonId) {
-      document.getElementById('gameView').innerHTML = '<div class="t-center t-secondary">ไม่พบข้อมูลเกม</div>';
+      renderGameError("ไม่พบพารามิเตอร์ที่จำเป็นสำหรับตัวเกม");
       return;
     }
 
-    // Fetch quiz data
-    const res = await ApiService.getQuizzes(lessonId);
-    if (res.status === 'success') {
-      const quiz = res.data.find(q => q.ID === quizId) || res.data[0];
-      if (quiz && quiz.QuizURL) {
-        try {
-          currentGame = JSON.parse(quiz.QuizURL);
-          document.getElementById('gameTitle').textContent = quiz.Title;
-          renderGame();
-        } catch (e) {
-          console.error("JSON Parse error:", e);
-          document.getElementById('gameView').innerHTML = '<div class="t-center t-secondary">รูปแบบข้อมูลเกมไม่ถูกต้อง</div>';
-        }
+    try {
+      // Fetch quiz data
+      const res = await ApiService.getQuizzes(lessonId);
+      if (res.status !== 'success') {
+        throw new Error(res.message || "ไม่สามารถติดต่อฐานข้อมูลภารกิจเกมได้");
       }
+      
+      const quiz = res.data.find(q => q.ID === quizId) || res.data[0];
+      if (!quiz) {
+        throw new Error("ไม่พบกิจกรรมเกมที่ระบุในบทเรียนนี้");
+      }
+      
+      if (!quiz.QuizURL) {
+        throw new Error("ไม่พบโครงสร้างข้อมูลตัวเกม (Quiz URL ว่างเปล่า)");
+      }
+      
+      try {
+        currentGame = JSON.parse(quiz.QuizURL);
+        document.getElementById('gameTitle').textContent = quiz.Title;
+        renderGame();
+      } catch (e) {
+        console.error("JSON Parse error:", e);
+        throw new Error("รูปแบบข้อมูลเกมไม่ถูกต้อง ไม่สามารถถอดรหัสได้");
+      }
+    } catch (err) {
+      console.error(err);
+      renderGameError(err.message);
     }
+  }
+
+  function renderGameError(message) {
+    document.getElementById('gameTitle').textContent = "เกิดข้อผิดพลาดในการโหลดเกม";
+    document.getElementById('gameDesc').textContent = "ขออภัยในความไม่สะดวกครับเด็กๆ";
+    document.getElementById('gameView').innerHTML = `
+      <div class="card p-16 t-center animate-in" style="max-width: 600px; margin: 40px auto; border: 1.5px solid var(--border-subtle);">
+        <div class="avatar mb-6 animate-pulse" style="margin:0 auto; width:80px; height:80px; background:var(--color-error-50); color:var(--color-error-500); border:none; border-radius: 24px;">
+          <span data-icon="alert" style="width:40px; height:40px;"></span>
+        </div>
+        <h3 class="t-title mb-4" style="font-size: 1.5rem; color: var(--color-error-600);">ไม่สามารถเริ่มกิจกรรมเกมได้</h3>
+        <p class="t-body">เกิดข้อผิดพลาดในการเตรียมระบบเกมนี้สำหรับคุณครูและนักเรียน<br><span class="t-xs t-secondary">${message || ''}</span></p>
+        <div class="flex gap-4 justify-center mt-8">
+          <button onclick="location.reload()" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">ลองใหม่อีกครั้ง</button>
+          <a href="dashboard.html" class="btn btn-outline" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">กลับหน้าหลัก</a>
+        </div>
+      </div>
+    `;
+    if (window.UI && window.UI.initIcons) window.UI.initIcons();
   }
 
   function renderGame() {

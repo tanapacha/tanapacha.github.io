@@ -47,6 +47,13 @@ window.UI = {
       avatar.style.display = 'flex';
       skeleton?.classList.add('hidden');
     }
+    
+    // Unhide teacher menus if user is admin
+    if (user.role === 'admin' || user.role === 'teacher') {
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = 'block';
+      });
+    }
   },
   toast: function(message, type = 'success') {
     const toast = document.createElement('div');
@@ -66,9 +73,22 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.setupUserMenu(user);
     // Active sidebar
     const currentFile = location.pathname.split('/').pop() || 'index.html';
-    document.querySelectorAll('.sidebar-nav-item').forEach(link => {
-      if (link.getAttribute('href') === currentFile) link.classList.add('active');
+    document.querySelectorAll('.sidebar-nav-item, .sidebar-sub-item').forEach(link => {
+      link.classList.remove('active');
+      if (link.classList.contains('sidebar-sub-item')) link.style.color = 'var(--text-secondary)';
+      
+      const targetPage = link.getAttribute('data-page') || link.getAttribute('href');
+      if (targetPage && currentFile.includes(targetPage)) {
+        link.classList.add('active');
+        if (link.classList.contains('sidebar-sub-item')) link.style.color = 'var(--color-primary-600)';
+      }
     });
+
+    const activeSub = document.querySelector('.sidebar-sub-item.active');
+    if (activeSub) {
+      const parentManage = document.querySelector('.sidebar-nav-item[data-page="teacher-manage-content.html"]');
+      if (parentManage) parentManage.classList.add('active');
+    }
   }
   
   document.querySelectorAll('[data-action="logout"]').forEach(btn => {

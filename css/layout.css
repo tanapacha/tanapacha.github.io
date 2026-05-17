@@ -1,8 +1,12 @@
 /* =========================================================
-   Layout — Stable App Shell (V5.0 - GLASSMOPHISM)
+   Layout — Clean App Shell (V5.0 - PROFESSIONAL MINIMAL)
    ========================================================= */
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+}
 
 body { 
   font-family: var(--font-main); 
@@ -10,84 +14,102 @@ body {
   color: var(--text-primary); 
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .app {
   display: flex;
   min-height: 100vh;
+  position: relative;
 }
 
-/* --- Sidebar --- */
+/* --- Clean Flat Sidebar --- */
 .sidebar {
-  width: 280px;
+  width: 260px;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
-  padding: var(--sp-10) var(--sp-6);
+  padding: var(--sp-6) var(--sp-4);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-default);
   z-index: 100;
   flex-shrink: 0;
-  transition: width 0.3s var(--ease-premium);
+  transition: transform var(--duration-normal) var(--ease-premium);
 }
 
 .sidebar-logo {
-  padding: 0 var(--sp-2) var(--sp-10);
+  padding: var(--sp-2) var(--sp-4) var(--sp-6);
   display: flex;
   align-items: center;
-  gap: var(--sp-4);
+  gap: var(--sp-3);
 }
 
 .sidebar-logo img {
-  width: 52px; height: 52px;
+  width: 40px; 
+  height: 40px;
   object-fit: contain;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
 }
 
 .sidebar-logo-text {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--neutral-900);
   line-height: 1.1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
 }
 
-/* --- Sidebar Sections & Nav --- */
-.sidebar-section { margin-top: var(--sp-6); }
+/* --- Sidebar Menu Section --- */
+.sidebar-section { 
+  margin-top: var(--sp-4); 
+}
+
 .sidebar-section-label {
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--neutral-300);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--neutral-400);
   padding: 0 var(--sp-4);
-  margin-bottom: var(--sp-3);
+  margin-bottom: var(--sp-2);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
 }
 
+/* --- Sidebar Nav Item with complete State System --- */
 .sidebar-nav-item {
   display: flex;
   align-items: center;
-  gap: var(--sp-4);
+  gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   font-weight: 600;
   text-decoration: none;
+  font-size: 0.875rem;
   transition: all var(--duration-fast) var(--ease-premium);
-  margin-bottom: 4px;
-  font-size: 0.9375rem;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
 }
 
+/* Hover state */
 .sidebar-nav-item:hover {
   background: var(--neutral-100);
-  color: var(--text-primary);
-  transform: translateX(4px);
+  color: var(--neutral-900);
 }
 
+/* Active state (Pressed) */
+.sidebar-nav-item:active {
+  transform: translateY(1px);
+}
+
+/* Selected active page state (Flat, clean, NO side-stripes) */
 .sidebar-nav-item.active {
   background: var(--color-primary-50);
   color: var(--color-primary-600);
-  box-shadow: 0 2px 8px rgba(251, 86, 7, 0.08);
+  border-color: var(--color-primary-100);
+  font-weight: 700;
 }
 
 .nav-icon {
@@ -98,48 +120,63 @@ body {
   justify-content: center;
 }
 
-/* --- Sidebar Footer --- */
+/* --- Sidebar Footer & User Profile --- */
 .sidebar-footer { 
   margin-top: auto; 
-  padding-top: var(--sp-8);
-  border-top: 1.5px solid var(--border-subtle); 
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border-default); 
 }
+
 .sidebar-user { 
   display: flex; 
   align-items: center; 
-  gap: var(--sp-4); 
+  gap: var(--sp-3); 
 }
-.sidebar-user-info { flex: 1; min-width: 0; }
+
+.sidebar-user-info { 
+  flex: 1; 
+  min-width: 0; 
+}
+
 .sidebar-user-name { 
   font-weight: 700; 
-  font-size: 0.9rem; 
+  font-size: 0.875rem; 
   color: var(--neutral-900); 
   white-space: nowrap; 
   overflow: hidden; 
   text-overflow: ellipsis; 
 }
+
 .sidebar-user-role { 
   font-size: 0.75rem; 
   color: var(--text-secondary); 
-  font-weight: 600; 
+  font-weight: 500; 
 }
 
 .btn-logout {
-  width: 40px; height: 40px;
-  border-radius: var(--radius-md);
+  width: 36px; 
+  height: 36px;
+  border-radius: var(--radius-sm);
   background: var(--neutral-100);
-  color: var(--neutral-800);
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.3s var(--ease-premium);
-  border: none; cursor: pointer;
-}
-.btn-logout:hover {
-  background: oklch(90% 0.15 25 / 0.1);
-  color: var(--color-error);
-  transform: scale(1.1);
+  color: var(--neutral-600);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-premium);
+  border: none; 
+  cursor: pointer;
 }
 
-/* --- Main Content --- */
+.btn-logout:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.btn-logout:active {
+  transform: translateY(1px);
+}
+
+/* --- Main Content Shell --- */
 .main-content {
   flex: 1;
   min-width: 0;
@@ -148,71 +185,87 @@ body {
   height: 100vh;
   overflow-y: auto;
   scroll-behavior: smooth;
+  background: var(--bg-app);
 }
 
 .page-header {
-  padding: var(--sp-8) var(--sp-12);
+  padding: var(--sp-6) var(--sp-8);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 90;
 }
 
 .page-body {
-  padding: var(--sp-8) var(--sp-12) var(--sp-16);
+  padding: var(--sp-8);
   flex: 1;
 }
 
-/* --- Auth Layout (Login/Register) --- */
+/* --- Auth Layout (Login/Register) without noisy blur blobs --- */
 .auth-page {
   background: var(--bg-app);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: var(--sp-4);
   position: relative;
-  overflow: hidden;
-}
-
-.auth-page::before {
-  content: '';
-  position: absolute;
-  top: -10%; left: -5%; width: 500px; height: 500px;
-  background: var(--color-primary-500);
-  opacity: 0.08; filter: blur(120px); border-radius: 50%;
-}
-
-.auth-page::after {
-  content: '';
-  position: absolute;
-  bottom: -10%; right: -5%; width: 600px; height: 600px;
-  background: var(--color-purple-500);
-  opacity: 0.08; filter: blur(150px); border-radius: 50%;
 }
 
 .auth-card {
   background: var(--bg-surface);
   width: 100%;
-  max-width: 480px;
-  padding: var(--sp-12);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-premium);
-  border: 1.5px solid var(--border-subtle);
+  max-width: 440px;
+  padding: var(--sp-10);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-default);
   position: relative;
   z-index: 10;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: var(--sp-10);
+  margin-bottom: var(--sp-8);
 }
 
 .auth-logo {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--sp-8);
+  margin-bottom: var(--sp-4);
 }
+
 .auth-logo img {
-  width: 80px; height: 80px;
+  width: 64px; 
+  height: 64px;
   object-fit: contain;
 }
+
+/* --- Responsive Navigation Drawer Architecture --- */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .page-header {
+    padding: var(--sp-4) var(--sp-6);
+  }
+
+  .page-body {
+    padding: var(--sp-4);
+  }
+}
+

@@ -14,21 +14,48 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="sidebar-logo" style="padding-bottom:var(--sp-4);">
-      <a href="dashboard.html" class="flex items-center gap-2 t-secondary t-small" style="margin-bottom:var(--sp-4);">
-        <span data-icon="left"></span> กลับหน้าหลัก
-      </a>
-      <div class="fw-semibold flex items-center gap-2" style="font-size:var(--text-sm);color:var(--text-primary);"><span data-icon="monitor"></span> วิทยาการคำนวณ</div>
+    <div class="sidebar-logo">
+      <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
+      <div class="sidebar-logo-text">KIDDO</div>
+    </div>
+    
+    
+    
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">เมนูการเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard.html"><span class="nav-icon" data-icon="home"></span>หน้าแรก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item" data-page="lessons-list.html"><span class="nav-icon" data-icon="bookOpen"></span>บทเรียนของฉัน</a>
+      <a href="assignments.html" class="sidebar-nav-item" data-page="assignments.html"><span class="nav-icon" data-icon="upload"></span>ภารกิจและส่งงาน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item" data-page="quiz-list.html"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="report.html" class="sidebar-nav-item" data-page="report.html"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
     </div>
 
-    <div class="sidebar-section" id="sidebarLessons" style="padding-top:0;">
-      <div class="p-4 t-center t-secondary t-xs">กำลังโหลดเมนู...</div>
+    <!-- Admin Only Section -->
+    <div class="sidebar-section admin-only" style="margin-top: var(--sp-4); display: none;">
+      <div class="sidebar-section-label">เมนูการจัดการ (ครู)</div>
+      <a href="teacher-dashboard.html" class="sidebar-nav-item" data-page="teacher-dashboard.html"><span class="nav-icon" data-icon="home"></span>แผงควบคุม</a>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item" data-page="teacher-manage-content.html"><span class="nav-icon" data-icon="bookOpen"></span>จัดการเนื้อหา</a>
+      <div class="flex flex-col gap-1 mb-2" style="padding-left: 2.75rem; border-left: 1.5px solid var(--border-subtle); margin-left: 1.25rem;">
+        <a href="teacher-create-lesson.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-lesson.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างบทเรียน</a>
+        <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-exercise.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
+        <a href="teacher-create-problem.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-problem.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างโจทย์</a>
+        <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-game.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
+      </div>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
     </div>
+    
+    
 
     <div class="sidebar-footer">
-      <a href="#" data-action="logout" class="btn btn-ghost btn-sm w-full" style="justify-content:flex-start;gap:var(--sp-2);">
-        <span data-icon="logout"></span> ออกจากระบบ
-      </a>
+      <div class="sidebar-user">
+        <div class="avatar" data-user="avatar" style="background:var(--color-primary-500); color:white; border:none; width: 36px; height: 36px;">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user="name">นักเรียน</div>
+          <div class="sidebar-user-role" data-user="role">ชั้นเรียน</div>
+        </div>
+        <button data-action="logout" class="btn-logout"><span data-icon="logout"></span></button>
+      </div>
     </div>
   </aside>
 
@@ -177,7 +204,7 @@
            
            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:var(--sp-4);">
              <a href="play-problem.html?id=${currentLesson.ID}" class="card flex flex-col items-center gap-4 p-6 t-center hover-scale" style="text-decoration:none; border: 2px solid var(--color-primary-100);">
-                <div style="width:48px; height:48px; border-radius:50%; background:var(--color-primary-50); display:flex; align-items:center; justify-content:center; color:var(--color-primary-500);">
+                <div style="width:48px; height:48px; border-radius:var(--radius-sm); background:var(--color-primary-50); display:flex; align-items:center; justify-content:center; color:var(--color-primary-500);">
                   <span data-icon="task" style="width:24px; height:24px;"></span>
                 </div>
                 <div>
@@ -188,7 +215,7 @@
              </a>
 
              <a href="game.html?id=${currentLesson.ID}" class="card flex flex-col items-center gap-4 p-6 t-center hover-scale" style="text-decoration:none; border: 2px solid var(--color-warning-100);">
-                <div style="width:48px; height:48px; border-radius:50%; background:var(--color-warning-50); display:flex; align-items:center; justify-content:center; color:var(--color-warning-500);">
+                <div style="width:48px; height:48px; border-radius:var(--radius-sm); background:var(--color-warning-50); display:flex; align-items:center; justify-content:center; color:var(--color-warning-500);">
                   <span data-icon="sparkles" style="width:24px; height:24px;"></span>
                 </div>
                 <div>
@@ -199,7 +226,7 @@
              </a>
 
              <a href="submit-exercise.html?id=${currentLesson.ID}" class="card flex flex-col items-center gap-4 p-6 t-center hover-scale" style="text-decoration:none; border: 2px solid var(--color-success-100);">
-                <div style="width:48px; height:48px; border-radius:50%; background:var(--color-success-bg); display:flex; align-items:center; justify-content:center; color:var(--color-success);">
+                <div style="width:48px; height:48px; border-radius:var(--radius-sm); background:var(--color-success-bg); display:flex; align-items:center; justify-content:center; color:var(--color-success);">
                   <span data-icon="upload" style="width:24px; height:24px;"></span>
                 </div>
                 <div>

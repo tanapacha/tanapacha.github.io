@@ -43,12 +43,12 @@
     /* Grade Pills */
     .grade-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .grade-pill {
-      padding: 10px 20px; border-radius: 999px; font-size: 0.85rem; font-weight: 700;
+      padding: 10px 20px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700;
       border: 2px solid var(--border-default); background: white; cursor: pointer;
       transition: all 0.2s ease; user-select: none;
     }
     .grade-pill:hover { transform: scale(1.05); }
-    .grade-pill.active { color: white; border-color: transparent; transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .grade-pill.active { color: white; border-color: transparent; transform: scale(1.02); box-shadow: var(--shadow-sm); }
     .grade-pill[data-grade="ป.3"].active { background: #0D47A1; }
     .grade-pill[data-grade="ป.4"].active { background: #1B5E20; }
     .grade-pill[data-grade="ป.5"].active { background: #E65100; }
@@ -61,36 +61,46 @@
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-mark">
-        <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-        <div class="sidebar-logo-text">KIDDO<span>วิทยาการคำนวณ ป.4</span></div>
-      </div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">บทเรียน</div>
-      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
-      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
-      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>แบบฝึกหัด</a>
-      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>ส่งงาน<span class="badge badge-warning nav-badge">1</span></a>
-      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
+      <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
+      <div class="sidebar-logo-text">KIDDO</div>
     </div>
     
-    <div class="sidebar-section" id="teacherSection">
-      <div class="sidebar-section-label">สำหรับคุณครู</div>
-      <a href="teacher-manage-content.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="users"></span>จัดการเนื้อหา</a>
-      <a href="teacher-create-quiz.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="task"></span>สร้างแบบฝึกหัด</a>
-      <a href="teacher-check-assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
-      <a href="teacher-student-grades.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>ดูคะแนนนักเรียน</a>
+    
+    
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">เมนูการเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard.html"><span class="nav-icon" data-icon="home"></span>หน้าแรก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item" data-page="lessons-list.html"><span class="nav-icon" data-icon="bookOpen"></span>บทเรียนของฉัน</a>
+      <a href="assignments.html" class="sidebar-nav-item" data-page="assignments.html"><span class="nav-icon" data-icon="upload"></span>ภารกิจและส่งงาน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item" data-page="quiz-list.html"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="report.html" class="sidebar-nav-item" data-page="report.html"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
     </div>
+
+    <!-- Admin Only Section -->
+    <div class="sidebar-section admin-only" style="margin-top: var(--sp-4); display: none;">
+      <div class="sidebar-section-label">เมนูการจัดการ (ครู)</div>
+      <a href="teacher-dashboard.html" class="sidebar-nav-item" data-page="teacher-dashboard.html"><span class="nav-icon" data-icon="home"></span>แผงควบคุม</a>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item" data-page="teacher-manage-content.html"><span class="nav-icon" data-icon="bookOpen"></span>จัดการเนื้อหา</a>
+      <div class="flex flex-col gap-1 mb-2" style="padding-left: 2.75rem; border-left: 1.5px solid var(--border-subtle); margin-left: 1.25rem;">
+        <a href="teacher-create-lesson.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-lesson.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างบทเรียน</a>
+        <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-exercise.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
+        <a href="teacher-create-problem.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-problem.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างโจทย์</a>
+        <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-game.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
+      </div>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
+    </div>
+    
+    
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="avatar" data-user="avatar"><span data-icon="users"></span></div>
+        <div class="avatar" data-user="avatar" style="background:var(--color-primary-500); color:white; border:none; width: 36px; height: 36px;">?</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name" data-user="name">กำลังโหลด...</div>
-          <div class="sidebar-user-role" data-user="role">คุณครู</div>
+          <div class="sidebar-user-name" data-user="name">คุณครู</div>
+          <div class="sidebar-user-role" data-user="role">แอดมินระบบ</div>
         </div>
-        <a href="#" data-action="logout" class="btn btn-ghost btn-icon btn-sm" title="ออกจากระบบ"><span data-icon="logout"></span></a>
+        <button data-action="logout" class="btn-logout"><span data-icon="logout"></span></button>
       </div>
     </div>
   </aside>
@@ -119,16 +129,16 @@
           <input type="text" class="form-control" placeholder="เช่น แบบฝึกหัด, กิจกรรมท้ายบท, หรือชื่อประเภทที่ต้องการ...">
           <p class="t-xs t-secondary mt-1">พิมพ์ประเภทของกิจกรรมเพื่อใช้ในการแบ่งหมวดหมู่ในสมุดพก</p>
         </div>
-        <div class="form-group" style="background:#E3F2FD; padding:var(--sp-4); border-radius:var(--radius-lg); border:1px solid #BBDEFB;">
-          <label class="form-label" style="color:#0D47A1;">🎯 เลือกระดับชั้นเป้าหมาย</label>
+        <div class="form-group" style="background: var(--neutral-50); padding:var(--sp-4); border-radius:var(--radius-sm); border:1px solid var(--border-default);">
+          <label class="form-label">เลือกระดับชั้นเป้าหมาย</label>
           <div class="grade-pills" id="gradePills">
             <button type="button" class="grade-pill" data-grade="ป.3" onclick="pickGrade(this)">ป.3</button>
             <button type="button" class="grade-pill active" data-grade="ป.4" onclick="pickGrade(this)">ป.4</button>
             <button type="button" class="grade-pill" data-grade="ป.5" onclick="pickGrade(this)">ป.5</button>
             <button type="button" class="grade-pill" data-grade="ป.6" onclick="pickGrade(this)">ป.6</button>
-            <button type="button" class="grade-pill" data-grade="ทั้งหมด" onclick="pickGrade(this)">🌐 ทั้งหมด</button>
+            <button type="button" class="grade-pill" data-grade="ทั้งหมด" onclick="pickGrade(this)">ทั้งหมด</button>
           </div>
-          <span class="grade-error" id="gradeError">⚠️ กรุณาเลือกระดับชั้นก่อนบันทึก</span>
+          <span class="grade-error" id="gradeError">กรุณาเลือกระดับชั้นก่อนบันทึก</span>
         </div>
         <div class="form-group">
           <label class="form-label">บทเรียนที่เกี่ยวข้อง (ระบุรหัสหรือชื่อบทเรียน)</label>

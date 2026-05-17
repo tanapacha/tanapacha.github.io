@@ -12,30 +12,46 @@
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-mark">
-      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
-      </div>
+      <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
+      <div class="sidebar-logo-text">KIDDO</div>
     </div>
+    
+    
+    
     <div class="sidebar-section">
-      <div class="sidebar-section-label">Learning Menu</div>
-      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
-      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
-      <a href="quiz-list.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
-      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>แบบฝึกหัด</a>
-      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>สมุดพก</a>
+      <div class="sidebar-section-label">เมนูการเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard.html"><span class="nav-icon" data-icon="home"></span>หน้าแรก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item" data-page="lessons-list.html"><span class="nav-icon" data-icon="bookOpen"></span>บทเรียนของฉัน</a>
+      <a href="assignments.html" class="sidebar-nav-item" data-page="assignments.html"><span class="nav-icon" data-icon="upload"></span>ภารกิจและส่งงาน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item" data-page="quiz-list.html"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="report.html" class="sidebar-nav-item" data-page="report.html"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
     </div>
+
+    <!-- Admin Only Section -->
+    <div class="sidebar-section admin-only" style="margin-top: var(--sp-4); display: none;">
+      <div class="sidebar-section-label">เมนูการจัดการ (ครู)</div>
+      <a href="teacher-dashboard.html" class="sidebar-nav-item" data-page="teacher-dashboard.html"><span class="nav-icon" data-icon="home"></span>แผงควบคุม</a>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item" data-page="teacher-manage-content.html"><span class="nav-icon" data-icon="bookOpen"></span>จัดการเนื้อหา</a>
+      <div class="flex flex-col gap-1 mb-2" style="padding-left: 2.75rem; border-left: 1.5px solid var(--border-subtle); margin-left: 1.25rem;">
+        <a href="teacher-create-lesson.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-lesson.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างบทเรียน</a>
+        <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-exercise.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
+        <a href="teacher-create-problem.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-problem.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างโจทย์</a>
+        <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-game.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
+      </div>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
+    </div>
+    
+    
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="avatar" data-user="avatar" style="background: var(--grad-primary); color: white; border: none;">?</div>
+        <div class="avatar" data-user="avatar" style="background:var(--color-primary-500); color:white; border:none; width: 36px; height: 36px;">?</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name" data-user="name">...</div>
-          <div class="sidebar-user-role" data-user="role">นักเรียน</div>
+          <div class="sidebar-user-name" data-user="name">นักเรียน</div>
+          <div class="sidebar-user-role" data-user="role">ชั้นเรียน</div>
         </div>
-        <button data-action="logout" class="btn-logout" title="ออกจากระบบ">
-          <span data-icon="logout"></span>
-        </button>
+        <button data-action="logout" class="btn-logout"><span data-icon="logout"></span></button>
       </div>
     </div>
   </aside>
@@ -52,7 +68,7 @@
       <div class="animate-in">
         <div class="flex items-center justify-between mb-8">
           <div class="flex items-center gap-4">
-            <div class="badge badge-primary" style="padding: 6px 16px;">🔥 ภารกิจใหม่</div>
+            <div class="badge badge-primary" style="padding: 6px 16px;">ภารกิจใหม่</div>
             <h2 class="t-title" style="font-size: 1.5rem;">โจทย์ปัญหาทั้งหมด</h2>
           </div>
           <div class="t-xs fw-bold t-secondary" id="quizCount">กำลังโหลด...</div>
@@ -121,7 +137,7 @@
               </div>
               <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีโจทย์ปัญหา</h3>
               <p class="t-body">${filterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาสำหรับชั้นของคุณในขณะนี้'}</p>
-              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-full);">กลับไปหน้าหลัก</a>
+              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-sm);">กลับไปหน้าหลัก</a>
             </div>
           `;
           if (window.app && window.app.initIcons) window.app.initIcons();
@@ -153,7 +169,7 @@
           return `
             <div class="card flex flex-col animate-in" style="animation-delay: ${idx * 100}ms;">
               <div class="flex items-center gap-5 mb-6">
-                <div class="avatar" style="background:var(--color-amber-50); color:var(--color-amber-500); border:none; border-radius: 12px; width: 48px; height: 48px;">
+                <div class="avatar" style="background:var(--color-amber-50); color:var(--color-amber-500); border:none; border-radius: var(--radius-sm); width: 48px; height: 48px;">
                   <span data-icon="task"></span>
                 </div>
                 <div class="flex-1">
@@ -170,11 +186,11 @@
               
               <div class="flex flex-col gap-3">
                 ${hasVideo ? `
-                  <a href="${lessonVideo}" target="_blank" class="btn btn-outline btn-block" style="border-color:var(--color-primary-100); color:var(--color-primary-600); border-radius: var(--radius-lg); height: 48px; font-weight: 800;">
+                  <a href="${lessonVideo}" target="_blank" class="btn btn-outline btn-block" style="border-color:var(--color-primary-100); color:var(--color-primary-600); border-radius: var(--radius-sm); height: 48px; font-weight: 800;">
                     <span data-icon="video" style="margin-right: 8px;"></span> ทบทวนบทเรียน
                   </a>
                 ` : ''}
-                <a href="${finalLink}" target="${target}" class="btn btn-primary btn-block" style="border-radius: var(--radius-lg); height: 48px; font-weight: 800;">
+                <a href="${finalLink}" target="${target}" class="btn btn-primary btn-block" style="border-radius: var(--radius-sm); height: 48px; font-weight: 800;">
                   เริ่มทำโจทย์ <span data-icon="arrow-right" style="margin-left: 8px;"></span>
                 </a>
               </div>

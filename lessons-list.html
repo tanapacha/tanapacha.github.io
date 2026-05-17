@@ -77,28 +77,46 @@
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
+      <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
+      <div class="sidebar-logo-text">KIDDO</div>
     </div>
+    
+    
+    
     <div class="sidebar-section">
-      <div class="sidebar-section-label">Learning Menu</div>
-      <a href="dashboard.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
-      <a href="lessons-list.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
-      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
-      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>แบบฝึกหัด</a>
-      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>สมุดพก</a>
+      <div class="sidebar-section-label">เมนูการเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item" data-page="dashboard.html"><span class="nav-icon" data-icon="home"></span>หน้าแรก</a>
+      <a href="lessons-list.html" class="sidebar-nav-item" data-page="lessons-list.html"><span class="nav-icon" data-icon="bookOpen"></span>บทเรียนของฉัน</a>
+      <a href="assignments.html" class="sidebar-nav-item" data-page="assignments.html"><span class="nav-icon" data-icon="upload"></span>ภารกิจและส่งงาน</a>
+      <a href="quiz-list.html" class="sidebar-nav-item" data-page="quiz-list.html"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
+      <a href="report.html" class="sidebar-nav-item" data-page="report.html"><span class="nav-icon" data-icon="chart"></span>ผลการเรียน</a>
     </div>
+
+    <!-- Admin Only Section -->
+    <div class="sidebar-section admin-only" style="margin-top: var(--sp-4); display: none;">
+      <div class="sidebar-section-label">เมนูการจัดการ (ครู)</div>
+      <a href="teacher-dashboard.html" class="sidebar-nav-item" data-page="teacher-dashboard.html"><span class="nav-icon" data-icon="home"></span>แผงควบคุม</a>
+      <a href="teacher-manage-content.html" class="sidebar-nav-item" data-page="teacher-manage-content.html"><span class="nav-icon" data-icon="bookOpen"></span>จัดการเนื้อหา</a>
+      <div class="flex flex-col gap-1 mb-2" style="padding-left: 2.75rem; border-left: 1.5px solid var(--border-subtle); margin-left: 1.25rem;">
+        <a href="teacher-create-lesson.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-lesson.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างบทเรียน</a>
+        <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-exercise.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
+        <a href="teacher-create-problem.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-problem.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างโจทย์</a>
+        <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-game.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
+      </div>
+      <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
+      <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
+    </div>
+    
+    
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="avatar" data-user="avatar" style="background: var(--grad-primary); color: white; border: none;">?</div>
+        <div class="avatar" data-user="avatar" style="background:var(--color-primary-500); color:white; border:none; width: 36px; height: 36px;">?</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name" data-user="name">...</div>
-          <div class="sidebar-user-role" data-user="role">นักเรียน</div>
+          <div class="sidebar-user-name" data-user="name">นักเรียน</div>
+          <div class="sidebar-user-role" data-user="role">ชั้นเรียน</div>
         </div>
-        <button data-action="logout" class="btn-logout" title="ออกจากระบบ">
-          <span data-icon="logout"></span>
-        </button>
+        <button data-action="logout" class="btn-logout"><span data-icon="logout"></span></button>
       </div>
     </div>
   </aside>
@@ -132,12 +150,6 @@
     const user = Auth.requireAuth();
     if (!user) return;
 
-    // Update sidebar grade label
-    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
-    if (gradeLabel && user.grade) {
-      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
-    }
-
     // Pass student's grade for server-side filtering
     const userGrade = (user.role === 'user' && user.grade) ? user.grade : null;
 
@@ -145,7 +157,7 @@
       const res = await ApiService.getLessons(userGrade);
       const container = document.getElementById('chaptersContainer');
       
-        if (res.status === 'success') {
+      if (res.status === 'success') {
         const lessons = res.data;
         if (!lessons || lessons.length === 0) {
           container.innerHTML = `
@@ -155,12 +167,13 @@
               </div>
               <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีบทเรียนในชั้นนี้</h3>
               <p class="t-body">คุณครูยังไม่ได้เพิ่มบทเรียนสำหรับชั้น ${user.grade || ''} <br>ลองกลับมาดูใหม่อีกครั้งในภายหลังนะครับ</p>
-              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-full);">กลับไปหน้าหลัก</a>
+              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-sm);">กลับไปหน้าหลัก</a>
             </div>
           `;
-          if (window.app && window.app.initIcons) window.app.initIcons();
+          if (window.UI && window.UI.initIcons) window.UI.initIcons();
           return;
         }
+        
         // Group by Category
         const categories = [];
         lessons.forEach(l => {
@@ -179,10 +192,10 @@
           }
           
           return `
-            <div class="chapter-card animate-in" id="chap-${idx}" style="animation-delay: ${idx * 100}ms;">
+            <div class="chapter-card active animate-in" id="chap-${idx}" style="animation-delay: ${idx * 100}ms;">
               <div class="chapter-header" onclick="toggleChapter(${idx})">
                 <div class="flex items-center gap-6">
-                  <div class="avatar" style="background:var(--color-primary-50); color:var(--color-primary-600); font-weight:800; border-radius: 12px; width: 48px; height: 48px; border: none;">${idx + 1}</div>
+                  <div class="avatar" style="background:var(--color-primary-50); color:var(--color-primary-600); font-weight:800; border-radius: var(--radius-sm); width: 48px; height: 48px; border: none;">${idx + 1}</div>
                   <div>
                     <div class="t-title" style="font-size: 1.25rem;">${displayTitle}</div>
                     <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${chapterLessons.length} บทเรียนย่อยในหน่วยนี้</div>
@@ -193,30 +206,44 @@
               <div class="lesson-list" style="padding: 0 var(--sp-4) var(--sp-4);">
                 ${chapterLessons.map(lesson => `
                   <a href="play-lesson.html?id=${lesson.ID}" class="lesson-item" style="border-radius: var(--radius-lg); border-bottom: none; margin-bottom: 4px; padding: var(--sp-4) var(--sp-6);">
-                    <div class="lesson-icon" style="background: var(--neutral-50); border-radius: 10px;">
+                    <div class="lesson-icon" style="background: var(--neutral-50); border-radius: var(--radius-sm);">
                       <span data-icon="${lesson.Type === 'video' ? 'play' : 'book'}"></span>
                     </div>
                     <div class="flex-1">
                       <div class="fw-bold" style="font-size: 0.9375rem; color: var(--neutral-900);">${lesson.Title}</div>
                       <div class="t-xs" style="color: var(--text-secondary); font-weight: 600; margin-top: 2px;">${lesson.Category || 'เนื้อหาเรียนรู้'}</div>
                     </div>
-                    <div class="btn btn-outline btn-sm" style="border-radius: var(--radius-full); font-weight: 800; padding: 0 16px;">เริ่มเรียน</div>
+                    <div class="btn btn-outline btn-sm" style="border-radius: var(--radius-xs); font-weight: 800; padding: 0 16px;">เริ่มเรียน</div>
                   </a>
                 `).join('')}
               </div>
             </div>
           `;
         }).join('');
-
         
-        if (window.app && window.app.initIcons) window.app.initIcons();
-        
-        // Auto-open first chapter
-        if (categories.length > 0) toggleChapter(0);
+        if (window.UI && window.UI.initIcons) window.UI.initIcons();
+      } else {
+        renderError(res.message);
       }
     } catch (err) {
       console.error("Lessons list error:", err);
+      renderError(err.message);
     }
+  }
+
+  function renderError(message) {
+    const container = document.getElementById('chaptersContainer');
+    container.innerHTML = `
+      <div class="card p-16 t-center animate-in" style="max-width: 600px; margin: 40px auto; border: 1.5px solid var(--border-subtle);">
+        <div class="avatar mb-6 animate-pulse" style="margin:0 auto; width:80px; height:80px; background:var(--color-error-50); color:var(--color-error-500); border:none; border-radius: 24px;">
+          <span data-icon="alert" style="width:40px; height:40px;"></span>
+        </div>
+        <h3 class="t-title mb-4" style="font-size: 1.5rem; color: var(--color-error-600);">ไม่สามารถโหลดบทเรียนได้</h3>
+        <p class="t-body">เกิดปัญหาในการดึงข้อมูลจากเซิร์ฟเวอร์ หรือเซิร์ฟเวอร์ปลายทางอยู่ระหว่างเริ่มการทำงานใหม่<br><span class="t-xs t-secondary">${message || ''}</span></p>
+        <button onclick="location.reload()" class="btn btn-primary mt-8" style="height: 44px; padding: 0 24px; border-radius: var(--radius-sm);">ลองใหม่อีกครั้ง</button>
+      </div>
+    `;
+    if (window.UI && window.UI.initIcons) window.UI.initIcons();
   }
 
   function toggleChapter(idx) {

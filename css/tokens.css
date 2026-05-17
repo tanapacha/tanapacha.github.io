@@ -1,98 +1,184 @@
 /* =========================================================
-   KIDDO LEARNING — Design Tokens (V4.1 - STABLE PREMIUM)
+   KIDDO LEARNING — Design Tokens (V5.0 - PROFESSIONAL MINIMAL)
    ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* --- KIDDO Premium OKLCH Palette --- */
-  --color-primary-50:  oklch(96% 0.02 35);
-  --color-primary-100: oklch(90% 0.08 35);
-  --color-primary-500: oklch(68% 0.22 35);
-  --color-primary-600: oklch(62% 0.24 35);
-  --color-primary-700: oklch(55% 0.22 35);
-
-  --color-purple-500: oklch(55% 0.20 270);
-  --color-purple-600: oklch(48% 0.22 270);
-
-  --color-amber-500:  oklch(85% 0.18 85);
-  --color-success:     oklch(70% 0.18 150);
-  --color-error:       oklch(65% 0.22 25);
-  --color-warning:     oklch(85% 0.18 85);
-
-  /* Neutrals (Tinted Navy) */
+  /* --- Neutrals (Tinted Navy / Slate) --- */
   --neutral-50:  oklch(98% 0.005 240);
-  --neutral-100: oklch(96% 0.01 240);
-  --neutral-200: oklch(92% 0.015 240);
-  --neutral-300: oklch(88% 0.02 240);
-  --neutral-800: oklch(35% 0.02 240);
-  --neutral-900: oklch(20% 0.03 240);
+  --neutral-100: oklch(96% 0.008 240);
+  --neutral-200: oklch(93% 0.01 240);
+  --neutral-300: oklch(88% 0.015 240);
+  --neutral-400: oklch(75% 0.02 240);
+  --neutral-500: oklch(60% 0.02 240);
+  --neutral-600: oklch(45% 0.02 240);
+  --neutral-700: oklch(32% 0.02 240);
+  --neutral-800: oklch(22% 0.025 240);
+  --neutral-900: oklch(15% 0.03 240);
 
-  /* Effects */
-  --grad-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-purple-500));
-  --glass-bg:     rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-blur:   blur(16px);
-  --border-subtle: var(--neutral-100);
+  /* --- Primary Brand Scale (Professional Blue) --- */
+  --color-primary-50:  oklch(96% 0.015 240);
+  --color-primary-100: oklch(92% 0.03 240);
+  --color-primary-200: oklch(84% 0.06 240);
+  --color-primary-300: oklch(74% 0.09 240);
+  --color-primary-400: oklch(64% 0.12 240);
+  --color-primary-500: oklch(54% 0.14 240); /* Main Brand Accent Blue */
+  --color-primary-600: oklch(44% 0.13 240);
+  --color-primary-700: oklch(34% 0.11 240);
+  --color-primary-800: oklch(24% 0.08 240);
 
-  /* Shimmer Animation */
-  --shimmer: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  /* --- Secondary Brand Scale (Unified Slate Blue) --- */
+  --color-purple-50:  oklch(96% 0.012 265);
+  --color-purple-100: oklch(91% 0.025 265);
+  --color-purple-500: oklch(56% 0.11 265); /* Professional Secondary */
+  --color-purple-600: oklch(46% 0.10 265);
 
-  /* Mappings */
-  --bg-app:       oklch(99% 0.005 240);
-  --bg-surface:   oklch(100% 0 0);
-  --text-primary: var(--neutral-900);
-  --text-secondary: oklch(55% 0.02 240);
-  --border-default: var(--neutral-200);
+  /* --- Status Colors (Flat, Restrained, High Contrast) --- */
+  --color-success:     oklch(62% 0.15 145); /* Save / Success (Green) */
+  --color-success-bg:  oklch(96% 0.015 145);
+  --color-success-border: oklch(85% 0.05 145);
 
-  /* Typography & Spacing (Major Third Scale) */
-  --font-main: 'Plus Jakarta Sans', 'Noto Sans Thai', system-ui, sans-serif;
-  --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px; --radius-2xl: 32px; --radius-full: 9999px;
-  
-  --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem; --sp-4: 1rem; --sp-5: 1.25rem; --sp-6: 1.5rem; 
-  --sp-8: 2rem; --sp-10: 2.5rem; --sp-12: 3rem; --sp-16: 4rem; --sp-24: 6rem;
+  --color-error:       oklch(58% 0.16 28);  /* Delete / Danger (Red) */
+  --color-error-bg:    oklch(96% 0.015 28);
+  --color-error-border: oklch(86% 0.05 28);
 
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
-  --shadow-md: 0 12px 24px rgba(0,0,0,0.04);
-  --shadow-premium: 0 24px 60px oklch(20% 0.03 240 / 0.08);
+  --color-warning:     oklch(76% 0.13 75);  /* Warning (Yellow) */
+  --color-warning-bg:  oklch(96% 0.02 75);
+  --color-warning-border: oklch(88% 0.06 75);
 
-  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast: 250ms;
-  --duration-slow: 600ms;
+  --color-info:        oklch(64% 0.11 210); /* Info (Sky Blue) */
+  --color-info-bg:     oklch(96% 0.015 210);
+  --color-info-border: oklch(86% 0.04 210);
+
+  /* Legacy Color mappings to keep compatibility */
+  --color-amber-50:    var(--color-warning-bg);
+  --color-amber-100:   var(--color-warning-border);
+  --color-amber-500:   var(--color-warning);
+
+  /* --- Dark-Mode Ready Semantic Mappings --- */
+  --bg-app:            var(--neutral-50);
+  --bg-surface:        oklch(100% 0 0); /* Pure White */
+  --text-primary:      var(--neutral-900);
+  --text-secondary:    var(--neutral-600);
+  --border-default:    var(--neutral-200);
+  --border-subtle:     var(--neutral-100);
+
+  /* --- Effects & Elevations (Minimal & Soft UI) --- */
+  --grad-primary:      linear-gradient(135deg, var(--color-primary-600), var(--color-primary-500));
+  --glass-bg:          rgba(255, 255, 255, 0.95); /* Swapped heavy blur with clean solid-glass */
+  --glass-border:      var(--neutral-200);
+  --glass-blur:        blur(4px);
+
+  /* Spacing Scale (8px Grid Standard) */
+  --sp-1: 0.25rem;  /* 4px */
+  --sp-2: 0.5rem;   /* 8px */
+  --sp-3: 0.75rem;  /* 12px */
+  --sp-4: 1rem;     /* 16px */
+  --sp-5: 1.25rem;  /* 20px */
+  --sp-6: 1.5rem;   /* 24px */
+  --sp-8: 2rem;     /* 32px */
+  --sp-10: 2.5rem;  /* 40px */
+  --sp-12: 3rem;    /* 48px */
+  --sp-16: 4rem;    /* 64px */
+  --sp-24: 6rem;    /* 96px */
+
+  /* Radius (Consistent & Balanced) */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows (Subtle, Clean, High End) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.04);
+  --shadow-premium: 0 20px 48px rgba(15, 23, 42, 0.05);
+
+  /* Animation & Transitions (Gentle, High Performance) */
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1); /* Ease-out-expo */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* Fonts */
+  --font-main: 'Plus Jakarta Sans', 'Noto Sans Thai', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Animations */
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+/* Accessibility Focus Ring Global Styles */
+*:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
 }
 
-@keyframes animateIn {
-  from { opacity: 0; transform: translateY(10px); }
+/* Base Fade Transitions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.animate-in {
+  animation: fadeIn var(--duration-normal) var(--ease-premium) both;
+}
 
-.animate-in { animation: animateIn 0.8s var(--ease-premium) both; }
+/* Typography Utility Classes */
+.t-display    { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; color: var(--neutral-900); }
+.t-subheading { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; color: var(--neutral-900); }
+.t-title      { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.35; color: var(--neutral-900); }
+.t-body       { font-size: 0.9375rem; font-weight: 400; line-height: 1.6; color: var(--text-secondary); }
+.t-small      { font-size: 0.8125rem; font-weight: 500; line-height: 1.5; color: var(--text-secondary); }
+.t-xs         { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.4; color: var(--neutral-400); }
 
-/* Utilities */
-.t-display    { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; }
-.t-subheading { font-size: 2.441rem; font-weight: 700; letter-spacing: -0.03em; }
-.t-title      { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
-.t-body       { font-size: 1rem; color: var(--text-secondary); line-height: 1.6; }
-.t-small      { font-size: 0.8rem; font-weight: 600; }
-.t-xs         { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
-
-
+/* Colors Utility Classes */
+.t-primary { color: var(--text-primary); }
 .t-secondary { color: var(--text-secondary); }
+.t-muted { color: var(--neutral-400); }
 .t-primary-color { color: var(--color-primary-500); }
 .t-success-color { color: var(--color-success); }
 .t-warning-color { color: var(--color-warning); }
+.t-error-color { color: var(--color-error); }
 
-.flex { display: flex; } .flex-col { flex-direction: column; } .items-center { align-items: center; } .justify-between { justify-content: space-between; }
-.gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; } .gap-10 { gap: 2.5rem; }
-.mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; } .mb-8 { margin-bottom: 2rem; } .mb-12 { margin-bottom: 3rem; }
-.mt-4 { margin-top: 1rem; } .mt-8 { margin-top: 2rem; } .mt-12 { margin-top: 3rem; }
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+/* Flex & Grid Core Utilities */
+.flex { display: flex; } 
+.flex-col { flex-direction: column; } 
+.items-center { align-items: center; } 
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.flex-1 { flex: 1; }
+
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; } 
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; } 
+.gap-6 { gap: 1.5rem; } 
+.gap-8 { gap: 2rem; }
+.gap-10 { gap: 2.5rem; }
+
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; } 
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; } 
+.mb-6 { margin-bottom: 1.5rem; } 
+.mb-8 { margin-bottom: 2rem; } 
+.mb-10 { margin-bottom: 2.5rem; }
+.mb-12 { margin-bottom: 3rem; }
+
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; } 
+.mt-8 { margin-top: 2rem; } 
+.mt-12 { margin-top: 3rem; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-6); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-6); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--sp-6); }
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+}
+
 
