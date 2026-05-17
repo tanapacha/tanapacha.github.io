@@ -765,23 +765,37 @@ function handleCreateLesson(payload) {
   // บันทึกลง Google Sheet
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEETS.LESSONS);
+  
+  // 1. ดึงหัวตารางปัจจุบันเพื่อทำ Dynamic Mapping (ป้องกันปัญหาสลับคอลัมน์/คอลัมน์เลื่อน)
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  
+  // 2. คำนวณ ID และลำดับของบทเรียน
   const lastId = sheet.getLastRow() > 1 ? sheet.getRange(sheet.getLastRow(), 1).getValue() : 'L0';
   const newId = 'L' + (parseInt(String(lastId).replace('L', '') || '0') + 1);
   const lessonGrade = payload.grade || 'ป.4';
   
-  sheet.appendRow([
-    newId,
-    category,
-    title,
-    description || '',
-    videoUrl ? 'video' : (slideUrl ? 'slides' : 'text'),
-    '', // Thumbnail
-    sheet.getLastRow(), // Order
-    '', '', '', '', // Instructions, Criteria, MaxPoints, Deadline
-    videoUrl,   // คอลัมน์ 12 — VideoURL
-    slideUrl,   // คอลัมน์ 13 — SlideURL
-    lessonGrade // คอลัมน์ 14 — Grade
-  ]);
+  // 3. เตรียมข้อมูลให้ตรงตามหัวตารางเป๊ะๆ
+  const data = {
+    ID: newId,
+    Category: category,
+    Title: title,
+    Description: description || '',
+    Type: videoUrl ? 'video' : (slideUrl ? 'slides' : 'text'),
+    Thumbnail: '',
+    Order: sheet.getLastRow(),
+    Instructions: '',
+    Criteria: '',
+    MaxPoints: '',
+    Deadline: '',
+    VideoURL: videoUrl,
+    SlideURL: slideUrl,
+    Grade: lessonGrade
+  };
+
+  // 4. แมพข้อมูลลงช่องตามลำดับหัวตาราง (ถ้าคอลัมน์ไม่มีชื่อจะข้ามไปเป็นค่าว่าง)
+  const row = headers.map(h => (h && data[h] !== undefined) ? data[h] : "");
+  
+  sheet.appendRow(row);
 
   clearServerCache();
   return { status: 'success', lessonId: newId, slideUploaded: !!slideUrl };
