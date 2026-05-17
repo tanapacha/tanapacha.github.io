@@ -3,30 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | KIDDO LEARNING</title>
+  <title>Student Dashboard - KIDDO Learning</title>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <style>
+    .loaded-content { animation: animateIn 0.5s var(--ease-premium) both; }
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><span data-icon="monitor"></span></div>
-      <div class="sidebar-logo-text">KIDDO<span data-bind="gradeLabel">วิทยาการคำนวณ</span></div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Learning Menu</div>
-      <a href="dashboard.html" class="sidebar-nav-item active"><span class="nav-icon" data-icon="home"></span>หน้าหลัก</a>
-      <a href="lessons-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="book"></span>เนื้อหาบทเรียน</a>
-      <a href="quiz-list.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา</a>
-      <a href="assignments.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="upload"></span>แบบฝึกหัด</a>
-      <a href="report.html" class="sidebar-nav-item"><span class="nav-icon" data-icon="chart"></span>สมุดพก</a>
-    </div>
 
+<div class="app">
+  <aside class="sidebar glass-sidebar">
+    <div class="sidebar-logo">
+      <img src="kiddo_learning_logo_1778753164138.png" style="width: 48px; height: 48px; object-fit: contain;">
+      <div class="sidebar-logo-text">KIDDO</div>
+    </div>
+    
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">เมนูการเรียน</div>
+      <a href="dashboard.html" class="sidebar-nav-item">
+        <span class="nav-icon" data-icon="home"></span>หน้าแรก
+      </a>
+      <a href="lessons-list.html" class="sidebar-nav-item">
+        <span class="nav-icon" data-icon="bookOpen"></span>บทเรียนของฉัน
+      </a>
+      <a href="quiz-list.html" class="sidebar-nav-item">
+        <span class="nav-icon" data-icon="task"></span>โจทย์ปัญหา
+      </a>
+      <a href="report.html" class="sidebar-nav-item">
+        <span class="nav-icon" data-icon="chart"></span>ผลการเรียน
+      </a>
+    </div>
+    
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="avatar" data-user="avatar" style="background: var(--grad-primary); color: white; border: none;">?</div>
+        <div class="avatar skeleton" id="userAvatarSkeleton" style="width:40px; height:40px;"></div>
+        <div class="avatar" id="userAvatar" style="display:none; background: var(--grad-primary); color: white; border: none;"></div>
         <div class="sidebar-user-info">
           <div class="sidebar-user-name" data-user="name">กำลังโหลด...</div>
           <div class="sidebar-user-role" data-user="role">นักเรียน</div>
@@ -38,168 +52,131 @@
     </div>
   </aside>
 
-  <div class="main-content">
-    <header class="page-header anim-reveal">
-      <div>
-        <h1 class="t-display">Learning Space</h1>
-        <p class="t-body">ยินดีต้อนรับสู่สนามเด็กเล่นแห่งการเรียนรู้!</p>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="badge badge-success">Online</div>
+  <main class="main-content">
+    <header class="page-header glass-header">
+      <div class="animate-in">
+        <h1 class="t-title" style="font-size: 1.5rem;">สวัสดีครับ, <span data-user="name">...</span>! 👋</h1>
+        <p class="t-small t-secondary">วันนี้พร้อมที่จะเรียนรู้เรื่องใหม่ๆ หรือยังครับ?</p>
       </div>
     </header>
 
-    <div class="page-body anim-reveal delay-1">
-      <!-- Premium Hero Banner -->
-      <div class="glass-hero" style="background: linear-gradient(135deg, var(--color-primary-500), var(--color-purple-500)); position: relative; overflow: hidden;">
-        <div style="position:absolute;inset:0;background:linear-gradient(135deg, rgba(255,107,53,0.15) 0%, rgba(108,99,255,0.15) 100%);backdrop-filter:blur(40px);"></div>
-        <div class="flex flex-col gap-4" style="position:relative; z-index:1;">
-          <div class="badge" style="background: rgba(255,255,255,0.2); color: white; width: fit-content; border: 1px solid rgba(255,255,255,0.3);">ภารกิจประจำวัน</div>
-          <h1 class="t-display" style="color: white;">สวัสดี, <span data-user="name">...</span>! 👋</h1>
-          <p class="t-body" style="color: rgba(255,255,255,0.9); max-width: 600px;">
-            พร้อมสำหรับบทเรียนใหม่หรือยัง? วันนี้เรามีสิ่งที่น่าสนใจรอให้คุณค้นหาเพียบเลย!
-          </p>
-          <div class="flex gap-4 mt-6">
-            <a href="lessons-list.html" class="btn" style="background: white; color: var(--color-primary-500);">เริ่มเรียนต่อ</a>
-            <a href="report.html" class="btn" style="background: rgba(255,255,255,0.1); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">ดูความสำเร็จ</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Stats Row (Gamified) -->
-      <div class="grid-4 mb-8">
+    <div class="page-body">
+      <!-- Student Stats -->
+      <div class="grid-3 mb-10">
         <div class="card stat-item">
-          <span class="stat-label">บทเรียนที่เรียนจบ</span>
-          <div class="flex items-center gap-4">
-            <div id="statLessonsDone" class="stat-value">0</div>
-            <div class="badge badge-success">เยี่ยม!</div>
-          </div>
+          <span class="stat-label">บทเรียนที่จบแล้ว</span>
+          <div id="stat1_V" class="stat-value" style="color: var(--color-primary-500);">0</div>
+          <div class="badge badge-primary mt-2" style="font-size: 0.65rem;">Lessons Done</div>
         </div>
         <div class="card stat-item">
-          <span class="stat-label">โจทย์ที่สำเร็จ</span>
-          <div class="flex items-center gap-4">
-            <div id="statQuizzesDone" class="stat-value">0</div>
-            <div class="badge badge-primary">ทำได้ดี</div>
-          </div>
+          <span class="stat-label">โจทย์ที่พิชิตได้</span>
+          <div id="stat2_V" class="stat-value" style="color: var(--color-purple-500);">0</div>
+          <div class="badge badge-primary mt-2" style="font-size: 0.65rem; background: var(--color-purple-50); color: var(--color-purple-500);">Quizzes</div>
         </div>
         <div class="card stat-item">
           <span class="stat-label">คะแนนเฉลี่ย</span>
-          <div class="flex items-center gap-4">
-            <div id="statAvgScore" class="stat-value">0.0</div>
-            <div class="t-xs fw-bold t-secondary">/ 10</div>
-          </div>
-        </div>
-        <div class="card stat-item">
-          <span class="stat-label">เลเวลการเรียนรู้</span>
-          <div class="flex flex-col gap-2">
-            <div class="t-title fw-bold" style="color: var(--color-purple-500);">Lv. 1 Explorer</div>
-            <div class="progress-track"><div class="progress-fill" style="width: 30%;"></div></div>
-          </div>
+          <div id="stat3_V" class="stat-value" style="color: var(--color-amber-500);">0%</div>
+          <div class="badge mt-2" style="font-size: 0.65rem; background: var(--neutral-100); color: var(--neutral-600);">Total Average</div>
         </div>
       </div>
 
-      <!-- Main Action Section -->
       <div class="grid-2">
+        <!-- Recent Lessons -->
         <div class="card">
-          <div class="section-header">
-            <h2 class="t-title">บทเรียนล่าสุด</h2>
-            <a href="lessons-list.html" class="t-small t-primary-color fw-bold">ดูทั้งหมด →</a>
+          <div class="flex justify-between items-center mb-8">
+            <h2 class="t-title" style="display: flex; align-items: center; gap: 12px;">
+              <span style="color: var(--color-primary-500);"><span data-icon="bookOpen"></span></span> บทเรียนแนะนำ
+            </h2>
+            <a href="lessons-list.html" class="t-xs fw-bold t-primary-color" style="text-decoration:none;">ดูทั้งหมด</a>
           </div>
-          <div id="recentLessonsContainer" class="flex flex-col gap-4 card-list">
-             <div class="skeleton-card animate-in">
-               <div class="skeleton-line shimmer" style="width:80%"></div>
-               <div class="skeleton-line shimmer" style="width:40%"></div>
-             </div>
-             <div class="skeleton-card animate-in" style="animation-delay: 80ms;">
-               <div class="skeleton-line shimmer" style="width:60%"></div>
-               <div class="skeleton-line shimmer" style="width:50%"></div>
-             </div>
+          <div id="lessonsContainer" class="flex flex-col gap-4">
+             <div class="skeleton skeleton-card-img" style="height: 120px;"></div>
+             <div class="skeleton skeleton-card-img" style="height: 120px;"></div>
           </div>
         </div>
 
+        <!-- Achievements -->
         <div class="card">
-          <div class="section-header">
-            <h2 class="t-title">บันทึกกิจกรรม</h2>
+          <div class="flex justify-between items-center mb-8">
+            <h2 class="t-title" style="display: flex; align-items: center; gap: 12px;">
+              <span style="color: var(--color-amber-500);"><span data-icon="award"></span></span> รางวัลของคุณ
+            </h2>
           </div>
-          <div id="activityContainer" class="flex flex-col gap-3">
-             <div class="p-8 t-center t-secondary">ยังไม่มีข้อมูล</div>
+          <div id="achievementsContainer" class="p-8 t-center t-secondary">
+             คุณกำลังทำได้ดีมาก! เรียนต่อเพื่อรับรางวัลแรกของคุณ
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>
 
+<!-- Scripts -->
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/app.js"></script>
 <script>
-  async function initDashboard() {
+  document.addEventListener('DOMContentLoaded', async () => {
     const user = Auth.requireAuth();
     if (!user) return;
 
-    // Update sidebar grade label
-    const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
-    if (gradeLabel && user.grade) {
-      gradeLabel.textContent = `วิทยาการคำนวณ ${user.grade}`;
+    UI.setupUserMenu(user);
+    UI.initIcons();
+
+    // Instant Load from Cache
+    const cacheKey = `GET_getDashboardData_${JSON.stringify({id: user.id, role: user.role})}`;
+    const cached = localStorage.getItem('API_CACHE_' + cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed.data) renderDashboard(parsed.data);
+      } catch (e) {}
     }
 
+    // Fetch Fresh
     try {
       const res = await ApiService.getDashboardData(user);
-      if (res.status === 'success') {
-        const d = res.data;
-        let xp = (d.completedLessons || 0) * 100 + ((d.avgScore || 0) * 10);
-        let level = Math.floor(xp / 300) + 1;
-        let xpInLevel = xp % 300;
-        let xpProgress = Math.min((xpInLevel / 300) * 100, 100);
-        
-        document.getElementById('statLessonsDone').textContent = d.completedLessons || 0;
-        document.getElementById('statQuizzesDone').textContent = d.totalLessons || 0;
-        document.getElementById('statAvgScore').textContent = d.avgScore || '0.0';
-        
-        const levelText = document.querySelector('.card.stat-item .t-title');
-        const progressFill = document.querySelector('.card.stat-item .progress-fill');
-        if (levelText && progressFill) {
-          levelText.textContent = `Lv. ${level} Explorer`;
-          progressFill.style.width = `${xpProgress}%`;
-        }
-
-        // Render Recent Lessons (use grade-filtered data from dashboard response)
-        const lessonsToShow = res.lessons || [];
-        const container = document.getElementById('recentLessonsContainer');
-        if (lessonsToShow.length > 0 && container) {
-          container.innerHTML = lessonsToShow.slice(0, 3).map(lesson => `
-            <div class="flex items-center gap-4 p-4" style="background:var(--neutral-50); border-radius:var(--radius-lg);">
-              <div class="avatar" style="background:var(--color-primary-500); color:white; border:none;">
-                <span data-icon="book"></span>
-              </div>
-              <div class="flex-1">
-                <div class="fw-bold t-sm">${lesson.Title}</div>
-                <div class="t-xs t-secondary">${lesson.Category || 'บทเรียนทั่วไป'}</div>
-              </div>
-              <a href="play-lesson.html?id=${lesson.ID}" class="btn btn-outline btn-sm" style="height:34px; padding:0 12px; font-size:11px;">เข้าเรียน</a>
-            </div>
-          `).join('');
-          if (window.app && window.app.initIcons) window.app.initIcons();
-        } else if (container) {
-          container.innerHTML = `
-            <div class="p-8 t-center">
-              <div class="avatar mb-4" style="margin:0 auto; background:var(--neutral-100); color:var(--neutral-400); border:none;">
-                <span data-icon="bookOpen"></span>
-              </div>
-              <div class="t-sm fw-bold t-secondary">ยังไม่มีบทเรียนสำหรับชั้นของคุณ</div>
-              <div class="t-xs t-disabled mt-1">คุณครูกำลังเตรียมเนื้อหาให้พรีเมียมอยู่ครับ!</div>
-            </div>
-          `;
-          if (window.app && window.app.initIcons) window.app.initIcons();
-        }
+      if (res && res.status === 'success') {
+        renderDashboard(res);
       }
     } catch (err) {
-      console.error("Dashboard error:", err);
+      console.error(err);
+    } finally {
+      document.querySelectorAll('.skeleton').forEach(el => el.classList.add('hidden'));
     }
-  }
+  });
 
-  initDashboard();
+  function renderDashboard(data) {
+    if (!data) return;
+    document.querySelectorAll('.skeleton').forEach(el => el.classList.add('hidden'));
+
+    const stats = data.data || data;
+    document.getElementById('stat1_V').innerText = stats.completedLessons || 0;
+    document.getElementById('stat2_V').innerText = stats.totalQuizzes || 0;
+    document.getElementById('stat3_V').innerText = (stats.avgScore || 0) + '%';
+
+    // Render Lessons
+    const lessons = data.lessons || [];
+    if (lessons.length > 0) {
+      document.getElementById('lessonsContainer').innerHTML = lessons.slice(0, 3).map(l => `
+        <a href="play-lesson.html?id=${l.ID}" class="flex items-center gap-4 p-4 card-hover" style="text-decoration:none; background: var(--neutral-50); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+          <div class="avatar" style="background: white; color: var(--color-primary-500); border: none; border-radius: 12px; width: 44px; height: 44px;">
+            <span data-icon="bookOpen"></span>
+          </div>
+          <div class="flex-1">
+             <div class="fw-bold" style="color: var(--neutral-900);">${l.Title}</div>
+             <div class="t-xs t-secondary">${l.Category || 'บทเรียน'}</div>
+          </div>
+          <span data-icon="play" style="color: var(--color-primary-300);"></span>
+        </a>
+      `).join('');
+    } else {
+      document.getElementById('lessonsContainer').innerHTML = `<div class="p-8 t-center t-secondary">ยังไม่มีบทเรียนในขณะนี้</div>`;
+    }
+
+    UI.initIcons();
+  }
 </script>
+
 </body>
 </html>

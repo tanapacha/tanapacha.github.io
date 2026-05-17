@@ -147,13 +147,24 @@ const ApiService = {
   },
 
   async getDashboardData(user) {
-    const result = await this.post("getDashboardData", { id: user.id, role: user.role }, false);
-    // ถ้ามีข้อมูลบทเรียนส่งมาด้วย ให้เก็บลง Cache ทันที เพื่อให้หน้าอื่นโหลดเร็วขึ้น
-    if (result.status === 'success' && result.lessons) {
-      this._setCache("GET_getLessons_{}", { status: "success", data: result.lessons });
+    const cacheKey = `GET_getDashboardData_${JSON.stringify({id: user.id, role: user.role})}`;
+    
+    // Attempt to get from cache for Instant UI
+    const cached = this._getCached(cacheKey);
+    
+    try {
+      const result = await this.get("getDashboardData", { id: user.id, role: user.role }, true);
+      // If we have lessons, cache them too
+      if (result.status === 'success' && result.lessons) {
+        this._setCache("GET_getLessons_{}", { status: "success", data: result.lessons });
+      }
+      return result;
+    } catch (err) {
+      console.error("Dashboard Fetch Error:", err);
+      return cached || { status: "error", message: "ไม่สามารถโหลดข้อมูลได้" };
     }
-    return result;
   },
+
 
   async getAssignments() {
     return this.get("getAssignments");

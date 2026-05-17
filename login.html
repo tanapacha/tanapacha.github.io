@@ -10,40 +10,43 @@
 </head>
 <body class="auth-page">
 
-  <div class="auth-card">
+  <div class="auth-card animate-in">
     <div class="auth-header">
       <div class="auth-logo">
-        <div class="sidebar-logo-icon">
-          <span data-icon="monitor"></span>
-        </div>
+        <img src="kiddo_learning_logo_1778753164138.png" alt="KIDDO Logo" style="width: 80px; height: 80px; object-fit: contain;">
       </div>
-      <h1 class="t-subheading mb-2">ยินดีต้อนรับกลับมา</h1>
-      <p class="t-small t-secondary">เข้าสู่ระบบเพื่อเริ่มเรียนรู้วันนี้</p>
+      <h1 class="t-title mb-2" style="font-size: 1.75rem;">ยินดีต้อนรับกลับมา</h1>
+      <p class="t-body">เข้าสู่ระบบเพื่อเริ่มการเรียนรู้วันนี้</p>
     </div>
 
-    <form id="loginForm" class="flex flex-col gap-6">
-      <div class="flex flex-col gap-2">
-        <label class="t-xs" style="color: var(--neutral-800);">อีเมล</label>
-        <input type="email" id="email" class="input" placeholder="your@email.com" required>
+
+    <form id="loginForm" class="flex flex-col gap-8">
+      <div class="flex flex-col gap-3">
+        <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">อีเมลของคุณ</label>
+        <input type="email" id="email" class="input" placeholder="name@example.com" required>
       </div>
       
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-3">
         <div class="flex justify-between items-center">
-          <label class="t-xs" style="color: var(--neutral-800);">รหัสผ่าน</label>
-          <a href="#" class="t-xs t-primary-color" style="text-decoration:none;">ลืมรหัสผ่าน?</a>
+          <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">รหัสผ่าน</label>
+          <a href="#" class="t-xs t-primary-color" style="text-decoration:none; font-weight: 800;">ลืมรหัสผ่าน?</a>
         </div>
         <input type="password" id="password" class="input" placeholder="••••••••" required>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
+      <button type="submit" class="btn btn-primary btn-block" style="height: 56px; font-size: 1.1rem; border-radius: var(--radius-xl);">
+        เข้าสู่ระบบ
+        <span data-icon="arrow-right" style="margin-left: 8px;"></span>
+      </button>
     </form>
 
-    <div class="mt-12 t-center">
-      <p class="t-small t-secondary">
-        ยังไม่มีบัญชี? <a href="register.html" class="t-primary-color fw-bold" style="text-decoration:none;">สมัครสมาชิกฟรี</a>
+    <div class="mt-12" style="text-align: center;">
+      <p class="t-body" style="font-size: 0.9rem;">
+        ยังไม่มีบัญชี? <a href="register.html" class="t-primary-color" style="text-decoration:none; font-weight: 800; border-bottom: 2px solid var(--color-primary-100);">สมัครสมาชิกฟรี</a>
       </p>
     </div>
   </div>
+
 
   <div id="globalLoader" class="loader-overlay">
     <div class="spinner"></div>

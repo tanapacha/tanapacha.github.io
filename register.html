@@ -48,56 +48,58 @@
 </head>
 <body class="auth-page">
 
-  <div class="auth-card">
+  <div class="auth-card animate-in">
     <div class="auth-header">
       <div class="auth-logo">
-        <div class="sidebar-logo-icon">
-          <span data-icon="monitor"></span>
-        </div>
+        <img src="kiddo_learning_logo_1778753164138.png" alt="KIDDO Logo" style="width: 80px; height: 80px; object-fit: contain;">
       </div>
-      <h1 class="t-subheading mb-2">เริ่มต้นการเรียนรู้</h1>
-      <p class="t-small t-secondary">สร้างบัญชีผู้ใช้งานใหม่ฟรีวันนี้</p>
+      <h1 class="t-title mb-2" style="font-size: 1.75rem;">เริ่มต้นการเรียนรู้</h1>
+      <p class="t-body">สร้างบัญชีผู้ใช้งานใหม่ฟรีเพื่อเข้าถึงบทเรียน</p>
     </div>
 
-    <!-- Security: ลบปุ่มเลือกครูออกแล้ว ป้องกัน privilege escalation -->
-    <!-- การเพิ่มครูต้องทำผ่าน Google Sheet โดยตรงเท่านั้น -->
 
-    <form id="registerForm" class="flex flex-col gap-5">
-      <div class="flex flex-col gap-2">
-        <label class="t-xs" style="color: var(--neutral-800);">ชื่อ-นามสกุล</label>
+    <!-- Security: Only Students can register via UI -->
+
+    <form id="registerForm" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-3">
+        <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">ชื่อ-นามสกุล</label>
         <input type="text" id="name" class="input" placeholder="สมชาย ใจดี" required>
       </div>
 
-      <div class="flex flex-col gap-2">
-        <label class="t-xs" style="color: var(--neutral-800);">อีเมล</label>
+      <div class="flex flex-col gap-3">
+        <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">อีเมล</label>
         <input type="email" id="email" class="input" placeholder="your@email.com" required>
       </div>
       
-      <div class="flex flex-col gap-2">
-        <label class="t-xs" style="color: var(--neutral-800);">รหัสผ่าน</label>
-        <input type="password" id="password" class="input" placeholder="อย่างน้อย 8 ตัว มีตัวเลขและตัวอักษร" required minlength="8">
-        <div id="pwStrength" class="t-xs" style="min-height:1.2em;"></div>
+      <div class="flex flex-col gap-3">
+        <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">รหัสผ่าน</label>
+        <input type="password" id="password" class="input" placeholder="8 ตัวขึ้นไป (ตัวเลข + ตัวอักษร)" required minlength="8">
+        <div id="pwStrength" class="t-xs" style="min-height:1.2em; font-weight: 600;"></div>
       </div>
 
-      <div class="flex flex-col gap-2" id="gradeContainer">
-        <label class="t-xs" style="color: var(--neutral-800);">ระดับชั้น</label>
-        <select id="grade" class="input">
-          <option value="ป.3">ป.3</option>
-          <option value="ป.4" selected>ป.4</option>
-          <option value="ป.5">ป.5</option>
-          <option value="ป.6">ป.6</option>
+      <div class="flex flex-col gap-3" id="gradeContainer">
+        <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">ระดับชั้น</label>
+        <select id="grade" class="input" style="appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.2rem;">
+          <option value="ป.3">ชั้นประถมศึกษาปีที่ 3</option>
+          <option value="ป.4" selected>ชั้นประถมศึกษาปีที่ 4</option>
+          <option value="ป.5">ชั้นประถมศึกษาปีที่ 5</option>
+          <option value="ป.6">ชั้นประถมศึกษาปีที่ 6</option>
         </select>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block mt-4">สมัครสมาชิก</button>
+      <button type="submit" class="btn btn-primary btn-block mt-4" style="height: 56px; font-size: 1.1rem; border-radius: var(--radius-xl);">
+        สมัครสมาชิก
+        <span data-icon="user-plus" style="margin-left: 8px;"></span>
+      </button>
     </form>
 
-    <div class="mt-8 t-center">
-      <p class="t-small t-secondary">
-        มีบัญชีอยู่แล้ว? <a href="login.html" class="t-primary-color fw-bold" style="text-decoration:none;">เข้าสู่ระบบ</a>
+    <div class="mt-12" style="text-align: center;">
+      <p class="t-body" style="font-size: 0.9rem;">
+        มีบัญชีอยู่แล้ว? <a href="login.html" class="t-primary-color" style="text-decoration:none; font-weight: 800; border-bottom: 2px solid var(--color-primary-100);">เข้าสู่ระบบ</a>
       </p>
     </div>
   </div>
+
 
   <div id="globalLoader" class="loader-overlay">
     <div class="spinner"></div>

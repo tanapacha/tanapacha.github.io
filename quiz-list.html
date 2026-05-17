@@ -41,29 +41,33 @@
   </aside>
 
   <div class="main-content">
-    <header class="page-header anim-reveal">
+    <header class="page-header animate-in">
       <div>
-        <h1 class="t-display">โจทย์ปัญหา</h1>
-        <p class="t-body">ทดสอบความรู้ผ่าน Google Form ที่คุณครูจัดเตรียมไว้ให้</p>
+        <h1 class="t-display" style="font-size: 2.441rem;">โจทย์ปัญหา</h1>
+        <p class="t-body">ทดสอบทักษะของคุณผ่านภารกิจสุดท้าทายที่คุณครูเตรียมไว้ให้!</p>
       </div>
     </header>
 
     <div class="page-body">
-      <div class="anim-reveal delay-1">
-        <div class="flex items-center gap-4 mb-8">
-          <div class="badge badge-primary">ภารกิจใหม่</div>
-          <h2 class="t-subheading">โจทย์ปัญหาทั้งหมด</h2>
+      <div class="animate-in">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-4">
+            <div class="badge badge-primary" style="padding: 6px 16px;">🔥 ภารกิจใหม่</div>
+            <h2 class="t-title" style="font-size: 1.5rem;">โจทย์ปัญหาทั้งหมด</h2>
+          </div>
+          <div class="t-xs fw-bold t-secondary" id="quizCount">กำลังโหลด...</div>
         </div>
         
         <div id="quizContainer" class="grid-auto">
-            <div class="p-12 t-center t-secondary">
-              <div class="spinner mb-4" style="margin: 0 auto;"></div>
-              <p>กำลังโหลดโจทย์ปัญหา...</p>
+            <div class="p-16 t-center">
+              <div class="spinner" style="margin: 0 auto;"></div>
+              <p class="t-body mt-6">กำลังเตรียมภารกิจสุดพิเศษให้คุณ...</p>
             </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 <script src="js/api.js"></script>
@@ -106,32 +110,34 @@
         }
 
         const container = document.getElementById('quizContainer');
+        const countDisplay = document.getElementById('quizCount');
+        if (countDisplay) countDisplay.textContent = `พบ ${quizzes.length} รายการ`;
+
         if (quizzes.length === 0) {
           container.innerHTML = `
-            <div class="card p-12 t-center anim-fade-up" style="grid-column: 1/-1;">
-              <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
-                <span data-icon="task" style="width:32px; height:32px;"></span>
+            <div class="card p-16 t-center animate-in" style="grid-column: 1/-1; border: 2px dashed var(--border-subtle); background: transparent; box-shadow: none;">
+              <div class="avatar mb-6" style="margin:0 auto; width:80px; height:80px; background:var(--neutral-100); color:var(--neutral-400); border:none; border-radius: 24px;">
+                <span data-icon="task" style="width:40px; height:40px;"></span>
               </div>
-              <h3 class="t-title mb-2">ยังไม่มีโจทย์ปัญหา</h3>
-              <p class="t-secondary t-sm">${filterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาสำหรับชั้นของคุณในขณะนี้'}</p>
+              <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีโจทย์ปัญหา</h3>
+              <p class="t-body">${filterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาสำหรับชั้นของคุณในขณะนี้'}</p>
+              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-full);">กลับไปหน้าหลัก</a>
             </div>
           `;
           if (window.app && window.app.initIcons) window.app.initIcons();
           return;
         }
 
-        container.innerHTML = quizzes.map(quiz => {
+        container.innerHTML = quizzes.map((quiz, idx) => {
           const lesson = lessons.find(l => String(l.ID) === String(quiz.LessonID));
-          let lessonInfo = 'ทั่วไป';
+          let lessonInfo = 'ภารกิจทั่วไป';
           if (lesson) {
             lessonInfo = lesson.Category ? `${lesson.Category} : ${lesson.Title}` : lesson.Title;
           }
           
-          // ระบบตรวจจับลิงก์แบบยืดหยุ่นสูง + ระบบเดาใจ (Smart Recovery)
           let rawUrl = String(quiz.QuizURL || quiz['Quiz URL'] || quiz.Link || '').trim();
           const pointsStr = String(quiz.Points || '').trim();
           
-          // ถ้าช่องลิงก์ปกติไม่ใช่ลิงก์ แต่ช่อง Points ดันเป็นลิงก์ (กรณีครูกรอกผิดช่อง)
           if (!rawUrl.includes('http') && pointsStr.includes('http')) {
              rawUrl = pointsStr;
           }
@@ -141,36 +147,41 @@
           const finalLink = isExternal ? rawUrl : `play-problem.html?id=${quiz.LessonID}`;
           const target = isExternal ? '_blank' : '_self';
           
-          // ดึงวิดีโอการสอนจากบทเรียนที่เกี่ยวข้อง (ตามคำขอ: "วิดีโอก็ต้องเป็นวิดีโอการสอนที่ลิงค์")
           const lessonVideo = lesson ? lesson.VideoURL : '';
           const hasVideo = lessonVideo && lessonVideo.includes('http');
 
           return `
-            <div class="card flex flex-col anim-fade-up">
-              <div class="flex items-center gap-4 mb-6">
-                <div class="avatar" style="background:var(--color-amber-500); color:white; border:none;">
+            <div class="card flex flex-col animate-in" style="animation-delay: ${idx * 100}ms;">
+              <div class="flex items-center gap-5 mb-6">
+                <div class="avatar" style="background:var(--color-amber-50); color:var(--color-amber-500); border:none; border-radius: 12px; width: 48px; height: 48px;">
                   <span data-icon="task"></span>
                 </div>
-                <div>
-                  <div class="fw-bold t-sm">${quiz.Title}</div>
-                  <div class="t-xs t-secondary">${lessonInfo}</div>
+                <div class="flex-1">
+                  <div class="fw-bold" style="font-size: 1rem; color: var(--neutral-900); line-height: 1.4;">${quiz.Title}</div>
+                  <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${lessonInfo}</div>
                 </div>
               </div>
-              <p class="t-small t-secondary mb-8 flex-1">คลิกปุ่มด้านล่างเพื่อเริ่มทำแบบทดสอบ${isExternal ? 'ผ่านลิงก์ภายนอก' : 'ในระบบ KIDDO'}</p>
               
-              <div class="flex flex-col gap-2">
+              <div class="flex-1">
+                 <p class="t-body mb-8" style="font-size: 0.9rem; line-height: 1.6;">
+                   ${isExternal ? 'แบบทดสอบผ่านเครื่องมือภายนอก' : 'ภารกิจลับในระบบ KIDDO'} พร้อมแล้วที่จะให้คุณมาพิชิตคะแนนเต็ม!
+                 </p>
+              </div>
+              
+              <div class="flex flex-col gap-3">
                 ${hasVideo ? `
-                  <a href="${lessonVideo}" target="_blank" class="btn btn-outline btn-block" style="border-color:var(--color-primary-500); color:var(--color-primary-600);">
-                    <span data-icon="video"></span> ดูวิดีโอการสอน
+                  <a href="${lessonVideo}" target="_blank" class="btn btn-outline btn-block" style="border-color:var(--color-primary-100); color:var(--color-primary-600); border-radius: var(--radius-lg); height: 48px; font-weight: 800;">
+                    <span data-icon="video" style="margin-right: 8px;"></span> ทบทวนบทเรียน
                   </a>
                 ` : ''}
-                <a href="${finalLink}" target="${target}" class="btn btn-primary btn-block">
-                  เริ่มทำโจทย์ปัญหา
+                <a href="${finalLink}" target="${target}" class="btn btn-primary btn-block" style="border-radius: var(--radius-lg); height: 48px; font-weight: 800;">
+                  เริ่มทำโจทย์ <span data-icon="arrow-right" style="margin-left: 8px;"></span>
                 </a>
               </div>
             </div>
           `;
         }).join('');
+
         
         if (window.app && window.app.initIcons) window.app.initIcons();
 

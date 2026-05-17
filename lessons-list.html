@@ -104,20 +104,24 @@
   </aside>
 
   <div class="main-content">
-    <header class="page-header anim-reveal">
+    <header class="page-header animate-in">
       <div>
-        <h1 class="t-display">บทเรียนทั้งหมด</h1>
-        <p class="t-body">เลือกบทเรียนที่ต้องการศึกษาด้านล่างนี้ได้เลย</p>
+        <h1 class="t-display" style="font-size: 2.441rem;">บทเรียนทั้งหมด</h1>
+        <p class="t-body">เลือกหน่วยการเรียนรู้ที่คุณสนใจด้านล่างนี้ได้เลยครับ</p>
       </div>
     </header>
 
-    <div class="page-body anim-reveal delay-1">
-      <div id="chaptersContainer" class="flex flex-col">
+    <div class="page-body">
+      <div id="chaptersContainer" class="flex flex-col gap-2">
         <!-- Chapters will be injected here -->
-        <div class="p-12 t-center t-secondary">กำลังเตรียมสื่อการสอน...</div>
+        <div class="p-16 t-center">
+          <div class="spinner" style="margin: 0 auto;"></div>
+          <p class="t-body mt-6">กำลังเตรียมสื่อการสอนที่พรีเมียมให้คุณ...</p>
+        </div>
       </div>
     </div>
   </div>
+
 </div>
 
 <script src="js/api.js"></script>
@@ -141,22 +145,23 @@
       const res = await ApiService.getLessons(userGrade);
       const container = document.getElementById('chaptersContainer');
       
-      if (res.status === 'success') {
+        if (res.status === 'success') {
         const lessons = res.data;
         if (!lessons || lessons.length === 0) {
           container.innerHTML = `
-            <div class="card p-12 t-center anim-fade-up">
-              <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
-                <span data-icon="bookOpen" style="width:32px; height:32px;"></span>
+            <div class="card p-16 t-center animate-in">
+              <div class="avatar mb-6" style="margin:0 auto; width:80px; height:80px; background:var(--neutral-100); color:var(--neutral-400); border:none; border-radius: 24px;">
+                <span data-icon="bookOpen" style="width:40px; height:40px;"></span>
               </div>
-              <h3 class="t-title mb-2">ยังไม่มีบทเรียนในชั้นนี้</h3>
-              <p class="t-secondary t-sm">คุณครูยังไม่ได้เพิ่มบทเรียนสำหรับชั้น ${user.grade || ''} <br>ลองกลับมาดูใหม่อีกครั้งในภายหลังนะครับ</p>
+              <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีบทเรียนในชั้นนี้</h3>
+              <p class="t-body">คุณครูยังไม่ได้เพิ่มบทเรียนสำหรับชั้น ${user.grade || ''} <br>ลองกลับมาดูใหม่อีกครั้งในภายหลังนะครับ</p>
+              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-full);">กลับไปหน้าหลัก</a>
             </div>
           `;
           if (window.app && window.app.initIcons) window.app.initIcons();
           return;
         }
-        // Group by Category (Instead of non-existent Chapter)
+        // Group by Category
         const categories = [];
         lessons.forEach(l => {
           const cat = (l.Category || 'ทั่วไป').trim();
@@ -166,8 +171,6 @@
         container.innerHTML = categories.map((name, idx) => {
           const chapterLessons = lessons.filter(l => (l.Category || 'ทั่วไป').trim() === name);
           
-          // Refine display title: If it already contains "บทที่", use it as is.
-          // Otherwise, add "บทที่ X: " prefix.
           let displayTitle = name;
           if (!name.includes('บทที่') && name !== 'ทั่วไป' && name !== 'บทนำ') {
             displayTitle = `บทที่ ${idx + 1}: ${name}`;
@@ -176,34 +179,35 @@
           }
           
           return `
-            <div class="chapter-card" id="chap-${idx}">
+            <div class="chapter-card animate-in" id="chap-${idx}" style="animation-delay: ${idx * 100}ms;">
               <div class="chapter-header" onclick="toggleChapter(${idx})">
-                <div class="flex items-center gap-5">
-                  <div class="avatar" style="background:var(--color-primary-50); color:var(--color-primary-600); font-weight:800;">${idx + 1}</div>
+                <div class="flex items-center gap-6">
+                  <div class="avatar" style="background:var(--color-primary-50); color:var(--color-primary-600); font-weight:800; border-radius: 12px; width: 48px; height: 48px; border: none;">${idx + 1}</div>
                   <div>
-                    <div class="t-title">${displayTitle}</div>
-                    <div class="t-xs t-secondary mt-1">${chapterLessons.length} บทเรียนย่อยในหน่วยนี้</div>
+                    <div class="t-title" style="font-size: 1.25rem;">${displayTitle}</div>
+                    <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${chapterLessons.length} บทเรียนย่อยในหน่วยนี้</div>
                   </div>
                 </div>
-                <div class="chevron"><span data-icon="right" style="transform:rotate(90deg); display:block;"></span></div>
+                <div class="chevron" style="color: var(--neutral-300);"><span data-icon="chevron-down"></span></div>
               </div>
-              <div class="lesson-list">
+              <div class="lesson-list" style="padding: 0 var(--sp-4) var(--sp-4);">
                 ${chapterLessons.map(lesson => `
-                  <a href="play-lesson.html?id=${lesson.ID}" class="lesson-item">
-                    <div class="lesson-icon">
+                  <a href="play-lesson.html?id=${lesson.ID}" class="lesson-item" style="border-radius: var(--radius-lg); border-bottom: none; margin-bottom: 4px; padding: var(--sp-4) var(--sp-6);">
+                    <div class="lesson-icon" style="background: var(--neutral-50); border-radius: 10px;">
                       <span data-icon="${lesson.Type === 'video' ? 'play' : 'book'}"></span>
                     </div>
                     <div class="flex-1">
-                      <div class="fw-bold t-sm">${lesson.Title}</div>
-                      <div class="t-xs t-secondary">${lesson.Category || 'เนื้อหาเรียนรู้'}</div>
+                      <div class="fw-bold" style="font-size: 0.9375rem; color: var(--neutral-900);">${lesson.Title}</div>
+                      <div class="t-xs" style="color: var(--text-secondary); font-weight: 600; margin-top: 2px;">${lesson.Category || 'เนื้อหาเรียนรู้'}</div>
                     </div>
-                    <div class="btn btn-outline btn-sm">เข้าเรียน</div>
+                    <div class="btn btn-outline btn-sm" style="border-radius: var(--radius-full); font-weight: 800; padding: 0 16px;">เริ่มเรียน</div>
                   </a>
                 `).join('')}
               </div>
             </div>
           `;
         }).join('');
+
         
         if (window.app && window.app.initIcons) window.app.initIcons();
         

@@ -180,32 +180,36 @@
   </aside>
 
   <div class="main-content">
-    <header class="page-header" style="background:transparent; border:none; margin-bottom:var(--sp-6);">
+    <header class="page-header animate-in">
       <div>
-        <h1 class="t-display">Content Manager</h1>
-        <p class="t-body t-secondary">จัดการคลังความรู้ แบบทดสอบ และภารกิจ</p>
+        <h1 class="t-display" style="font-size: 2.441rem;">Content Manager</h1>
+        <p class="t-body">จัดการคลังความรู้ บทเรียน และภารกิจทั้งหมดในที่เดียว</p>
       </div>
-      <div class="flex gap-2">
-        <a href="teacher-create-problem.html" class="btn btn-outline" style="background:white; border-color:var(--color-amber-500); color:var(--color-amber-700);">
-           <span data-icon="task"></span> สร้างแบบทดสอบ
+      <div class="flex gap-4">
+        <a href="teacher-create-problem.html" class="btn btn-outline" style="border-radius: var(--radius-full); padding: 0 24px; font-weight: 800;">
+           <span data-icon="task" style="margin-right: 8px;"></span> สร้างโจทย์
         </a>
-        <a href="teacher-create-exercise.html" class="btn btn-outline" style="background:white; border-color:var(--color-primary-500); color:var(--color-primary-700);">
-           <span data-icon="upload"></span> สั่งงานใหม่
+        <a href="teacher-create-exercise.html" class="btn btn-outline" style="border-radius: var(--radius-full); padding: 0 24px; font-weight: 800;">
+           <span data-icon="upload" style="margin-right: 8px;"></span> สั่งงาน
         </a>
-        <a href="teacher-create-lesson.html" class="btn btn-primary shadow-lg">
-           <span data-icon="plus"></span> เพิ่มเนื้อหาใหม่
+        <a href="teacher-create-lesson.html" class="btn btn-primary" style="border-radius: var(--radius-full); padding: 0 32px; font-weight: 800;">
+           <span data-icon="plus" style="margin-right: 8px;"></span> เพิ่มบทเรียน
         </a>
       </div>
     </header>
 
     <div class="page-body">
-      <div id="filterBarContainer"></div>
-      <div id="gradeSummaryContainer"></div>
-      <div id="contentContainer">
-        <div class="p-20 t-center t-secondary anim-pulse">กำลังปรุงข้อมูลให้พรีเมียม...</div>
+      <div id="filterBarContainer" class="animate-in" style="animation-delay: 100ms;"></div>
+      <div id="gradeSummaryContainer" class="animate-in" style="animation-delay: 200ms;"></div>
+      <div id="contentContainer" class="animate-in" style="animation-delay: 300ms;">
+        <div class="p-20 t-center">
+          <div class="spinner" style="margin: 0 auto;"></div>
+          <p class="t-body mt-6">กำลังจัดเตรียมคลังความรู้ที่พรีเมียมให้คุณ...</p>
+        </div>
       </div>
     </div>
   </div>
+
 </div>
 
 <script src="js/api.js"></script>
@@ -255,17 +259,21 @@
   function renderFilterBar() {
     const grades = ['ทั้งหมด', 'ป.3', 'ป.4', 'ป.5', 'ป.6'];
     document.getElementById('filterBarContainer').innerHTML = `
-      <div class="filter-bar">
-        <span class="filter-label">🔍 แสดง:</span>
-        ${grades.map(g => `
-          <button class="filter-btn ${g === activeGradeFilter ? 'active' : ''}" 
-                  onclick="filterByGrade('${g}')">
-            ${g === 'ทั้งหมด' ? '📚 ทั้งหมด' : g}
-          </button>
-        `).join('')}
+      <div class="filter-bar" style="background: var(--bg-surface); border-radius: var(--radius-xl); padding: var(--sp-2) var(--sp-6); margin-bottom: var(--sp-8); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; gap: var(--sp-4);">
+        <span class="fw-bold t-xs uppercase" style="color: var(--text-secondary); letter-spacing: 0.05em;">🔍 กรองตามชั้นเรียน:</span>
+        <div class="flex gap-2">
+          ${grades.map(g => `
+            <button class="btn ${g === activeGradeFilter ? 'btn-primary' : 'btn-ghost'}" 
+                    style="height: 38px; padding: 0 20px; border-radius: var(--radius-full); font-size: 0.85rem;"
+                    onclick="filterByGrade('${g}')">
+              ${g === 'ทั้งหมด' ? '📚 ทั้งหมด' : g}
+            </button>
+          `).join('')}
+        </div>
       </div>
     `;
   }
+
 
   function renderGradeSummary() {
     const grades = ['ป.3', 'ป.4', 'ป.5', 'ป.6', 'ทั้งหมด'];
@@ -277,17 +285,22 @@
       else counts['ทั้งหมด']++;
     });
     document.getElementById('gradeSummaryContainer').innerHTML = `
-      <div class="grade-summary">
+      <div class="flex gap-4 mb-10 overflow-x-auto pb-2">
         ${grades.map(g => {
           const c = GRADE_COLORS[g];
-          return `<div class="summary-chip" style="border-color:${c.border}">
-            <strong style="color:${c.border}">${g}</strong>
-            <span>${counts[g]} บทเรียน</span>
+          return `
+          <div class="card" style="padding: var(--sp-4) var(--sp-6); min-width: 140px; display: flex; align-items: center; gap: 12px; border-left: 4px solid ${c.border}; border-radius: var(--radius-lg);">
+            <div class="fw-black" style="color: ${c.border}; font-size: 1.1rem;">${g}</div>
+            <div>
+              <div class="fw-bold" style="font-size: 0.9rem;">${counts[g]}</div>
+              <div class="t-xs" style="color: var(--text-secondary); font-weight: 600;">บทเรียน</div>
+            </div>
           </div>`;
         }).join('')}
       </div>
     `;
   }
+
 
   function filterByGrade(grade) {
     activeGradeFilter = grade;
@@ -351,81 +364,88 @@
 
     const groups = {};
     lessons.forEach(l => {
-      const cat = l.Category || l.Title;
+      const cat = (l.Category || 'ทั่วไป').trim();
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(l);
     });
 
     container.innerHTML = Object.keys(groups).map(cat => `
-      <div class="manage-section">
-        <div class="group-header">
-           <span data-icon="folder" style="width:16px;"></span>
-           <span class="fw-bold t-xs uppercase">${cat}</span>
+      <div class="manage-section mb-12">
+        <div class="flex items-center gap-4 mb-6">
+           <div class="avatar" style="width: 32px; height: 32px; border-radius: 8px; background: var(--color-primary-50); color: var(--color-primary-500); border: none;">
+             <span data-icon="folder" style="font-size: 0.9rem;"></span>
+           </div>
+           <h2 class="t-title" style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;">${cat}</h2>
         </div>
-        <div class="grid-2 gap-6">
+        <div class="grid-2 gap-8">
           ${groups[cat].map(l => {
-            const myQuizzes = quizzes.filter(q => q.LessonID === l.ID);
-            const myTasks = tasks.filter(t => t.LessonID === l.ID);
+            const myQuizzes = quizzes.filter(q => String(q.LessonID) === String(l.ID));
+            const myTasks = tasks.filter(t => String(t.LessonID) === String(l.ID));
+            const gColor = (GRADE_COLORS[String(l.Grade||'').trim()] || GRADE_COLORS['ทั้งหมด']).border;
             
             return `
-              <div class="premium-card anim-fade-up" style="border-left: 4px solid ${(GRADE_COLORS[String(l.Grade||'').trim()] || GRADE_COLORS['ทั้งหมด']).border}">
+              <div class="card animate-in" style="padding: var(--sp-8); border-top: 5px solid ${gColor}; display: flex; flex-direction: column; gap: var(--sp-6);">
                 <div class="flex justify-between items-start">
                    <div>
-                      <div class="flex items-center gap-2 mb-1">
-                        ${gradeBadge(l.Grade)}
-                        <h3 class="t-title">${l.Title}</h3>
+                      <div class="flex items-center gap-3 mb-2">
+                        <span class="badge" style="background: var(--neutral-100); color: var(--neutral-800); font-weight: 800; font-size: 0.7rem;">${l.Grade || 'ALL'}</span>
+                        <h3 class="t-title" style="font-size: 1.25rem;">${l.Title}</h3>
                       </div>
-                      <p class="t-xs t-secondary fw-semibold">ID: ${l.ID}</p>
+                      <p class="t-xs" style="color: var(--text-secondary); font-weight: 600;">Lesson ID: ${l.ID}</p>
                    </div>
-                   <a href="teacher-create-lesson.html?edit=${l.ID}" class="btn btn-ghost btn-icon btn-sm" title="แก้ไขบทเรียน">
-                     <span data-icon="edit"></span>
-                   </a>
+                   <div class="flex gap-2">
+                     <a href="teacher-create-lesson.html?edit=${l.ID}" class="btn btn-ghost btn-icon" style="width: 36px; height: 36px; border-radius: 10px;" title="แก้ไขบทเรียน">
+                       <span data-icon="edit"></span>
+                     </a>
+                     <button onclick="handleDeleteLesson('${l.ID}', '${l.Title}')" class="btn btn-ghost btn-icon" style="width: 36px; height: 36px; border-radius: 10px; color: var(--color-error);" title="ลบบทเรียน">
+                       <span data-icon="trash"></span>
+                     </button>
+                   </div>
                 </div>
 
                 <!-- Assessments Section -->
-                <div class="item-box">
-                   <div class="t-xs fw-black t-secondary mb-3 uppercase" style="letter-spacing:0.05em; opacity:0.6;">Quizzes & Assessments</div>
-                   ${myQuizzes.length > 0 ? myQuizzes.map(q => {
-                     const qGrade = String(q.Grade || '').trim();
-                     const color = GRADE_COLORS[qGrade] || GRADE_COLORS['ทั้งหมด'];
-                     return `
-                     <div class="item-row">
-                        <div class="flex items-center gap-2">
-                           <span class="tag tag-quiz">${q.Type || 'post'}</span>
-                           <span class="fw-bold t-sm">${q.Title}</span>
-                           ${qGrade ? `<span class="badge" style="font-size:9px; background:${color.bg}; color:${color.text}; border:1px solid ${color.border};">${qGrade}</span>` : ''}
-                        </div>
-                        <button onclick="handleDeleteQuiz('${q.ID}', '${q.Title}')" class="btn-trash-red" title="ลบโจทย์นี้">
-                           ${TRASH_ICON}
-                        </button>
-                     </div>
-                   `}).join('') : '<div class="t-xs t-disabled italic p-1">ไม่มีแบบทดสอบ</div>'}
+                <div style="background: var(--bg-app); border-radius: var(--radius-xl); padding: var(--sp-5); border: 1.5px solid var(--border-subtle);">
+                   <div class="t-xs fw-black mb-4 uppercase" style="color: var(--text-secondary); letter-spacing:0.05em; display: flex; align-items: center; gap: 8px;">
+                     <span data-icon="task"></span> Quizzes & Assessments
+                   </div>
+                   <div class="flex flex-col gap-2">
+                     ${myQuizzes.length > 0 ? myQuizzes.map(q => `
+                       <div class="flex items-center justify-between p-3" style="background: var(--bg-surface); border-radius: var(--radius-lg); border: 1.5px solid var(--border-subtle);">
+                          <div class="flex items-center gap-3">
+                             <span class="tag tag-quiz" style="border-radius: 6px; font-weight: 800;">${q.Type || 'POST'}</span>
+                             <span class="fw-bold" style="font-size: 0.9rem; color: var(--neutral-800);">${q.Title}</span>
+                          </div>
+                          <button onclick="handleDeleteQuiz('${q.ID}', '${q.Title}')" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-error); width: 28px; height: 28px;">
+                             ${TRASH_ICON}
+                          </button>
+                       </div>
+                     `).join('') : '<div class="t-xs p-2" style="color: var(--text-disabled); font-style: italic;">ยังไม่มีแบบทดสอบในบทนี้</div>'}
+                   </div>
                 </div>
 
                 <!-- Missions Section -->
-                <div class="item-box">
-                   <div class="t-xs fw-black t-secondary mb-3 uppercase" style="letter-spacing:0.05em; opacity:0.6;">Missions & Assignments</div>
-                   ${myTasks.length > 0 ? myTasks.map(t => {
-                     const tGrade = String(t.Grade || '').trim();
-                     const color = GRADE_COLORS[tGrade] || GRADE_COLORS['ทั้งหมด'];
-                     return `
-                     <div class="item-row">
-                        <div class="flex items-center gap-2">
-                           <span class="tag tag-task">MISSION</span>
-                           <span class="fw-bold t-sm">${t.Title}</span>
-                           ${tGrade ? `<span class="badge" style="font-size:9px; background:${color.bg}; color:${color.text}; border:1px solid ${color.border};">${tGrade}</span>` : ''}
-                        </div>
-                        <button onclick="handleDeleteTask('${t.ID}', '${t.Title}')" class="btn-trash-red" title="ลบภารกิจนี้">
-                           ${TRASH_ICON}
-                        </button>
-                     </div>
-                   `}).join('') : '<div class="t-xs t-disabled italic p-1">ไม่มีภารกิจ</div>'}
+                <div style="background: var(--bg-app); border-radius: var(--radius-xl); padding: var(--sp-5); border: 1.5px solid var(--border-subtle);">
+                   <div class="t-xs fw-black mb-4 uppercase" style="color: var(--text-secondary); letter-spacing:0.05em; display: flex; align-items: center; gap: 8px;">
+                     <span data-icon="activity"></span> Missions & Assignments
+                   </div>
+                   <div class="flex flex-col gap-2">
+                     ${myTasks.length > 0 ? myTasks.map(t => `
+                       <div class="flex items-center justify-between p-3" style="background: var(--bg-surface); border-radius: var(--radius-lg); border: 1.5px solid var(--border-subtle);">
+                          <div class="flex items-center gap-3">
+                             <span class="tag tag-task" style="border-radius: 6px; font-weight: 800; background: oklch(95% 0.05 75); color: oklch(50% 0.15 75);">MISSION</span>
+                             <span class="fw-bold" style="font-size: 0.9rem; color: var(--neutral-800);">${t.Title}</span>
+                          </div>
+                          <button onclick="handleDeleteTask('${t.ID}', '${t.Title}')" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-error); width: 28px; height: 28px;">
+                             ${TRASH_ICON}
+                          </button>
+                       </div>
+                     `).join('') : '<div class="t-xs p-2" style="color: var(--text-disabled); font-style: italic;">ยังไม่มีภารกิจในบทนี้</div>'}
+                   </div>
                 </div>
 
-                <div class="action-group">
-                   <a href="teacher-create-problem.html?lessonId=${l.ID}" class="btn btn-outline btn-xs flex-1" style="background:white; border-color:var(--color-amber-500); color:var(--color-amber-700);">+ โจทย์</a>
-                   <a href="teacher-create-exercise.html?lessonId=${l.ID}" class="btn btn-outline btn-xs flex-1" style="background:white; border-color:var(--color-primary-500); color:var(--color-primary-700);">+ ภารกิจ</a>
-                   <button onclick="handleDeleteLesson('${l.ID}', '${l.Title}')" class="btn btn-ghost btn-xs t-danger-color">ลบบท</button>
+                <div class="flex gap-3 mt-2">
+                   <a href="teacher-create-problem.html?lessonId=${l.ID}" class="btn btn-outline flex-1" style="border-radius: var(--radius-lg); height: 42px; font-size: 0.85rem; font-weight: 800; border-color: var(--color-amber-100); color: var(--color-amber-600);">+ เพิ่มโจทย์</a>
+                   <a href="teacher-create-exercise.html?lessonId=${l.ID}" class="btn btn-outline flex-1" style="border-radius: var(--radius-lg); height: 42px; font-size: 0.85rem; font-weight: 800; border-color: var(--color-primary-100); color: var(--color-primary-600);">+ เพิ่มภารกิจ</a>
                 </div>
               </div>
             `;
@@ -433,6 +453,7 @@
         </div>
       </div>
     `).join('');
+
 
     if (window.app && window.app.initIcons) window.app.initIcons();
   }
