@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>สร้างแบบฝึกหัด | สำหรับคุณครู | KIDDO CS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -49,6 +52,8 @@
     }
     .grade-pill:hover { transform: scale(1.05); }
     .grade-pill.active { color: white; border-color: transparent; transform: scale(1.02); box-shadow: var(--shadow-sm); }
+    .grade-pill[data-grade="ป.1"].active { background: #E91E63; }
+    .grade-pill[data-grade="ป.2"].active { background: #9C27B0; }
     .grade-pill[data-grade="ป.3"].active { background: #0D47A1; }
     .grade-pill[data-grade="ป.4"].active { background: #1B5E20; }
     .grade-pill[data-grade="ป.5"].active { background: #E65100; }
@@ -132,6 +137,8 @@
         <div class="form-group" style="background: var(--neutral-50); padding:var(--sp-4); border-radius:var(--radius-sm); border:1px solid var(--border-default);">
           <label class="form-label">เลือกระดับชั้นเป้าหมาย</label>
           <div class="grade-pills" id="gradePills">
+            <button type="button" class="grade-pill" data-grade="ป.1" onclick="pickGrade(this)">ป.1</button>
+            <button type="button" class="grade-pill" data-grade="ป.2" onclick="pickGrade(this)">ป.2</button>
             <button type="button" class="grade-pill" data-grade="ป.3" onclick="pickGrade(this)">ป.3</button>
             <button type="button" class="grade-pill active" data-grade="ป.4" onclick="pickGrade(this)">ป.4</button>
             <button type="button" class="grade-pill" data-grade="ป.5" onclick="pickGrade(this)">ป.5</button>

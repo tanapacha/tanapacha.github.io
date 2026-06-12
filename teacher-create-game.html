@@ -4,41 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KIDDO Game Studio | สำหรับคุณครู</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
   <style>
     :root {
-      --studio-bg: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
-      --glass-white: rgba(255, 255, 255, 0.7);
+      --studio-bg: var(--bg-app);
     }
 
     body { background: var(--studio-bg); min-height: 100vh; }
 
     .game-builder-layout {
-      display: grid; grid-template-columns: 450px 1fr;
-      height: calc(100vh - 40px); margin: 20px; gap: 20px;
+      display: grid; grid-template-columns: 1fr 400px;
+      height: calc(100vh - 40px); margin: 20px; gap: 24px;
+      max-width: 1200px; margin: 20px auto;
     }
 
     /* Editor Pane (Left) */
     .editor-pane {
-      background: var(--glass-white); backdrop-filter: blur(20px);
-      border-radius: 30px; border: 1px solid rgba(255,255,255,0.4);
-      box-shadow: var(--shadow-xl); overflow-y: auto; padding: var(--sp-8);
+      background: var(--bg-surface);
+      border-radius: var(--radius-xl); border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-premium); overflow-y: auto; padding: var(--sp-8);
+      position: relative; display: flex; flex-direction: column;
     }
 
     /* Preview Pane (Right) */
     .preview-pane {
-      background: rgba(15, 23, 42, 0.05); border-radius: 30px;
+      background: var(--neutral-50); border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      position: relative; overflow: hidden;
+      position: relative; overflow: hidden; padding: var(--sp-6);
     }
 
     /* Device Mockup */
     .phone-mockup {
-      width: 320px; height: 640px; background: #0f172a; border: 12px solid #1e293b;
-      border-radius: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.3);
+      width: 100%; max-width: 320px; height: 640px; background: #0f172a; border: 12px solid #1e293b;
+      border-radius: 40px; box-shadow: 0 50px 100px rgba(0,0,0,0.15);
       position: relative; overflow: hidden; display: flex; flex-direction: column;
     }
     .phone-screen {
@@ -47,47 +52,71 @@
     }
 
     /* Game Type Cards */
-    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .type-card {
-      background: white; border: 2px solid #e2e8f0; border-radius: 20px;
-      padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.3s;
-      box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center;
+      background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+      padding: 16px 12px; text-align: center; cursor: pointer; transition: all var(--duration-fast) var(--ease-premium);
+      box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 12px; justify-content: center;
     }
-    .type-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--color-primary-300); }
-    .type-card.active { border-color: var(--color-primary-500); background: var(--color-primary-50); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+    .type-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--color-primary-300); }
+    .type-card.active { border-color: var(--color-primary-500); background: var(--color-primary-50); box-shadow: 0 0 0 2px var(--color-primary-200); }
     .type-card .icon-box {
-      width: 44px; height: 44px; background: #f1f5f9; border-radius: 12px;
-      margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; background: var(--neutral-100); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
       color: var(--color-primary-600);
     }
     .type-card.active .icon-box { background: var(--color-primary-500); color: white; }
 
     /* Content Items */
     .content-item {
-      background: white; border-radius: 15px; padding: 15px; margin-bottom: 10px;
-      border: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: flex-start;
-      animation: slideIn 0.3s ease;
+      background: var(--neutral-50); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;
+      border: 1px dashed var(--border-subtle); display: flex; gap: 12px; align-items: flex-start;
+      animation: slideIn 0.3s var(--ease-premium);
     }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } }
 
     /* Floating Header inside Screen */
     .screen-header { border-bottom: 2px dashed #f1f5f9; padding-bottom: 15px; margin-bottom: 15px; }
 
     /* Buttons */
     .btn-add {
-      width: 100%; padding: 15px; border: 2px dashed #cbd5e1; border-radius: 15px;
-      background: transparent; color: #64748b; font-weight: 800; cursor: pointer;
-      transition: all 0.3s; margin-top: 10px;
+      width: 100%; padding: 16px; border: 2px dashed var(--border-subtle); border-radius: var(--radius-lg);
+      background: transparent; color: var(--text-secondary); font-weight: 800; cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-premium); margin-top: 12px;
     }
-    .btn-add:hover { border-color: var(--color-primary-500); color: var(--color-primary-500); background: white; }
+    .btn-add:hover { border-color: var(--color-primary-500); color: var(--color-primary-500); background: var(--color-primary-50); }
 
-    .btn-save-studio {
-      background: var(--grad-primary); color: white; border: none;
-      padding: 20px; border-radius: 20px; font-weight: 900; font-size: 1.1rem;
-      width: 100%; cursor: pointer; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
-      margin-top: 30px; transition: all 0.3s;
+    /* Forms */
+    .form-group { margin-bottom: var(--sp-6); }
+    .form-label { display: block; font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--sp-3); }
+    .input { width: 100%; padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-surface); font-size: 1rem; box-sizing: border-box; transition: all 0.2s; }
+    .input:focus { outline: none; border-color: var(--color-primary-500); box-shadow: 0 0 0 3px var(--color-primary-100); }
+
+    /* Grade Pills */
+    .grade-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .grade-pill {
+      padding: 10px 20px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 700;
+      border: 1px solid var(--border-subtle); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer;
+      transition: all 0.2s; user-select: none;
     }
-    .btn-save-studio:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5); }
+    .grade-pill:hover { background: var(--neutral-100); color: var(--text-primary); transform: translateY(-1px); }
+    .grade-pill.active { color: white; border-color: transparent; transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .grade-pill[data-grade="ป.1"].active { background: #E91E63; }
+    .grade-pill[data-grade="ป.2"].active { background: #9C27B0; }
+    .grade-pill[data-grade="ป.3"].active { background: #0D47A1; }
+    .grade-pill[data-grade="ป.4"].active { background: #1B5E20; }
+    .grade-pill[data-grade="ป.5"].active { background: #E65100; }
+    .grade-pill[data-grade="ป.6"].active { background: #880E4F; }
+    .grade-pill[data-grade="ทั้งหมด"].active { background: #424242; }
+    .grade-error { color: var(--color-error); font-size: 0.75rem; margin-top: 4px; display: none; }
+
+    /* Sticky Action Bar inside Editor */
+    .sticky-editor-bar {
+      position: sticky; bottom: 0;
+      background: var(--glass-bg); backdrop-filter: var(--glass-blur);
+      padding: var(--sp-4) 0 0 0; margin-top: auto;
+      border-top: 1px solid var(--border-subtle);
+    }
   </style>
 </head>
 <body>
@@ -97,8 +126,6 @@
       <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
       <div class="sidebar-logo-text">KIDDO</div>
     </div>
-    
-    
     
     <div class="sidebar-section">
       <div class="sidebar-section-label">เมนูการเรียน</div>
@@ -118,13 +145,11 @@
         <a href="teacher-create-lesson.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-lesson.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างบทเรียน</a>
         <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-exercise.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
         <a href="teacher-create-problem.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-problem.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างโจทย์</a>
-        <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-game.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
+        <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item active" data-page="teacher-create-game.html" style="color:var(--color-primary-600); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
       </div>
       <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
       <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
     </div>
-    
-    
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -138,69 +163,98 @@
     </div>
   </aside>
 
-  <div class="game-builder-layout">
+  <div class="game-builder-layout w-full">
     <!-- Editor Pane -->
     <div class="editor-pane anim-fade-up">
-       <div class="flex items-center gap-4 mb-8">
-          <div style="width:50px; height:50px; background:var(--grad-primary); border-radius:15px; display:flex; align-items:center; justify-content:center; color:white;">
-             <span data-icon="sparkles" style="width:24px; height:24px;"></span>
+       <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-4">
+             <div class="avatar" style="width:48px; height:48px; background:var(--color-primary-50); color:var(--color-primary-600); border:none; border-radius:12px;">
+                <span data-icon="sparkles" style="width:24px; height:24px;"></span>
+             </div>
+             <div>
+                <h1 class="t-title" style="margin:0; font-size:1.5rem;">KIDDO Game Studio</h1>
+                <p class="t-xs t-secondary fw-bold uppercase">สร้างมินิเกมและสื่อ Interactive</p>
+             </div>
           </div>
-          <div>
-             <h1 class="t-title" style="margin:0;">KIDDO Studio</h1>
-             <p class="t-xs t-secondary fw-bold uppercase">สร้างมินิเกมฝึกทักษะ CT</p>
-          </div>
+          <a href="teacher-manage-content.html" class="btn btn-ghost btn-sm"><span data-icon="left"></span> กลับ</a>
        </div>
 
-       <div class="form-group mb-6">
-          <label class="form-label fw-black">1. ข้อมูลพื้นฐาน</label>
-          <select id="lessonSelect" class="input mb-3" style="background:white;"></select>
-          <input type="text" id="gameTitle" class="input" style="background:white;" placeholder="ตั้งชื่อเกมแสนสนุกของคุณ..." oninput="updatePreview()">
-       </div>
+       <div class="bento-card mb-6" style="padding:var(--sp-5);">
+          <div class="form-group mb-0">
+             <label class="form-label">1. เลือกระดับชั้นเป้าหมาย</label>
+             <div class="grade-pills" id="gradePills">
+               <button type="button" class="grade-pill" data-grade="ป.1" onclick="pickGrade(this)">ป.1</button>
+               <button type="button" class="grade-pill" data-grade="ป.2" onclick="pickGrade(this)">ป.2</button>
+               <button type="button" class="grade-pill" data-grade="ป.3" onclick="pickGrade(this)">ป.3</button>
+               <button type="button" class="grade-pill active" data-grade="ป.4" onclick="pickGrade(this)">ป.4</button>
+               <button type="button" class="grade-pill" data-grade="ป.5" onclick="pickGrade(this)">ป.5</button>
+               <button type="button" class="grade-pill" data-grade="ป.6" onclick="pickGrade(this)">ป.6</button>
+               <button type="button" class="grade-pill" data-grade="ทั้งหมด" onclick="pickGrade(this)">ทั้งหมด</button>
+             </div>
+             <span class="grade-error" id="gradeError">กรุณาเลือกระดับชั้นก่อนบันทึก</span>
+          </div>
 
-       <div class="form-group mb-6">
-          <label class="form-label fw-black">2. เลือกประเภทมินิเกม</label>
-          <div class="type-grid">
-             <div class="type-card active" onclick="selectType('matching', this)">
-                <div class="icon-box"><span data-icon="puzzle"></span></div>
-                <div class="t-xs fw-bold">จับคู่</div>
-             </div>
-             <div class="type-card" onclick="selectType('sequence', this)">
-                <div class="icon-box"><span data-icon="clock"></span></div>
-                <div class="t-xs fw-bold">ลำดับ</div>
-             </div>
-             <div class="type-card" onclick="selectType('logic', this)">
-                <div class="icon-box"><span data-icon="shield"></span></div>
-                <div class="t-xs fw-bold">จริง/เท็จ</div>
-             </div>
-             <div class="type-card" onclick="selectType('external', this)">
-                <div class="icon-box"><span data-icon="link"></span></div>
-                <div class="t-xs fw-bold">แปะลิงก์</div>
-             </div>
+          <div class="form-group mt-4 mb-0">
+             <label class="form-label">2. ข้อมูลเกม</label>
+             <select id="lessonSelect" class="input mb-3"></select>
+             <input type="text" id="gameTitle" class="input" placeholder="ตั้งชื่อเกมแสนสนุกของคุณ..." oninput="updatePreview()" required>
           </div>
        </div>
 
-       <div class="form-group">
-          <label class="form-label fw-black">3. เนื้อหาภายในเกม</label>
-          <div id="editorContent"></div>
-          <button id="btnAddItem" class="btn-add" onclick="addItem()">+ เพิ่มรายการใหม่</button>
+       <div class="bento-card mb-6" style="padding:var(--sp-5);">
+          <div class="form-group mb-0">
+             <label class="form-label">3. เลือกประเภทมินิเกม</label>
+             <div class="type-grid">
+                <div class="type-card active" onclick="selectType('matching', this)">
+                   <div class="icon-box"><span data-icon="puzzle"></span></div>
+                   <div class="t-sm fw-bold">จับคู่</div>
+                </div>
+                <div class="type-card" onclick="selectType('sequence', this)">
+                   <div class="icon-box"><span data-icon="clock"></span></div>
+                   <div class="t-sm fw-bold">เรียงลำดับ</div>
+                </div>
+                <div class="type-card" onclick="selectType('logic', this)">
+                   <div class="icon-box"><span data-icon="shield"></span></div>
+                   <div class="t-sm fw-bold">จริง/เท็จ</div>
+                </div>
+                <div class="type-card" onclick="selectType('external', this)">
+                   <div class="icon-box"><span data-icon="link"></span></div>
+                   <div class="t-sm fw-bold">ลิงก์ภายนอก</div>
+                </div>
+             </div>
+          </div>
        </div>
 
-       <button class="btn-save-studio" onclick="saveGame()">บันทึกและเปิดใช้งานเกม</button>
+       <div class="bento-card mb-6" style="padding:var(--sp-5);">
+          <div class="form-group mb-0">
+             <label class="form-label">4. เนื้อหาภายในเกม</label>
+             <div id="editorContent"></div>
+             <button id="btnAddItem" class="btn-add" onclick="addItem()">+ เพิ่มรายการใหม่</button>
+          </div>
+       </div>
+
+       <div class="sticky-editor-bar mt-auto">
+          <button id="submitBtn" class="btn btn-primary btn-lg w-full" style="border-radius:var(--radius-full);" onclick="saveGame()">
+             <span data-icon="playCircle"></span> บันทึกและเปิดใช้งานเกม
+          </button>
+       </div>
     </div>
 
     <!-- Preview Pane -->
-    <div class="preview-pane">
-       <div class="t-xs t-secondary fw-black uppercase mb-6 ls-widest">Student Live Preview</div>
+    <div class="preview-pane anim-fade-up">
+       <div class="t-xs t-secondary fw-black uppercase mb-6" style="letter-spacing:0.1em; display:flex; align-items:center; gap:8px;">
+         <span class="w-2 h-2 rounded-full" style="background:var(--color-success); animation:pulse 2s infinite;"></span> Student Live Preview
+       </div>
        <div class="phone-mockup">
           <div class="phone-screen">
              <div class="screen-header">
                 <div id="prevTitle" class="fw-black t-base" style="color:#0f172a;">ชื่อเกมของคุณ</div>
                 <div id="prevType" class="t-xs t-secondary">ประเภทเกม: จับคู่</div>
              </div>
-             <div id="previewContent" class="flex-1"></div>
+             <div id="previewContent" class="flex-1 overflow-y-auto"></div>
           </div>
           <!-- Home button of phone -->
-          <div style="width:40px; height:4px; background:#334155; border-radius:10px; margin: 10px auto;"></div>
+          <div style="width:60px; height:5px; background:rgba(255,255,255,0.2); border-radius:10px; margin: 15px auto;"></div>
        </div>
     </div>
   </div>
@@ -212,18 +266,53 @@
 <script>
   let currentGameType = 'matching';
   let gameItems = [];
+  let selectedGrade = 'ป.4';
+  let allLessonsData = [];
+
+  function pickGrade(el) {
+    document.querySelectorAll('.grade-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    selectedGrade = el.dataset.grade;
+    document.getElementById('gradeError').style.display = 'none';
+    if (allLessonsData.length > 0) renderLessonsDropdown();
+  }
 
   async function init() {
     Auth.requireAuth();
     try {
       const res = await ApiService.getLessons();
-      const select = document.getElementById('lessonSelect');
       if (res.status === 'success') {
-        select.innerHTML = '<option value="">-- เลือกบทเรียน --</option>' + 
-          res.data.map(l => `<option value="${l.ID}">${l.Title}</option>`).join('');
+        allLessonsData = res.data;
+        renderLessonsDropdown();
       }
       initItems();
     } catch (e) { console.error(e); }
+  }
+
+  function renderLessonsDropdown() {
+    let filtered = allLessonsData;
+    if (selectedGrade !== 'ทั้งหมด') {
+      filtered = allLessonsData.filter(l => String(l.Grade || '').trim() === selectedGrade);
+    }
+    
+    const groups = {};
+    filtered.forEach(l => {
+      const cat = l.Category || 'ทั่วไป';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(l);
+    });
+
+    let html = '<option value="">-- เลือกบทเรียน --</option>';
+    if (filtered.length === 0) {
+      html = '<option value="">-- ไม่มีบทเรียนในระดับชั้นนี้ --</option>';
+    } else {
+      for (const cat in groups) {
+        html += `<optgroup label="${cat}">`;
+        html += groups[cat].map(l => `<option value="${l.ID}">${l.Title}</option>`).join('');
+        html += `</optgroup>`;
+      }
+    }
+    document.getElementById('lessonSelect').innerHTML = html;
   }
 
   function selectType(type, el) {
@@ -231,7 +320,7 @@
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     
-    document.getElementById('prevType').textContent = 'ประเภทเกม: ' + el.querySelector('.t-xs').textContent;
+    document.getElementById('prevType').textContent = 'ประเภทเกม: ' + el.querySelector('.t-sm').textContent;
     document.getElementById('btnAddItem').style.display = type === 'external' ? 'none' : 'block';
     
     initItems();
@@ -258,18 +347,18 @@
       
       let fields = '';
       if (currentGameType === 'matching') {
-        fields = `<div class="flex gap-2 w-full"><input type="text" class="input input-sm" placeholder="ฝั่งซ้าย" value="${item.a}" oninput="updateItem(${idx}, 'a', this.value)"><input type="text" class="input input-sm" placeholder="ฝั่งขวา" value="${item.b}" oninput="updateItem(${idx}, 'b', this.value)"></div>`;
+        fields = `<div class="flex gap-2 w-full"><input type="text" class="input" style="padding:10px;" placeholder="ฝั่งซ้าย" value="${item.a}" oninput="updateItem(${idx}, 'a', this.value)"><input type="text" class="input" style="padding:10px;" placeholder="ฝั่งขวา" value="${item.b}" oninput="updateItem(${idx}, 'b', this.value)"></div>`;
       } else if (currentGameType === 'sequence') {
-        fields = `<input type="text" class="input input-sm w-full" placeholder="ขั้นตอนที่ ${idx+1}" value="${item.text}" oninput="updateItem(${idx}, 'text', this.value)">`;
+        fields = `<input type="text" class="input" style="padding:10px;" placeholder="ขั้นตอนที่ ${idx+1}" value="${item.text}" oninput="updateItem(${idx}, 'text', this.value)">`;
       } else if (currentGameType === 'logic') {
-        fields = `<div class="flex gap-2 w-full"><input type="text" class="input input-sm w-full" placeholder="ประโยคเงื่อนไข" value="${item.text}" oninput="updateItem(${idx}, 'text', this.value)"><select class="input input-sm" style="width:80px" onchange="updateItem(${idx}, 'isTrue', this.value === 'true')"><option value="true" ${item.isTrue ? 'selected':''}>จริง</option><option value="false" ${!item.isTrue ? 'selected':''}>เท็จ</option></select></div>`;
+        fields = `<div class="flex gap-2 w-full"><input type="text" class="input w-full" style="padding:10px;" placeholder="ประโยคเงื่อนไข" value="${item.text}" oninput="updateItem(${idx}, 'text', this.value)"><select class="input" style="padding:10px; width:100px;" onchange="updateItem(${idx}, 'isTrue', this.value === 'true')"><option value="true" ${item.isTrue ? 'selected':''}>จริง</option><option value="false" ${!item.isTrue ? 'selected':''}>เท็จ</option></select></div>`;
       } else if (currentGameType === 'external') {
-        fields = `<div class="w-full"><label class="t-xs fw-bold t-secondary mb-1 block">ระบุลิงก์เกม (Wordwall / Scratch)</label><input type="url" class="input input-sm w-full" placeholder="https://..." value="${item.url}" oninput="updateItem(${idx}, 'url', this.value)"></div>`;
+        fields = `<div class="w-full"><label class="t-xs fw-bold t-secondary mb-1 block">ระบุลิงก์เกม (Wordwall / Blooket)</label><input type="url" class="input w-full" style="padding:10px;" placeholder="https://..." value="${item.url}" oninput="updateItem(${idx}, 'url', this.value)"></div>`;
       }
 
       div.innerHTML = `
         <div class="flex-1">${fields}</div>
-        ${currentGameType !== 'external' ? `<button class="btn btn-ghost btn-sm t-error-color" onclick="removeItem(${idx})">&times;</button>` : ''}
+        ${currentGameType !== 'external' ? `<button class="btn btn-ghost btn-sm" style="color:var(--color-error);" onclick="removeItem(${idx})">&times;</button>` : ''}
       `;
       container.appendChild(div);
     });
@@ -301,40 +390,59 @@
 
     if (currentGameType === 'matching') {
        gameItems.slice(0,3).forEach(i => {
-          container.innerHTML += `<div class="flex justify-between mb-2"><div class="badge badge-primary t-xs" style="width:45%; text-align:center;">${i.a || '?'}</div><div class="badge badge-outline t-xs" style="width:45%; text-align:center;">${i.b || '?'}</div></div>`;
+          container.innerHTML += `<div class="flex justify-between mb-3"><div class="badge t-xs" style="background:var(--color-primary-50); color:var(--color-primary-700); border:1px solid var(--color-primary-200); width:48%; padding:8px; text-align:center;">${i.a || '?'}</div><div class="badge t-xs" style="background:white; border:1px solid var(--border-subtle); width:48%; padding:8px; text-align:center;">${i.b || '?'}</div></div>`;
        });
     } else if (currentGameType === 'sequence') {
        gameItems.slice(0,4).forEach((i, idx) => {
-          container.innerHTML += `<div class="p-3 bg-app rounded-lg mb-2 t-xs fw-bold">${idx+1}. ${i.text || '...'}</div>`;
+          container.innerHTML += `<div class="p-3 rounded-lg mb-2 t-xs fw-bold" style="background:var(--neutral-50); border:1px solid var(--border-subtle);">${idx+1}. ${i.text || '...'}</div>`;
        });
     } else if (currentGameType === 'logic') {
-       container.innerHTML = `<div class="p-4 bg-app rounded-xl t-center mb-4"><div class="t-xs t-secondary mb-2">จริง หรือ เท็จ?</div><div class="fw-bold t-sm">${gameItems[0]?.text || 'ประโยคเงื่อนไข...'}</div></div><div class="flex gap-2"><button class="btn btn-success btn-sm w-full">จริง</button><button class="btn btn-error btn-sm w-full">เท็จ</button></div>`;
+       container.innerHTML = `<div class="p-4 rounded-xl t-center mb-4" style="background:var(--neutral-50); border:1px solid var(--border-subtle);"><div class="t-xs t-secondary mb-2">จริง หรือ เท็จ?</div><div class="fw-bold t-sm">${gameItems[0]?.text || 'ประโยคเงื่อนไข...'}</div></div><div class="flex gap-2"><button class="btn w-full" style="background:var(--color-success); color:white; border-radius:var(--radius-full);">จริง</button><button class="btn w-full" style="background:var(--color-error); color:white; border-radius:var(--radius-full);">เท็จ</button></div>`;
     } else if (currentGameType === 'external') {
-       container.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center t-center"><div style="width:60px; height:60px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:15px;"><span data-icon="link" style="color:#64748b;"></span></div><div class="t-sm fw-bold">เกมจากลิงก์ภายนอก</div><div class="t-xs t-secondary px-4 mt-2">นักเรียนจะเข้าเล่นเกมผ่านลิงก์ที่คุณครูระบุไว้</div></div>`;
+       container.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center t-center h-full pt-10"><div class="avatar mb-4" style="background:var(--color-primary-50); color:var(--color-primary-600);"><span data-icon="link"></span></div><div class="t-sm fw-bold mb-2">เข้าเล่นเกมภายนอก</div><div class="t-xs t-secondary">นักเรียนจะเข้าเล่นเกมผ่านลิงก์ใหม่ที่เปิดขึ้นมา</div></div>`;
     }
-    if (window.app && window.app.initIcons) window.app.initIcons();
+    if (window.UI && window.UI.initIcons) window.UI.initIcons();
   }
 
   async function saveGame() {
     const lessonId = document.getElementById('lessonSelect').value;
     const title = document.getElementById('gameTitle').value;
+    
+    if (!selectedGrade) return alert("กรุณาเลือกระดับชั้น");
     if (!lessonId || !title) return alert("กรุณาระบุบทเรียนและชื่อเกมครับ");
+    
+    if (currentGameType === 'external' && (!gameItems[0] || !gameItems[0].url.startsWith('http'))) {
+      return alert("กรุณาระบุลิงก์เกมให้ถูกต้อง (ขึ้นต้นด้วย http:// หรือ https://)");
+    }
+
+    const btn = document.getElementById('submitBtn');
+    UI.setLoading(btn, true);
 
     const payload = {
+      action: 'createQuiz',
       LessonID: lessonId,
       Title: title,
       Type: 'game',
       QuizURL: JSON.stringify({ type: currentGameType, items: gameItems }),
-      Points: 10
+      Points: 10,
+      Grade: selectedGrade
     };
 
     try {
-      const res = await ApiService.createQuiz(payload);
+      const res = await ApiService.post('createQuiz', payload, false);
       if (res.status === 'success') {
         alert("สร้างเกมการศึกษาเรียบร้อยแล้ว!");
         location.href = 'teacher-manage-content.html';
+      } else {
+        alert(res.message);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+    } finally {
+      UI.setLoading(btn, false, '<span data-icon="playCircle"></span> บันทึกและเปิดใช้งานเกม');
+      if(window.UI && window.UI.initIcons) window.UI.initIcons();
+    }
   }
 
   init();

@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>แบบทดสอบ: ระบบสุริยะ — KIDDO LEARNING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -202,7 +205,7 @@
     let iconName = pct >= 80 ? 'award' : pct >= 60 ? 'sparkles' : 'book';
     document.getElementById('resultEmoji').innerHTML=`<div style="animation: stickerPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;"><span data-icon="${iconName}" style="width:64px;height:64px;display:block;"></span></div>`;
     
-    if (window.app && window.app.initIcons) window.app.initIcons();
+    if (window.UI && window.UI.initIcons) window.UI.initIcons();
     else if (window.Icon && window.Icon.render) window.Icon.render();
 
     // Optimistic UI for saving grade

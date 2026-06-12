@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ตรวจงานนักเรียน | KIDDO CS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -114,6 +117,8 @@
              </div>
              <select id="filterGrade" class="input t-small mb-2" style="height:32px;" onchange="renderSubs()">
                <option value="" disabled selected>-- เลือกระดับชั้น --</option>
+               <option value="ป.1">ป.1</option>
+               <option value="ป.2">ป.2</option>
                <option value="ป.3">ป.3</option>
                <option value="ป.4">ป.4</option>
                <option value="ป.5">ป.5</option>
@@ -132,7 +137,7 @@
         <!-- Main: Grading Area -->
         <div id="gradingArea" class="grading-panel" style="display:none;">
            <div class="grading-content">
-              <div class="grid-2 mb-8">
+              <div class="bento-grid mb-8" style="grid-template-columns: 1fr auto;">
                  <div class="flex items-center gap-4">
                     <div id="sAvatar" class="avatar avatar-lg" style="background:var(--grad-primary); color:white; border:none;">?</div>
                     <div>
@@ -146,10 +151,10 @@
                  </div>
               </div>
 
-              <div class="grid-2 gap-8">
+              <div class="bento-grid gap-8" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
                  <div>
                     <h3 class="t-title mb-4">ผลงานที่ส่ง</h3>
-                    <div class="card p-6 border-dashed t-center" style="background:var(--neutral-50);">
+                    <div class="bento-card p-6 border-dashed t-center" style="background:var(--neutral-50);">
                        <span data-icon="file" style="width:48px; height:48px; margin-bottom:12px; opacity:0.3;"></span>
                        <p id="fName" class="fw-bold mb-4">ไฟล์ผลงาน</p>
                        <a id="fLink" href="#" target="_blank" class="btn btn-outline btn-block">
@@ -276,7 +281,7 @@
         </div>
       `;
     }).join('');
-    window.app.initIcons();
+    window.UI.initIcons();
   }
 
   function loadSub(id) {

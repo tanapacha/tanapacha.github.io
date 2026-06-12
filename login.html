@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เข้าสู่ระบบ | KIDDO LEARNING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -63,8 +66,9 @@
       e.preventDefault();
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
 
-      window.UI?.showLoading('กำลังตรวจสอบข้อมูล...');
+      UI.btnLoading(submitBtn, true);
       
       try {
         const res = await Auth.login(email, password);
@@ -72,12 +76,12 @@
           // ใช้ redirectIfAuth เพื่อส่งไปหน้า Dashboard ที่ถูกต้องตาม Role
           Auth.redirectIfAuth();
         } else {
-          alert(res.error || 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง');
+          UI.toast(res.error || 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 'error');
         }
       } catch (err) {
-        alert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง');
+        UI.toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง', 'error');
       } finally {
-        window.UI?.hideLoading();
+        UI.btnLoading(submitBtn, false);
       }
     });
   </script>

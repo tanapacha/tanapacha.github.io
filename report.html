@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ผลสัมฤทธิ์ | KIDDO LEARNING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -69,32 +72,32 @@
 
     <div class="page-body">
       <!-- High-level Summary -->
-      <div class="grid-4 mb-12 anim-reveal delay-1">
-        <div class="card stat-item" style="border-top: 6px solid var(--color-primary-500);">
+      <div class="bento-grid mb-12 anim-reveal delay-1" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="bento-card stat-item" style="border-top: 6px solid var(--color-primary-500);">
           <span class="stat-label">คะแนนเฉลี่ยรวม</span>
           <div id="avgScore" class="stat-value" style="color:var(--color-primary-500);">0.0</div>
           <div class="t-xs fw-bold t-secondary">เต็ม 10 คะแนน</div>
         </div>
-        <div class="card stat-item" style="border-top: 6px solid var(--color-success);">
+        <div class="bento-card stat-item" style="border-top: 6px solid var(--color-success);">
           <span class="stat-label">ภารกิจที่สำเร็จ</span>
           <div id="topicsPassed" class="stat-value" style="color:var(--color-success);">0</div>
           <div class="t-xs fw-bold t-secondary">งานที่ส่งแล้ว</div>
         </div>
-        <div class="card stat-item" style="border-top: 6px solid var(--color-amber-500);">
+        <div class="bento-card stat-item" style="border-top: 6px solid var(--color-amber-500);">
           <span class="stat-label">โจทย์ที่ทำแล้ว</span>
           <div id="quizzesDone" class="stat-value" style="color:var(--color-amber-500);">0</div>
           <div class="t-xs fw-bold t-secondary">จากบทเรียนทั้งหมด</div>
         </div>
-        <div class="card stat-item" style="border-top: 6px solid var(--color-purple-500);">
+        <div class="bento-card stat-item" style="border-top: 6px solid var(--color-purple-500);">
           <span class="stat-label">ความขยันเข้าเรียน</span>
           <div id="attendance" class="stat-value" style="color:var(--color-purple-500);">100%</div>
           <div class="t-xs fw-bold t-secondary">สถานะ: ดีเยี่ยม</div>
         </div>
       </div>
 
-      <div class="grid-2 anim-reveal delay-2">
+      <div class="bento-grid anim-reveal delay-2" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
         <!-- Topic breakdown -->
-        <div class="card">
+        <div class="bento-card">
           <div class="section-header">
             <h2 class="t-title">ผลงานและรางวัล</h2>
             <span data-icon="award" style="color:var(--color-primary-500);"></span>
@@ -105,7 +108,7 @@
         </div>
 
         <!-- Recent activities -->
-        <div class="card">
+        <div class="bento-card">
           <div class="section-header">
             <h2 class="t-title">บันทึกกิจกรรมล่าสุด</h2>
           </div>
@@ -228,7 +231,7 @@
       `;
     }).join('') || '<div class="p-12 t-center t-secondary">มาร่วมทำภารกิจเพื่อสะสมสติกเกอร์กันเถอะ!</div>';
     
-    if (window.app && window.app.initIcons) window.app.initIcons();
+    if (window.UI && window.UI.initIcons) window.UI.initIcons();
   }
 
   initReport();

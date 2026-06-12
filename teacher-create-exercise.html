@@ -3,38 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>สั่งงานใหม่ | สำหรับคุณครู | KIDDO CS</title>
+  <title>สั่งงาน/ภารกิจใหม่ | สำหรับคุณครู | KIDDO CS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
   <style>
+    .form-group { margin-bottom: var(--sp-6); }
+    .form-label { display: block; font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-2); }
+    .form-hint { font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; }
+    .form-control, .input { width: 100%; padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-surface); font-size: var(--text-base); box-sizing: border-box; transition: all var(--duration-fast) var(--ease-premium); }
+    .form-control:focus, .input:focus { outline: none; border-color: var(--color-primary-500); box-shadow: 0 0 0 3px var(--color-primary-100); }
+
     /* Grade Pills */
-    .grade-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .grade-pills { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
     .grade-pill {
-      padding: 10px 20px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700;
-      border: 2px solid var(--border-default); background: white; cursor: pointer;
-      transition: all 0.2s ease; user-select: none;
+      padding: 12px 24px; border-radius: var(--radius-full); font-size: 0.9rem; font-weight: 700;
+      border: 1px solid var(--border-subtle); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer;
+      transition: all var(--duration-fast) var(--ease-premium); user-select: none;
     }
-    .grade-pill:hover { transform: scale(1.05); }
-    .grade-pill.active { color: white; border-color: transparent; transform: scale(1.02); box-shadow: var(--shadow-sm); }
-    .grade-pill[data-grade="ป.3"].active { background: #0D47A1; }
-    .grade-pill[data-grade="ป.4"].active { background: #1B5E20; }
-    .grade-pill[data-grade="ป.5"].active { background: #E65100; }
-    .grade-pill[data-grade="ป.6"].active { background: #880E4F; }
-    .grade-pill[data-grade="ทั้งหมด"].active { background: #424242; }
-    .grade-error { color: var(--color-error, #dc2626); font-size: 0.75rem; margin-top: 4px; display: none; }
+    .grade-pill:hover { background: var(--neutral-100); color: var(--text-primary); transform: translateY(-1px); }
+    .grade-pill.active { color: white; border-color: transparent; transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .grade-pill[data-grade="ป.1"].active { background: #E91E63; box-shadow: 0 4px 12px rgba(233,30,99,0.3); }
+    .grade-pill[data-grade="ป.2"].active { background: #9C27B0; box-shadow: 0 4px 12px rgba(156,39,176,0.3); }
+    .grade-pill[data-grade="ป.3"].active { background: #0D47A1; box-shadow: 0 4px 12px rgba(13,71,161,0.3); }
+    .grade-pill[data-grade="ป.4"].active { background: #1B5E20; box-shadow: 0 4px 12px rgba(27,94,32,0.3); }
+    .grade-pill[data-grade="ป.5"].active { background: #E65100; box-shadow: 0 4px 12px rgba(230,81,0,0.3); }
+    .grade-pill[data-grade="ป.6"].active { background: #880E4F; box-shadow: 0 4px 12px rgba(136,14,79,0.3); }
+    .grade-pill[data-grade="ทั้งหมด"].active { background: #424242; box-shadow: 0 4px 12px rgba(66,66,66,0.3); }
+    .grade-error { color: var(--color-error); font-size: 0.75rem; margin-top: 8px; display: none; }
+
+    /* Sticky Action Bar */
+    .sticky-action-bar {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      border-top: 1px solid var(--border-subtle);
+      padding: var(--sp-4) var(--sp-6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      margin-top: var(--sp-8);
+    }
   </style>
 </head>
-<body style="background:var(--bg-app);">
+<body>
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-logo">
       <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
       <div class="sidebar-logo-text">KIDDO</div>
     </div>
-    
-    
     
     <div class="sidebar-section">
       <div class="sidebar-section-label">เมนูการเรียน</div>
@@ -52,15 +78,13 @@
       <a href="teacher-manage-content.html" class="sidebar-nav-item" data-page="teacher-manage-content.html"><span class="nav-icon" data-icon="bookOpen"></span>จัดการเนื้อหา</a>
       <div class="flex flex-col gap-1 mb-2" style="padding-left: 2.75rem; border-left: 1.5px solid var(--border-subtle); margin-left: 1.25rem;">
         <a href="teacher-create-lesson.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-lesson.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างบทเรียน</a>
-        <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-exercise.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
+        <a href="teacher-create-exercise.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item active" data-page="teacher-create-exercise.html" style="color:var(--color-primary-600); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างภารกิจ</a>
         <a href="teacher-create-problem.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-problem.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างโจทย์</a>
         <a href="teacher-create-game.html" class="t-xs fw-bold transition-colors py-1 flex items-center gap-2 sidebar-sub-item" data-page="teacher-create-game.html" style="color:var(--text-secondary); text-decoration:none;"><span data-icon="plus" style="width:12px; height:12px;"></span>สร้างเกม</a>
       </div>
       <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
       <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
     </div>
-    
-    
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -77,22 +101,25 @@
   <div class="main-content">
     <header class="page-header">
       <div>
-        <h1 class="t-display">สั่งงานใหม่ (แบบฝึกหัด)</h1>
-        <p class="t-body">สร้างโจทย์และคำชี้แจงเพื่อให้นักเรียนฝึกทักษะ</p>
+        <a href="teacher-manage-content.html" class="t-small t-primary-color flex items-center gap-1" style="margin-bottom:var(--sp-2);">
+          <span data-icon="left"></span> กลับหน้าจัดการ
+        </a>
+        <h1 class="t-subheading">สั่งงานและสร้างภารกิจใหม่</h1>
       </div>
-      <button class="btn btn-primary btn-lg" onclick="saveMission()">
-        <span data-icon="send"></span> บันทึกและสั่งงานทันที
-      </button>
     </header>
 
-    <div class="page-body" style="max-width:900px;">
-      <div class="grid-2">
-        <div class="flex flex-col gap-6">
-          <div class="card">
-            <h3 class="t-title mb-6">1. ข้อมูลพื้นฐาน</h3>
-            <div class="form-group mb-6" style="background: var(--neutral-50); padding:var(--sp-4); border-radius:var(--radius-sm); border:1px solid var(--border-default);">
-              <label class="form-label">เลือกระดับชั้นเป้าหมาย</label>
+    <div class="page-body" style="padding-bottom: 0;">
+      <form id="missionForm" style="display: flex; flex-direction: column; min-height: calc(100vh - 160px);" onsubmit="saveMission(event)">
+        <div class="anim-fade-up" style="max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: var(--sp-8); padding-bottom: var(--sp-12);">
+          
+          <div class="bento-card">
+            <h2 class="t-title" style="margin-bottom:var(--sp-6); font-size: 1.25rem;">ข้อมูลพื้นฐานของภารกิจ</h2>
+            
+            <div class="form-group" style="background: var(--bg-app); padding:var(--sp-5); border-radius:var(--radius-lg); border:1px solid var(--border-subtle);">
+              <label class="form-label" style="font-size: 1rem;">1. เลือกระดับชั้นเป้าหมาย</label>
               <div class="grade-pills" id="gradePills">
+                <button type="button" class="grade-pill" data-grade="ป.1" onclick="pickGrade(this)">ป.1</button>
+                <button type="button" class="grade-pill" data-grade="ป.2" onclick="pickGrade(this)">ป.2</button>
                 <button type="button" class="grade-pill" data-grade="ป.3" onclick="pickGrade(this)">ป.3</button>
                 <button type="button" class="grade-pill active" data-grade="ป.4" onclick="pickGrade(this)">ป.4</button>
                 <button type="button" class="grade-pill" data-grade="ป.5" onclick="pickGrade(this)">ป.5</button>
@@ -101,43 +128,54 @@
               </div>
               <span class="grade-error" id="gradeError">กรุณาเลือกระดับชั้นก่อนบันทึก</span>
             </div>
-            <div class="form-group mb-6">
-              <label class="form-label">หัวข้อภารกิจ / ชื่อแบบฝึกหัด</label>
-              <input type="text" id="mTitle" class="input" placeholder="เช่น สร้างโปรเจกต์ Scratch เดินตามเข็มทิศ">
+
+            <div class="form-group" style="background: var(--bg-app); padding:var(--sp-5); border-radius:var(--radius-lg); border:1px solid var(--border-subtle);">
+              <label class="form-label" style="font-size: 1rem;">2. หัวข้อภารกิจ / ชื่อแบบฝึกหัด</label>
+              <input type="text" id="mTitle" class="input" placeholder="เช่น สร้างโปรเจกต์ Scratch เดินตามเข็มทิศ" style="font-size: 1.1rem; padding: 12px 16px;" required>
             </div>
-            <div class="form-group mb-6">
-              <label class="form-label">เชื่อมโยงกับบทเรียน (เพื่อจัดหมวดหมู่)</label>
-              <select id="mLesson" class="input">
+
+            <div class="form-group" style="background: var(--bg-app); padding:var(--sp-5); border-radius:var(--radius-lg); border:1px solid var(--border-subtle);">
+              <label class="form-label" style="font-size: 1rem;">3. เชื่อมโยงกับบทเรียน</label>
+              <div class="form-hint" style="margin-bottom:12px;">ภารกิจนี้จัดอยู่ในหมวดหมู่บทเรียนใด</div>
+              <select id="mLesson" class="input" style="font-size: 1.1rem; padding: 12px 16px;">
                 <option>กำลังโหลดบทเรียน...</option>
               </select>
             </div>
-            <div class="grid-2 gap-4">
-              <div class="form-group">
-                <label class="form-label">คะแนนเต็ม</label>
-                <input type="number" id="mPoints" class="input" value="10">
-              </div>
-              <div class="form-group">
-                <label class="form-label">กำหนดส่ง</label>
-                <input type="date" id="mDeadline" class="input">
-              </div>
-            </div>
-            </div>
-        </div>
 
-        <div class="flex flex-col gap-6">
-          <div class="card">
-            <h3 class="t-title mb-6">2. รายละเอียดโจทย์</h3>
-            <div class="form-group mb-6">
-              <label class="form-label">คำชี้แจง / โจทย์ปัญหา (สิ่งที่ต้องทำ)</label>
-              <textarea id="mInstr" class="input" rows="6" placeholder="ระบุสิ่งที่นักเรียนต้องทำอย่างละเอียด..."></textarea>
+            <div class="grid-2 gap-6" style="margin-top: var(--sp-4);">
+              <div class="form-group" style="background: var(--bg-app); padding:var(--sp-4); border-radius:var(--radius-lg); border:1px solid var(--border-subtle); margin-bottom:0;">
+                <label class="form-label">คะแนนเต็ม</label>
+                <input type="number" id="mPoints" class="input" value="10" min="1" required style="font-size: 1.25rem; text-align: center;">
+              </div>
+              <div class="form-group" style="background: var(--bg-app); padding:var(--sp-4); border-radius:var(--radius-lg); border:1px solid var(--border-subtle); margin-bottom:0;">
+                <label class="form-label">กำหนดส่ง</label>
+                <input type="date" id="mDeadline" class="input" required>
+              </div>
             </div>
+          </div>
+
+          <div class="bento-card">
+            <h2 class="t-title" style="margin-bottom:var(--sp-6); font-size: 1.25rem;">รายละเอียดและเกณฑ์การให้คะแนน</h2>
             <div class="form-group">
-              <label class="form-label">เกณฑ์การให้คะแนน (Rubric)</label>
-              <textarea id="mCriteria" class="input" rows="4" placeholder="เช่น:&#10;- ความถูกต้อง 5 คะแนน&#10;- ความคิดสร้างสรรค์ 5 คะแนน"></textarea>
+              <label class="form-label" style="font-size: 1rem;">คำชี้แจง / โจทย์ปัญหา (สิ่งที่ต้องทำ)</label>
+              <textarea id="mInstr" class="input" rows="6" placeholder="ระบุสิ่งที่นักเรียนต้องทำอย่างละเอียด..." required style="font-size: 1rem; line-height: 1.6;"></textarea>
+            </div>
+            <div class="form-group mb-0">
+              <label class="form-label" style="font-size: 1rem;">เกณฑ์การให้คะแนน (Rubric)</label>
+              <textarea id="mCriteria" class="input" rows="4" placeholder="เช่น:&#10;- ความถูกต้อง 5 คะแนน&#10;- ความคิดสร้างสรรค์ 5 คะแนน" style="font-size: 1rem; line-height: 1.6;"></textarea>
             </div>
           </div>
         </div>
-      </div>
+
+        <div class="sticky-action-bar mt-auto">
+           <div style="max-width: 800px; width: 100%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+              <span class="t-sm t-secondary"><span data-icon="info" style="vertical-align:middle; width:14px; height:14px;"></span> ระบบจะแจ้งเตือนภารกิจนี้ไปยังนักเรียนทันที</span>
+              <button type="submit" id="submitBtn" class="btn btn-primary btn-lg" style="padding: 0 40px; border-radius: var(--radius-full); box-shadow: var(--shadow-md);">
+                 <span data-icon="send" style="margin-right:8px;"></span> สั่งงานและบันทึก
+              </button>
+           </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -149,6 +187,7 @@
   Auth.requireAuth();
   
   let selectedGrade = 'ป.4';
+  let allLessonsData = [];
 
   function pickGrade(el) {
     document.querySelectorAll('.grade-pill').forEach(p => p.classList.remove('active'));
@@ -157,8 +196,6 @@
     document.getElementById('gradeError').style.display = 'none';
     if (allLessonsData.length > 0) renderLessonsDropdown();
   }
-
-  let allLessonsData = [];
 
   async function loadContext() {
     const res = await ApiService.getLessons();
@@ -200,7 +237,8 @@
     }
   }
 
-  async function saveMission() {
+  async function saveMission(e) {
+    e.preventDefault();
     const title = document.getElementById('mTitle').value.trim();
     const lessonId = document.getElementById('mLesson').value;
     const instr = document.getElementById('mInstr').value.trim();
@@ -208,17 +246,13 @@
     const deadline = document.getElementById('mDeadline').value;
     const criteria = document.getElementById('mCriteria').value.trim();
 
-    if (!title || !instr) {
-      alert("กรุณาระบุหัวข้อและคำชี้แจงให้ครบถ้วน");
-      return;
-    }
     if (!selectedGrade) {
       document.getElementById('gradeError').style.display = 'block';
       return alert("กรุณาเลือกระดับชั้น");
     }
 
-    const btn = document.querySelector('.btn-primary');
-    btn.disabled = true; btn.innerHTML = 'กำลังบันทึกภารกิจ...';
+    const btn = document.getElementById('submitBtn');
+    UI.setLoading(btn, true);
 
     const data = {
       id: 'T' + Date.now(),
@@ -238,11 +272,12 @@
         location.href = 'teacher-manage-content.html';
       } else {
         alert(res.message);
-        btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> บันทึกและสั่งงานทันที';
       }
     } catch (err) {
       alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-      btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> บันทึกและสั่งงานทันที';
+    } finally {
+      UI.setLoading(btn, false, '<span data-icon="send" style="margin-right:8px;"></span> สั่งงานและบันทึก');
+      if(window.UI && window.UI.initIcons) window.UI.initIcons();
     }
   }
 

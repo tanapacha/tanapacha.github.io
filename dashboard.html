@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Dashboard - KIDDO Learning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -74,27 +77,27 @@
 
     <div class="page-body">
       <!-- Student Stats -->
-      <div class="grid-3 mb-10">
-        <div class="card stat-item">
+      <div class="bento-grid mb-10" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div class="bento-card stat-item">
           <span class="stat-label">บทเรียนที่จบแล้ว</span>
           <div id="stat1_V" class="stat-value" style="color: var(--color-primary-500);">0</div>
           <div class="badge badge-primary mt-2" style="font-size: 0.65rem;">Lessons Done</div>
         </div>
-        <div class="card stat-item">
+        <div class="bento-card stat-item">
           <span class="stat-label">โจทย์ที่พิชิตได้</span>
           <div id="stat2_V" class="stat-value" style="color: var(--color-purple-500);">0</div>
           <div class="badge badge-primary mt-2" style="font-size: 0.65rem; background: var(--color-purple-50); color: var(--color-purple-500);">Quizzes</div>
         </div>
-        <div class="card stat-item">
+        <div class="bento-card stat-item">
           <span class="stat-label">คะแนนเฉลี่ย</span>
           <div id="stat3_V" class="stat-value" style="color: var(--color-amber-500);">0%</div>
           <div class="badge mt-2" style="font-size: 0.65rem; background: var(--neutral-100); color: var(--neutral-600);">Total Average</div>
         </div>
       </div>
 
-      <div class="grid-2">
+      <div class="bento-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
         <!-- Recent Lessons -->
-        <div class="card">
+        <div class="bento-card">
           <div class="flex justify-between items-center mb-8">
             <h2 class="t-title" style="display: flex; align-items: center; gap: 12px;">
               <span style="color: var(--color-primary-500);"><span data-icon="bookOpen"></span></span> บทเรียนแนะนำ
@@ -108,7 +111,7 @@
         </div>
 
         <!-- Achievements -->
-        <div class="card">
+        <div class="bento-card">
           <div class="flex justify-between items-center mb-8">
             <h2 class="t-title" style="display: flex; align-items: center; gap: 12px;">
               <span style="color: var(--color-amber-500);"><span data-icon="award"></span></span> รางวัลของคุณ
@@ -154,23 +157,35 @@
     } catch (err) {
       console.error(err);
     } finally {
-      document.querySelectorAll('.skeleton').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.skeleton').forEach(el => {
+        el.classList.add('fade-out');
+        setTimeout(() => el.remove(), 300);
+      });
     }
   });
 
   function renderDashboard(data) {
     if (!data) return;
-    document.querySelectorAll('.skeleton').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.skeleton').forEach(el => {
+      el.classList.add('fade-out');
+      setTimeout(() => el.remove(), 300);
+    });
 
     const stats = data.data || data;
-    document.getElementById('stat1_V').innerText = stats.completedLessons || 0;
-    document.getElementById('stat2_V').innerText = stats.totalQuizzes || 0;
-    document.getElementById('stat3_V').innerText = (stats.avgScore || 0) + '%';
+    
+    // Animate stat numbers with count-up effect
+    const s1 = document.getElementById('stat1_V');
+    const s2 = document.getElementById('stat2_V');
+    const s3 = document.getElementById('stat3_V');
+    if (s1) animateCountUp(s1, stats.completedLessons || 0);
+    if (s2) animateCountUp(s2, stats.totalQuizzes || 0);
+    if (s3) animateCountUp(s3, (stats.avgScore || 0) + '%');
 
-    // Render Lessons
+    // Render Lessons with smooth content reveal
     const lessons = data.lessons || [];
+    const container = document.getElementById('lessonsContainer');
     if (lessons.length > 0) {
-      document.getElementById('lessonsContainer').innerHTML = lessons.slice(0, 3).map(l => `
+      const html = lessons.slice(0, 3).map(l => `
         <a href="play-lesson.html?id=${l.ID}" class="flex items-center gap-4 p-4 card-hover" style="text-decoration:none; background: var(--neutral-50); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
           <div class="avatar" style="background: white; color: var(--color-primary-500); border: none; border-radius: 12px; width: 44px; height: 44px;">
             <span data-icon="bookOpen"></span>
@@ -182,11 +197,10 @@
           <span data-icon="play" style="color: var(--color-primary-300);"></span>
         </a>
       `).join('');
+      UI.revealContent(container, html);
     } else {
-      document.getElementById('lessonsContainer').innerHTML = `<div class="p-8 t-center t-secondary">ยังไม่มีบทเรียนในขณะนี้</div>`;
+      UI.revealContent(container, `<div class="p-8 t-center t-secondary">ยังไม่มีบทเรียนในขณะนี้</div>`);
     }
-
-    UI.initIcons();
   }
 </script>
 

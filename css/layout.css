@@ -1,5 +1,5 @@
 /* =========================================================
-   Layout — Clean App Shell (V5.0 - PROFESSIONAL MINIMAL)
+   Layout — App Shell (V7.0 - SMOOTH & PERFORMANT)
    ========================================================= */
 
 * { 
@@ -16,6 +16,7 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .app {
@@ -24,45 +25,46 @@ body {
   position: relative;
 }
 
-/* --- Clean Flat Sidebar --- */
+/* ─── Sidebar ──────────────────────────────────────────────── */
 .sidebar {
-  width: 260px;
+  width: 280px;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
   padding: var(--sp-6) var(--sp-4);
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-default);
+  background: linear-gradient(180deg, oklch(99.5% 0.002 260) 0%, oklch(98% 0.006 260) 100%);
+  border-right: 1px solid var(--border-subtle);
   z-index: 100;
   flex-shrink: 0;
   transition: transform var(--duration-normal) var(--ease-premium);
+  overflow-y: auto;
 }
 
 .sidebar-logo {
-  padding: var(--sp-2) var(--sp-4) var(--sp-6);
+  padding: var(--sp-3) var(--sp-4) var(--sp-6);
   display: flex;
   align-items: center;
   gap: var(--sp-3);
 }
 
 .sidebar-logo img {
-  width: 40px; 
-  height: 40px;
+  width: 36px; 
+  height: 36px;
   object-fit: contain;
   border-radius: var(--radius-sm);
 }
 
 .sidebar-logo-text {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: var(--neutral-900);
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
 
-/* --- Sidebar Menu Section --- */
+/* ─── Sidebar Menu Section ─────────────────────────────────── */
 .sidebar-section { 
   margin-top: var(--sp-4); 
 }
@@ -74,53 +76,73 @@ body {
   padding: 0 var(--sp-4);
   margin-bottom: var(--sp-2);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-/* --- Sidebar Nav Item with complete State System --- */
+/* ─── Sidebar Nav Item ─────────────────────────────────────── */
 .sidebar-nav-item {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  color: var(--neutral-500);
   font-weight: 600;
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   transition: all var(--duration-fast) var(--ease-premium);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   border: 1px solid transparent;
 }
 
 /* Hover state */
 .sidebar-nav-item:hover {
-  background: var(--neutral-100);
+  background: white;
   color: var(--neutral-900);
+  box-shadow: 0 2px 8px oklch(20% 0.02 260 / 0.03);
+  border-color: var(--border-subtle);
 }
 
 /* Active state (Pressed) */
 .sidebar-nav-item:active {
-  transform: translateY(1px);
+  transform: scale(0.98);
+  transition-duration: 60ms;
 }
 
-/* Selected active page state (Flat, clean, NO side-stripes) */
+/* Selected active page state */
 .sidebar-nav-item.active {
-  background: var(--color-primary-50);
+  background: linear-gradient(135deg, var(--color-primary-50), white);
   color: var(--color-primary-600);
   border-color: var(--color-primary-100);
   font-weight: 700;
+  box-shadow: 0 4px 12px oklch(56% 0.18 275 / 0.06);
 }
 
 .nav-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: var(--neutral-50);
+  color: var(--neutral-400);
+  transition: all var(--duration-fast) var(--ease-premium);
 }
 
-/* --- Sidebar Footer & User Profile --- */
+.sidebar-nav-item:hover .nav-icon {
+  background: var(--color-primary-50);
+  color: var(--color-primary-500);
+}
+
+.sidebar-nav-item.active .nav-icon {
+  background: var(--color-primary-500);
+  color: white;
+  box-shadow: 0 2px 6px oklch(56% 0.18 275 / 0.25);
+}
+
+/* ─── Sidebar Footer & User Profile ────────────────────────── */
 .sidebar-footer { 
   margin-top: auto; 
   padding-top: var(--sp-4);
@@ -157,26 +179,28 @@ body {
   width: 36px; 
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--neutral-100);
-  color: var(--neutral-600);
+  background: var(--neutral-50);
+  color: var(--neutral-500);
   display: flex; 
   align-items: center; 
   justify-content: center;
   transition: all var(--duration-fast) var(--ease-premium);
-  border: none; 
+  border: 1px solid transparent; 
   cursor: pointer;
 }
 
 .btn-logout:hover {
   background: var(--color-error-bg);
   color: var(--color-error);
+  border-color: var(--color-error-border);
 }
 
 .btn-logout:active {
-  transform: translateY(1px);
+  transform: scale(0.92);
+  transition-duration: 60ms;
 }
 
-/* --- Main Content Shell --- */
+/* ─── Main Content Shell ───────────────────────────────────── */
 .main-content {
   flex: 1;
   min-width: 0;
@@ -189,23 +213,28 @@ body {
 }
 
 .page-header {
-  padding: var(--sp-6) var(--sp-8);
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-default);
+  padding: var(--sp-8) var(--sp-10);
+  background: linear-gradient(180deg, oklch(99.5% 0.002 260) 0%, rgba(255,255,255,0.8) 100%);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 90;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .page-body {
-  padding: var(--sp-8);
+  padding: var(--sp-10);
   flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-/* --- Auth Layout (Login/Register) without noisy blur blobs --- */
+/* ─── Auth Layout ──────────────────────────────────────────── */
 .auth-page {
   background: var(--bg-app);
   min-height: 100vh;
@@ -245,7 +274,48 @@ body {
   object-fit: contain;
 }
 
-/* --- Responsive Navigation Drawer Architecture --- */
+/* ─── Mobile Hamburger Toggle ──────────────────────────────── */
+.sidebar-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--neutral-600);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-premium);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 101;
+}
+.sidebar-toggle:hover {
+  background: var(--neutral-50);
+}
+.sidebar-toggle:active {
+  transform: scale(0.92);
+}
+
+/* ─── Mobile Sidebar Overlay ───────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: oklch(14% 0.022 260 / 0.3);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-premium);
+}
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ─── Responsive Navigation ────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -253,15 +323,21 @@ body {
     top: 0;
     bottom: 0;
     transform: translateX(-100%);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-premium);
+    width: 280px;
+    transition: transform var(--duration-slow) var(--ease-premium);
   }
 
   .sidebar.open {
     transform: translateX(0);
   }
 
+  .sidebar-toggle {
+    display: flex;
+  }
+
   .page-header {
-    padding: var(--sp-4) var(--sp-6);
+    padding: var(--sp-4) var(--sp-5);
   }
 
   .page-body {

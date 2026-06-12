@@ -1,7 +1,7 @@
 /**
- * KIDDO LEARNING - API Service
+ * KIDDO LEARNING - API Service (V8.0 - Ultra Smooth)
  * ────────────────────────────
- * ใช้สำหรับเชื่อมต่อกับ Google Apps Script Backend
+ * Stale-While-Revalidate + Progress Bar + Smart Retry
  */
 
 const API_CONFIG = {
@@ -39,9 +39,10 @@ const ApiService = {
   },
 
   async post(action, payload, showLoader = true, retryCount = 0) {
-    const maxRetries = 2; // เพิ่มจำนวนครั้งในการลองใหม่สูงสุดเป็น 2 ครั้ง (รวม 3 ครั้ง)
+    const maxRetries = 2;
     
     if (showLoader && retryCount === 0) {
+       window.UI?.showProgress();
        window.UI?.showLoading(action === 'login' ? 'กำลังตรวจสอบ...' : 'กำลังบันทึกข้อมูล...');
     } else if (showLoader && retryCount > 0) {
        window.UI?.showLoading(`กำลังพยายามเชื่อมต่อใหม่ (ครั้งที่ ${retryCount})...`);
@@ -107,8 +108,10 @@ const ApiService = {
       if (showLoader) window.UI?.toast(msg, 'error');
       return { status: "error", message: msg };
     } finally {
-      // ซ่อน Loader เมื่อทำงานเสร็จหรือสิ้นสุดการทำงานทั้งหมด (ถ้าเป็นการเรียกซ้อนกัน จะเคลียร์ตอนจบลูปหลัก)
-      if (showLoader && retryCount === 0) window.UI?.hideLoading();
+      if (showLoader && retryCount === 0) {
+        window.UI?.hideLoading();
+        window.UI?.hideProgress();
+      }
     }
   },
 
@@ -117,9 +120,10 @@ const ApiService = {
     const silent = params.silent === true;
     
     if (!silent && retryCount === 0) {
+       window.UI?.showProgress();
        window.UI?.showLoading('กำลังโหลดข้อมูล...');
     } else if (!silent && retryCount > 0) {
-       window.UI?.showLoading(`กำลังพยายามโหลดข้อมูลใหม่ (ครั้งที่ ${retryCount})...`);
+       window.UI?.showLoading(`เซิร์ฟเวอร์กำลังเตรียมตัว... (ครั้งที่ ${retryCount})`);
     }
     
     const cacheKey = `GET_${action}_${JSON.stringify(params)}`;
@@ -179,7 +183,10 @@ const ApiService = {
       if (!silent && retryCount === maxRetries) window.UI?.toast(msg, 'error');
       return { status: "error", message: msg };
     } finally {
-      if (!silent && retryCount === 0) window.UI?.hideLoading();
+      if (!silent && retryCount === 0) {
+        window.UI?.hideLoading();
+        window.UI?.hideProgress();
+      }
     }
   },
 

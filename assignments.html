@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ศูนย์แบบฝึกหัด | KIDDO LEARNING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -106,8 +109,8 @@
           <span data-icon="left"></span> กลับไปหน้าภารกิจ
         </button>
 
-        <div class="grid-2">
-          <div class="card">
+        <div class="bento-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+          <div class="bento-card">
             <div class="flex items-center gap-4 mb-6">
               <div class="icon-box" style="background:var(--color-primary-50); color:var(--color-primary-600); width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center;">
                 <span data-icon="clipboard"></span>
@@ -131,7 +134,7 @@
             </div>
           </div>
 
-          <div class="card">
+          <div class="bento-card">
             <h2 class="t-title mb-6">ส่งผลงาน</h2>
             <form id="submissionForm">
               <div class="form-group mb-6">
@@ -214,7 +217,7 @@
     } catch (err) {
       console.error(err);
       document.getElementById('missionGrid').innerHTML = `
-        <div class="card p-16 t-center animate-in" style="max-width: 600px; margin: 40px auto; border: 1.5px solid var(--border-subtle); grid-column: 1 / -1;">
+        <div class="bento-card p-16 t-center animate-in" style="max-width: 600px; margin: 40px auto; grid-column: 1 / -1;">
           <div class="avatar mb-6 animate-pulse" style="margin:0 auto; width:80px; height:80px; background:var(--color-error-50); color:var(--color-error-500); border:none; border-radius: 24px;">
             <span data-icon="alert" style="width:40px; height:40px;"></span>
           </div>
@@ -263,7 +266,7 @@
     if (filtered.length === 0) {
       const user = Auth.get();
       grid.innerHTML = `
-        <div class="card p-12 t-center anim-fade-up" style="grid-column: 1/-1;">
+        <div class="bento-card p-12 t-center anim-fade-up" style="grid-column: 1/-1;">
           <div class="avatar mb-4" style="margin:0 auto; width:64px; height:64px; background:var(--neutral-100); color:var(--neutral-400); border:none;">
             <span data-icon="upload" style="width:32px; height:32px;"></span>
           </div>
@@ -271,7 +274,7 @@
           <p class="t-secondary t-sm">${currentFilter === 'all' ? `คุณครูยังไม่ได้เพิ่มแบบฝึกหัดสำหรับชั้น ${user.grade || ''}` : `ยังไม่มีแบบฝึกหัดในหมวดหมู่ ${currentFilter}`}</p>
         </div>
       `;
-      if (window.app && window.app.initIcons) window.app.initIcons();
+      if (window.UI && window.UI.initIcons) window.UI.initIcons();
       return;
     }
 
@@ -308,7 +311,7 @@
         </div>
       `;
     }).join('');
-    window.app.initIcons();
+    window.UI.initIcons();
   }
 
   function openMission(id) {
@@ -362,7 +365,7 @@
         if (subRes.status === 'success') userSubmissions = subRes.data.filter(s => s.StudentID === user.id);
       } else alert(res.message);
     } catch (err) { alert("เกิดข้อผิดพลาด"); }
-    finally { btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> ยืนยันการส่งภารกิจ'; window.app.initIcons(); }
+    finally { btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> ยืนยันการส่งภารกิจ'; window.UI.initIcons(); }
   });
 
   init();

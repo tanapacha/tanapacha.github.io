@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard - KIDDO Learning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -21,8 +24,6 @@
       <img src="kiddo_learning_logo_1778753164138.png" style="width: 40px; height: 40px; object-fit: contain;">
       <div class="sidebar-logo-text">KIDDO</div>
     </div>
-    
-    
     
     <div class="sidebar-section">
       <div class="sidebar-section-label">เมนูการเรียน</div>
@@ -47,10 +48,7 @@
       <a href="teacher-check-assignments.html" class="sidebar-nav-item" data-page="teacher-check-assignments.html"><span class="nav-icon" data-icon="checkCircle"></span>ตรวจงานนักเรียน</a>
       <a href="teacher-student-grades.html" class="sidebar-nav-item" data-page="teacher-student-grades.html"><span class="nav-icon" data-icon="chart"></span>จัดการคะแนนรวม</a>
     </div>
-    
-    
 
-    
     <div class="sidebar-footer">
       <div class="sidebar-user">
         <div class="avatar skeleton" id="userAvatarSkeleton" style="width:36px; height:36px;"></div>
@@ -81,58 +79,67 @@
 
     <div class="page-body">
       <!-- Quick Stats -->
-      <div class="grid-4 mb-10" id="statsGrid">
-        <div class="card stat-item">
-          <span class="stat-label">จำนวนนักเรียน</span>
+      <div class="bento-grid mb-10" id="statsGrid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="bento-card flex flex-col justify-between" style="padding: var(--sp-6);">
+          <span class="t-xs fw-bold t-secondary uppercase mb-2 block" style="letter-spacing: 0.05em;">จำนวนนักเรียน</span>
           <div class="skeleton-title skeleton mt-2" id="stat1_S"></div>
-          <div id="stat1_V" class="stat-value hidden" style="color: var(--color-primary-500);">0</div>
-          <div class="badge badge-primary mt-2 hidden" id="stat1_B" style="font-size: 0.65rem;">Active Students</div>
+          <div id="stat1_V" class="stat-value hidden t-display mt-2" style="color: var(--color-primary-600); font-size: 2.5rem; line-height: 1;">0</div>
+          <div class="badge mt-4 hidden" id="stat1_B" style="font-size: 0.65rem; background: var(--color-primary-50); color: var(--color-primary-700); border: 1px solid var(--color-primary-100); width: max-content;">Active Students</div>
         </div>
-        <div class="card stat-item">
-          <span class="stat-label">งานรอตรวจ</span>
+        
+        <div class="bento-card flex flex-col justify-between" style="padding: var(--sp-6);">
+          <span class="t-xs fw-bold t-secondary uppercase mb-2 block" style="letter-spacing: 0.05em;">งานรอตรวจ</span>
           <div class="skeleton-title skeleton mt-2" id="stat2_S"></div>
-          <div id="stat2_V" class="stat-value hidden" style="color: var(--color-error);">0</div>
-          <div class="badge badge-error mt-2 hidden" id="stat2_B" style="font-size: 0.65rem;">Needs Attention</div>
+          <div id="stat2_V" class="stat-value hidden t-display mt-2" style="color: var(--color-error); font-size: 2.5rem; line-height: 1;">0</div>
+          <div class="badge mt-4 hidden" id="stat2_B" style="font-size: 0.65rem; background: var(--color-error-bg); color: var(--color-error); border: 1px solid var(--color-error); width: max-content;">Needs Attention</div>
         </div>
-        <div class="card stat-item">
-          <span class="stat-label">ส่งงานรวม</span>
+
+        <div class="bento-card flex flex-col justify-between" style="padding: var(--sp-6);">
+          <span class="t-xs fw-bold t-secondary uppercase mb-2 block" style="letter-spacing: 0.05em;">ส่งงานรวม</span>
           <div class="skeleton-title skeleton mt-2" id="stat3_S"></div>
-          <div id="stat3_V" class="stat-value hidden" style="color: var(--color-success);">0</div>
-          <div class="badge badge-success mt-2 hidden" id="stat3_B" style="font-size: 0.65rem;">Submissions</div>
+          <div id="stat3_V" class="stat-value hidden t-display mt-2" style="color: var(--color-success); font-size: 2.5rem; line-height: 1;">0</div>
+          <div class="badge mt-4 hidden" id="stat3_B" style="font-size: 0.65rem; background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success); width: max-content;">Submissions</div>
         </div>
-        <div class="card stat-item">
-          <span class="stat-label">เฉลี่ยทั้งชั้น</span>
+
+        <div class="bento-card flex flex-col justify-between" style="padding: var(--sp-6);">
+          <span class="t-xs fw-bold t-secondary uppercase mb-2 block" style="letter-spacing: 0.05em;">เฉลี่ยทั้งชั้น</span>
           <div class="skeleton-title skeleton mt-2" id="stat4_S"></div>
-          <div id="stat4_V" class="stat-value hidden" style="color: var(--color-amber-500);">0%</div>
-          <div class="badge mt-2 hidden" id="stat4_B" style="font-size: 0.65rem; background: var(--neutral-100); color: var(--neutral-600);">Class Avg</div>
+          <div id="stat4_V" class="stat-value hidden t-display mt-2" style="color: var(--color-amber-500); font-size: 2.5rem; line-height: 1;">0%</div>
+          <div class="badge mt-4 hidden" id="stat4_B" style="font-size: 0.65rem; background: var(--color-amber-50); color: var(--color-amber-700); border: 1px solid var(--color-amber-200); width: max-content;">Class Avg</div>
         </div>
       </div>
 
-      <div class="grid-2">
+      <div class="bento-grid" style="grid-template-columns: 2fr 1fr;">
         <!-- Progress Chart -->
-        <div class="card">
+        <div class="bento-card" style="padding: var(--sp-8);">
           <div class="flex justify-between items-center mb-8">
-            <h2 class="t-title" style="display: flex; align-items: center; gap: 12px;">
-              <span style="color: var(--color-primary-500);"><span data-icon="chart"></span></span> การเรียนรู้รายสัปดาห์
+            <h2 class="t-title" style="display: flex; align-items: center; gap: 12px; font-size: 1.25rem;">
+              <div class="avatar" style="width: 36px; height: 36px; border-radius: 10px; background: var(--color-primary-50); color: var(--color-primary-500); border: none;">
+                <span data-icon="chart" style="width: 18px; height: 18px;"></span>
+              </div>
+              การเรียนรู้รายสัปดาห์
             </h2>
           </div>
           <div id="progressContainer">
-            <div class="skeleton skeleton-card-img" style="height: 240px;"></div>
+            <div class="skeleton skeleton-card-img" style="height: 240px; border-radius: var(--radius-lg);"></div>
           </div>
         </div>
 
         <!-- Priority Care -->
-        <div class="card">
+        <div class="bento-card" style="padding: var(--sp-8);">
           <div class="flex justify-between items-center mb-8">
-            <h2 class="t-title" style="display: flex; align-items: center; gap: 12px;">
-              <span style="color: var(--color-error);"><span data-icon="alert"></span></span> นร. ที่ควรให้ความสำคัญ
+            <h2 class="t-title" style="display: flex; align-items: center; gap: 12px; font-size: 1.25rem;">
+              <div class="avatar" style="width: 36px; height: 36px; border-radius: 10px; background: var(--color-error-bg); color: var(--color-error); border: none;">
+                <span data-icon="alert" style="width: 18px; height: 18px;"></span>
+              </div>
+              นร. ที่ควรให้ความสำคัญ
             </h2>
           </div>
           <div id="activityContainer" class="flex flex-col gap-4">
-             <div class="skeleton skeleton-text"></div>
-             <div class="skeleton skeleton-text" style="width: 80%;"></div>
-             <div class="skeleton skeleton-text" style="width: 90%;"></div>
-             <div class="skeleton skeleton-text" style="width: 70%;"></div>
+             <div class="skeleton skeleton-text" style="height: 50px; border-radius: var(--radius-md);"></div>
+             <div class="skeleton skeleton-text" style="height: 50px; border-radius: var(--radius-md);"></div>
+             <div class="skeleton skeleton-text" style="height: 50px; border-radius: var(--radius-md);"></div>
+             <div class="skeleton skeleton-text" style="height: 50px; border-radius: var(--radius-md);"></div>
           </div>
         </div>
       </div>
@@ -177,19 +184,17 @@
     } catch (err) {
       console.error(err);
       // Ensure skeletons are hidden if everything fails after 5s
-      setTimeout(() => {
-        document.querySelectorAll('.skeleton').forEach(el => el.classList.add('hidden'));
-      }, 5000);
+      setTimeout(() => UI.fadeSkeletons(), 5000);
     }
   });
 
   function renderDashboard(data) {
     if (!data) return;
     
-    // Hide Skeletons
-    document.querySelectorAll('.skeleton').forEach(el => el.classList.add('hidden'));
+    // Smooth skeleton fade-out
+    UI.fadeSkeletons();
     
-    // Update Stats
+    // Animate Stats with count-up
     const stats = {
       'stat1_V': data.studentCount || 0,
       'stat2_V': data.pendingGrading || 0,
@@ -200,13 +205,16 @@
     Object.entries(stats).forEach(([id, val]) => {
       const el = document.getElementById(id);
       if (el) {
-        el.innerText = val;
         el.classList.remove('hidden');
-        el.classList.add('loaded-content');
+        el.classList.add('content-reveal');
+        animateCountUp(el, val);
       }
     });
 
-    document.querySelectorAll('.badge.hidden').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('.badge.hidden').forEach(el => {
+      el.classList.remove('hidden');
+      el.classList.add('content-reveal');
+    });
 
     // Render Progress
     const progressHTML = data.progress?.length 
@@ -216,7 +224,7 @@
             <span>${p.lessonName}</span>
             <span class="t-primary-color">${p.percent}%</span>
           </div>
-          <div class="progress-track"><div class="progress-fill" style="width:${p.percent}%"></div></div>
+          <div class="progress-track" style="height: 10px; border-radius: 5px;"><div class="progress-fill" style="width:${p.percent}%; border-radius: 5px;"></div></div>
         </div>`).join('')
       : `<div class="p-12 t-center t-secondary">ไม่มีข้อมูลความก้าวหน้า</div>`;
     
@@ -225,13 +233,13 @@
     // Render Care List
     const careHTML = data.strugglingStudents?.length
       ? data.strugglingStudents.map(s => `
-        <div class="flex items-center gap-4 p-4" style="background: var(--neutral-50); border-radius: var(--radius-md);">
-          <div class="avatar" style="background: var(--color-error); color: white; border: none;">${s.name.charAt(0)}</div>
+        <div class="flex items-center gap-4 p-4" style="background: var(--neutral-50); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div class="avatar" style="background: var(--color-error); color: white; border: none; width: 40px; height: 40px; font-weight: 700;">${s.name.charAt(0)}</div>
           <div class="flex-1">
-             <div class="fw-bold">${s.name}</div>
-             <div class="t-xs t-secondary">${s.reason}</div>
+             <div class="fw-bold" style="font-size: 0.95rem;">${s.name}</div>
+             <div class="t-xs t-secondary mt-1">${s.reason}</div>
           </div>
-          <div class="t-error-color fw-bold">${s.score}%</div>
+          <div class="t-error-color fw-black t-title" style="font-size: 1.1rem;">${s.score}%</div>
         </div>`).join('')
       : `<div class="p-12 t-center t-secondary">นักเรียนทุกคนเรียนรู้ได้ดีเยี่ยม!</div>`;
 

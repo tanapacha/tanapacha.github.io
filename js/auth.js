@@ -1,9 +1,10 @@
 /**
- * KIDDO LEARNING — Auth Service (V4.1 Stable)
+ * KIDDO LEARNING — Auth Service (V5.0 - Activity Refresh)
  */
 const Auth = (() => {
   const SESSION_KEY = 'kiddo_session';
   const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 นาที
+  let _activityListenerAttached = false;
 
   function _set(user) {
     if (!user) return;
@@ -14,6 +15,37 @@ const Auth = (() => {
     // ป้องกันการเก็บรหัสผ่านใน Session
     delete session.password;
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  }
+
+  /** Refresh session timestamp on user activity */
+  function _refreshActivity() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return;
+      const session = JSON.parse(raw);
+      session.loginAt = Date.now();
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    } catch {}
+  }
+
+  /** Attach activity listeners (once) to extend session on interaction */
+  function _initActivityRefresh() {
+    if (_activityListenerAttached) return;
+    _activityListenerAttached = true;
+    
+    // Throttle: refresh at most once every 60 seconds
+    let lastRefresh = 0;
+    const throttledRefresh = () => {
+      const now = Date.now();
+      if (now - lastRefresh > 60000) {
+        lastRefresh = now;
+        _refreshActivity();
+      }
+    };
+
+    ['click', 'keydown', 'scroll', 'touchstart'].forEach(evt => {
+      document.addEventListener(evt, throttledRefresh, { passive: true });
+    });
   }
 
   function get() {
@@ -27,6 +59,8 @@ const Auth = (() => {
         sessionStorage.removeItem(SESSION_KEY);
         return null;
       }
+      // Start activity refresh if session is valid
+      _initActivityRefresh();
       return session;
     } catch { return null; }
   }
