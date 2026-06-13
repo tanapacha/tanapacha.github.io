@@ -3,129 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="KIDDO LEARNING — แพลตฟอร์มการเรียนรู้ที่ออกแบบมาเพื่อนักเรียนชั้น ป.4 และครูผู้สอน">
-  <title>วิทยาการคำนวณ ป.4 | KIDDO LEARNING</title>
+  <title>เข้าสู่ระบบ | KIDDO LEARNING</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
-  <style>
-    /* Fix for background blobs to not interfere with clicks */
-    .bg-blob {
-      pointer-events: none;
-      z-index: 1;
-    }
-    /* Smooth transition for navbar */
-    nav {
-      transition: all 0.3s ease;
-    }
-    @media (max-width: 640px) {
-      .nav-desktop-only { display: none; }
-      .nav-inner { padding: 0 10px; }
-    }
-  </style>
 </head>
-<body style="overflow-x: hidden;">
+<body class="auth-page">
 
-<!-- Premium Sticky Nav -->
-<nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 12px 24px; background: var(--bg-surface); border-bottom: 1px solid var(--border-default);">
-  <div class="nav-inner" style="max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-    <a href="index.html" class="flex items-center gap-4" style="text-decoration:none;">
-      <img src="kiddo_serious_logo.png" alt="KIDDO Logo" style="width: 40px; height: 40px; object-fit: contain;">
-      <div class="t-title" style="color: var(--neutral-900); font-size: 1.35rem; letter-spacing: -0.03em;">KIDDO</div>
-    </a>
-    <div class="flex items-center gap-6">
-      <a href="login.html" class="t-small fw-bold t-secondary nav-desktop-only" style="text-decoration:none;">เข้าสู่ระบบ</a>
-      <a href="register.html" class="btn btn-primary btn-sm">เริ่มต้นใช้งาน</a>
-    </div>
-  </div>
-</nav>
-
-
-<!-- Super Hero Section -->
-<section style="padding: 140px 24px 80px; text-align: center; position: relative; overflow: hidden; background: var(--bg-app);">
-  <div class="animate-in" style="max-width: 1000px; margin: 0 auto; position: relative; z-index: 2;">
-    <div class="badge badge-primary mb-8" style="padding: 6px 16px;">แพลตฟอร์มการเรียนรู้ระดับประถมศึกษา</div>
-    <h1 class="t-display mb-8">
-      เรียนรู้ <span class="t-primary-color">วิทยาการคำนวณ</span><br>ที่เข้าใจง่ายและสนุกสำหรับเด็ก
-    </h1>
-    <p class="t-body mb-12" style="font-size: 1.125rem; max-width: 650px; margin-left: auto; margin-right: auto; line-height: 1.8;">
-      เปลี่ยนเรื่องยากให้เป็นเรื่องเข้าใจง่าย ผ่านบทเรียนดิจิทัลที่ออกแบบมาเพื่อเสริมสร้างทักษะการคิด และการแก้ปัญหาอย่างเป็นระบบสำหรับนักเรียนระดับชั้นประถมศึกษา
-    </p>
-    <div class="flex items-center justify-center gap-4">
-      <a href="register.html" class="btn btn-primary" style="height: 48px; padding: 0 32px;">เริ่มต้นเรียนฟรีวันนี้</a>
-      <a href="login.html" class="btn btn-outline" style="height: 48px; padding: 0 32px;">เข้าสู่ระบบ</a>
-    </div>
-  </div>
-
-  <!-- Interactive Preview Card -->
-  <div class="animate-in" style="margin-top: 60px; max-width: 1000px; margin-left: auto; margin-right: auto; padding: 0 16px; animation-delay: 200ms;">
-    <div class="card" style="padding: 16px; border-radius: var(--radius-md);">
-       <div style="background: var(--neutral-50); border-radius: var(--radius-sm); aspect-ratio: 16/7; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid var(--border-default);">
-          <div style="text-align: center; position: relative; z-index: 2;">
-             <div class="avatar avatar-lg mb-4" style="background: var(--color-primary-500); color: white; margin-left: auto; margin-right: auto; border: none; box-shadow: var(--shadow-md); border-radius: var(--radius-sm);">
-                <span data-icon="play" style="margin-left: 4px;"></span>
-             </div>
-
-             <p class="t-title fw-bold" style="font-size: 1.25rem;">ห้องเรียนดิจิทัลเพื่อการเรียนรู้ที่มีประสิทธิภาพ</p>
-             <p class="t-body mt-2">สัมผัสประสบการณ์การเรียนรู้คอมพิวเตอร์และอัลกอริทึมที่ทันสมัย</p>
-          </div>
-       </div>
-    </div>
-  </div>
-</section>
-
-<!-- Simple Feature Section -->
-<section id="features" style="padding: 120px 24px; background: var(--bg-surface);">
-  <div style="max-width: 1300px; margin: 0 auto;">
-    <div class="grid-auto">
-      <div class="card" style="text-align: center; padding: var(--sp-12); border: none; background: transparent; box-shadow: none;">
-        <div class="avatar avatar-lg mb-8" style="background: var(--color-primary-50); color: var(--color-primary-500); margin-left: auto; margin-right: auto; border: none; border-radius: 24px;">
-          <span data-icon="puzzle"></span>
-        </div>
-        <h3 class="t-title mb-6" style="font-size: 1.5rem;">คิดอย่างเป็นระบบ</h3>
-        <p class="t-body">ฝึกทักษะอัลกอริทึมผ่านสถานการณ์จำลองที่นักเรียนเข้าถึงง่ายที่สุด</p>
+  <div class="auth-card animate-in">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <img src="kiddo_learning_logo_1778753164138.png" alt="KIDDO Logo" style="width: 80px; height: 80px; object-fit: contain;">
       </div>
-      <div class="card" style="text-align: center; padding: var(--sp-12); border: none; background: transparent; box-shadow: none;">
-        <div class="avatar avatar-lg mb-8" style="background: var(--color-purple-50); color: var(--color-purple-500); margin-left: auto; margin-right: auto; border: none; border-radius: 24px;">
-          <span data-icon="code"></span>
-        </div>
-        <h3 class="t-title mb-6" style="font-size: 1.5rem;">พื้นฐานการโค้ด</h3>
-        <p class="t-body">เรียนรู้การเขียนโปรแกรมด้วยบล็อกคำสั่งที่เข้าใจง่ายและสนุก</p>
+      <h1 class="t-title mb-2" style="font-size: 1.75rem;">ยินดีต้อนรับกลับมา</h1>
+      <p class="t-body">เข้าสู่ระบบเพื่อเริ่มการเรียนรู้วันนี้</p>
+    </div>
+
+
+    <form id="loginForm" class="flex flex-col gap-8">
+      <div class="flex flex-col gap-3">
+        <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">อีเมลของคุณ</label>
+        <input type="email" id="email" class="input" placeholder="name@example.com" required>
       </div>
-      <div class="card" style="text-align: center; padding: var(--sp-12); border: none; background: transparent; box-shadow: none;">
-        <div class="avatar avatar-lg mb-8" style="background: oklch(96% 0.05 150); color: var(--color-success); margin-left: auto; margin-right: auto; border: none; border-radius: 24px;">
-          <span data-icon="award"></span>
+      
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+          <label class="t-xs" style="color: var(--neutral-800); font-weight: 800;">รหัสผ่าน</label>
+          <a href="#" class="t-xs t-primary-color" style="text-decoration:none; font-weight: 800;">ลืมรหัสผ่าน?</a>
         </div>
-        <h3 class="t-title mb-6" style="font-size: 1.5rem;">ติดตามผลลัพธ์</h3>
-        <p class="t-body">ระบบสรุปคะแนนอัตโนมัติ เพื่อให้คุณครูและนักเรียนประเมินความก้าวหน้าได้ทันที</p>
+        <input type="password" id="password" class="input" placeholder="••••••••" required>
       </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="height: 56px; font-size: 1.1rem; border-radius: var(--radius-xl);">
+        เข้าสู่ระบบ
+        <span data-icon="arrow-right" style="margin-left: 8px;"></span>
+      </button>
+    </form>
+
+    <div class="mt-12" style="text-align: center;">
+      <p class="t-body" style="font-size: 0.9rem;">
+        ยังไม่มีบัญชี? <a href="register.html" class="t-primary-color" style="text-decoration:none; font-weight: 800; border-bottom: 2px solid var(--color-primary-100);">สมัครสมาชิกฟรี</a>
+      </p>
     </div>
   </div>
-</section>
 
-<footer style="padding: 80px 24px; background: var(--neutral-900); color: white; text-align: center;">
-  <div class="sidebar-logo-icon mb-8" style="margin-left: auto; margin-right: auto; width: 48px; height: 48px; background: var(--color-primary-500); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
-    <span data-icon="monitor"></span>
+
+  <div id="globalLoader" class="loader-overlay">
+    <div class="spinner"></div>
+    <p class="t-small fw-bold mt-4">กำลังตรวจสอบข้อมูล...</p>
   </div>
-  <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em;">KIDDO LEARNING</h2>
-  <p class="t-xs" style="color: var(--neutral-400); max-width: 400px; margin: 0 auto 32px; text-transform: none; font-weight: 500;">แพลตฟอร์มการเรียนรู้ที่ออกแบบมาเพื่ออนาคตของเด็กไทย</p>
-  <div style="width: 40px; height: 2px; background: var(--neutral-800); margin: 0 auto 32px;"></div>
-  <p class="t-xs" style="color: var(--neutral-500); opacity: 0.8;">&copy; 2026 KIDDO CS — All Rights Reserved</p>
-</footer>
 
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (window.Auth && Auth.redirectIfAuth) Auth.redirectIfAuth();
 
-<script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script>
-  if (window.Auth && Auth.redirectIfAuth) Auth.redirectIfAuth();
-  
-  // Icon init check
-  window.addEventListener('load', () => {
-    if (window.UI && window.UI.initIcons) window.UI.initIcons();
-  });
-</script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+
+      UI.btnLoading(submitBtn, true);
+      
+      try {
+        const res = await Auth.login(email, password);
+        if (res.ok) {
+          // ใช้ redirectIfAuth เพื่อส่งไปหน้า Dashboard ที่ถูกต้องตาม Role
+          Auth.redirectIfAuth();
+        } else {
+          UI.toast(res.error || 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', 'error');
+        }
+      } catch (err) {
+        UI.toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง', 'error');
+      } finally {
+        UI.btnLoading(submitBtn, false);
+      }
+    });
+  </script>
 </body>
 </html>

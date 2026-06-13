@@ -286,97 +286,136 @@
   function render(lessons, quizzes, tasks) {
     const container = document.getElementById('contentContainer');
 
-    const groups = {};
-    lessons.forEach(l => {
-      const cat = (l.Category || 'ทั่วไป').trim();
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(l);
+    const gradeOrder = ['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6', 'ทั้งหมด'];
+    
+    // Sort lessons to ensure consistent order
+    lessons.sort((a, b) => {
+        const gradeA = gradeOrder.indexOf((a.Grade || '').trim());
+        const gradeB = gradeOrder.indexOf((b.Grade || '').trim());
+        const ga = (gradeA === -1 ? 99 : gradeA);
+        const gb = (gradeB === -1 ? 99 : gradeB);
+        if (ga !== gb) return ga - gb;
+        return (a.Category || 'ทั่วไป').localeCompare(b.Category || 'ทั่วไป');
     });
 
-    container.innerHTML = Object.keys(groups).map(cat => `
-      <div class="manage-section mb-12">
-        <div class="flex items-center gap-4 mb-6">
-           <div class="avatar" style="width: 32px; height: 32px; border-radius: 8px; background: var(--color-primary-50); color: var(--color-primary-500); border: 1px solid var(--border-subtle);">
-             <span data-icon="folder" style="font-size: 0.9rem;"></span>
-           </div>
-           <h2 class="t-title" style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em;">${cat}</h2>
-        </div>
-        <div class="bento-grid">
-          ${groups[cat].map(l => {
-            const myQuizzes = quizzes.filter(q => String(q.LessonID) === String(l.ID));
-            const myTasks = tasks.filter(t => String(t.LessonID) === String(l.ID));
-            const gColor = (GRADE_COLORS[String(l.Grade||'').trim()] || GRADE_COLORS['ทั้งหมด']).border;
-            
-            return `
-              <div class="bento-card animate-in" style="border-top: 4px solid ${gColor};">
-                <div class="flex justify-between items-start mb-6">
-                   <div>
-                      <div class="flex items-center gap-3 mb-2">
-                        <span class="badge" style="background: var(--neutral-100); color: var(--neutral-800); font-weight: 800; font-size: 0.65rem;">${l.Grade || 'ALL'}</span>
-                        <h3 class="t-title" style="font-size: 1.15rem;">${l.Title}</h3>
-                      </div>
-                      <p class="t-xs" style="color: var(--text-secondary); font-weight: 600;">ID: ${l.ID}</p>
-                   </div>
-                   <div class="flex gap-1">
-                     <a href="teacher-create-lesson.html?edit=${l.ID}" class="btn btn-ghost btn-icon" style="width: 32px; height: 32px; border-radius: 8px;" title="แก้ไขบทเรียน">
-                       <span data-icon="edit" style="width:16px;height:16px;"></span>
-                     </a>
-                     <button onclick="handleDeleteLesson('${l.ID}', '${l.Title}')" class="btn btn-ghost btn-icon" style="width: 32px; height: 32px; border-radius: 8px; color: var(--color-error);" title="ลบบทเรียน">
-                       <span data-icon="trash" style="width:16px;height:16px;"></span>
-                     </button>
-                   </div>
-                </div>
+    const gradeGroups = {};
+    lessons.forEach(l => {
+      const grade = (l.Grade || 'ทั้งหมด').trim();
+      const cat = (l.Category || 'ทั่วไป').trim();
+      if (!gradeGroups[grade]) gradeGroups[grade] = {};
+      if (!gradeGroups[grade][cat]) gradeGroups[grade][cat] = [];
+      gradeGroups[grade][cat].push(l);
+    });
 
-                <!-- Assessments Section -->
-                <div style="background: var(--bg-surface); border-radius: var(--radius-lg); padding: var(--sp-4); margin-bottom: var(--sp-4); border: 1px solid var(--border-subtle);">
-                   <div class="t-xs fw-black mb-3 uppercase" style="color: var(--text-secondary); letter-spacing:0.05em; display: flex; align-items: center; gap: 6px;">
-                     <span data-icon="task" style="width:14px;height:14px;"></span> Quizzes
-                   </div>
-                   <div class="flex flex-col gap-2">
-                     ${myQuizzes.length > 0 ? myQuizzes.map(q => `
-                       <div class="flex items-center justify-between p-2" style="background: var(--neutral-50); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-                          <div class="flex items-center gap-2">
-                             <span class="tag tag-quiz" style="border-radius: 4px; font-weight: 800; font-size:0.6rem;">${q.Type || 'POST'}</span>
-                             <span class="fw-bold" style="font-size: 0.8rem; color: var(--neutral-800);">${q.Title}</span>
+    let html = '';
+    
+    for (const grade of gradeOrder) {
+      if (!gradeGroups[grade]) continue;
+      
+      const gColorObj = GRADE_COLORS[grade] || GRADE_COLORS['ทั้งหมด'];
+      
+      html += `
+        <div class="manage-grade-section mb-14" style="background: white; border-radius: var(--radius-xl); border: 2px solid ${gColorObj.border}40; padding: var(--sp-6); box-shadow: var(--shadow-sm);">
+          <div class="flex items-center gap-4 mb-8 pb-4" style="border-bottom: 2px dashed ${gColorObj.border}40;">
+             <div class="avatar" style="width: 48px; height: 48px; border-radius: 12px; background: ${gColorObj.bg}; color: ${gColorObj.border}; border: 2px solid ${gColorObj.border}; font-weight: 900; font-size: 1.2rem;">
+               ${grade}
+             </div>
+             <h2 class="t-display" style="font-size: 1.5rem; color: var(--neutral-800);">เนื้อหาชั้น ${grade}</h2>
+          </div>
+      `;
+
+      const cats = Object.keys(gradeGroups[grade]);
+      cats.forEach(cat => {
+        html += `
+          <div class="manage-category-section mb-10 pl-4 border-l-2" style="border-color: var(--neutral-200);">
+            <div class="flex items-center gap-3 mb-6">
+               <div class="avatar" style="width: 28px; height: 28px; border-radius: 6px; background: var(--neutral-100); color: var(--neutral-600);">
+                 <span data-icon="folder" style="font-size: 0.8rem;"></span>
+               </div>
+               <h3 class="t-title" style="font-size: 1.1rem; color: var(--neutral-700);">${cat}</h3>
+            </div>
+            <div class="bento-grid">
+              ${gradeGroups[grade][cat].map((l, index) => {
+                const myQuizzes = quizzes.filter(q => String(q.LessonID) === String(l.ID));
+                const myTasks = tasks.filter(t => String(t.LessonID) === String(l.ID));
+                const gColor = gColorObj.border;
+                
+                return `
+                  <div class="bento-card animate-in" style="border-top: 4px solid ${gColor};">
+                    <div class="flex justify-between items-start mb-6">
+                       <div>
+                          <div class="flex flex-wrap items-center gap-2 mb-3">
+                            <span class="badge" style="background: ${gColorObj.bg}; color: ${gColor}; border: 1px solid ${gColor}; font-weight: 800; font-size: 0.7rem;">ชั้น ${l.Grade || 'ทั้งหมด'}</span>
+                            <span class="badge" style="background: var(--neutral-100); color: var(--neutral-800); border: 1px solid var(--border-subtle); font-weight: 800; font-size: 0.7rem;">บทเรียนที่ ${index + 1}</span>
                           </div>
-                          <button onclick="handleDeleteQuiz('${q.ID}', '${q.Title}')" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-error); width: 24px; height: 24px; padding:0;">
-                             ${TRASH_ICON}
-                          </button>
+                          <h3 class="t-title mb-1" style="font-size: 1.15rem; line-height: 1.4;">${l.Title}</h3>
+                          <p class="t-xs" style="color: var(--text-secondary); font-weight: 600;">ID: ${l.ID}</p>
                        </div>
-                     `).join('') : '<div class="t-xs p-1" style="color: var(--text-disabled); font-style: italic;">ยังไม่มีแบบทดสอบ</div>'}
-                   </div>
-                </div>
-
-                <!-- Missions Section -->
-                <div style="background: var(--bg-surface); border-radius: var(--radius-lg); padding: var(--sp-4); margin-bottom: var(--sp-4); border: 1px solid var(--border-subtle); flex: 1;">
-                   <div class="t-xs fw-black mb-3 uppercase" style="color: var(--text-secondary); letter-spacing:0.05em; display: flex; align-items: center; gap: 6px;">
-                     <span data-icon="activity" style="width:14px;height:14px;"></span> Missions
-                   </div>
-                   <div class="flex flex-col gap-2">
-                     ${myTasks.length > 0 ? myTasks.map(t => `
-                       <div class="flex items-center justify-between p-2" style="background: var(--neutral-50); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-                          <div class="flex items-center gap-2">
-                             <span class="tag tag-task" style="border-radius: 4px; font-weight: 800; font-size:0.6rem;">MISSION</span>
-                             <span class="fw-bold" style="font-size: 0.8rem; color: var(--neutral-800);">${t.Title}</span>
-                          </div>
-                          <button onclick="handleDeleteTask('${t.ID}', '${t.Title}')" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-error); width: 24px; height: 24px; padding:0;">
-                             ${TRASH_ICON}
-                          </button>
+                       <div class="flex gap-1">
+                         <a href="teacher-create-lesson.html?edit=${l.ID}" class="btn btn-ghost btn-icon" style="width: 32px; height: 32px; border-radius: 8px;" title="แก้ไขบทเรียน">
+                           <span data-icon="edit" style="width:16px;height:16px;"></span>
+                         </a>
+                         <button onclick="handleDeleteLesson('${l.ID}', '${l.Title}')" class="btn btn-ghost btn-icon" style="width: 32px; height: 32px; border-radius: 8px; color: var(--color-error);" title="ลบบทเรียน">
+                           <span data-icon="trash" style="width:16px;height:16px;"></span>
+                         </button>
                        </div>
-                     `).join('') : '<div class="t-xs p-1" style="color: var(--text-disabled); font-style: italic;">ยังไม่มีภารกิจ</div>'}
-                   </div>
-                </div>
+                    </div>
 
-                <div class="flex gap-2 mt-auto pt-2">
-                   <a href="teacher-create-problem.html?lessonId=${l.ID}" class="btn btn-outline flex-1" style="border-radius: var(--radius-md); height: 38px; font-size: 0.8rem; font-weight: 700; border-color: var(--color-amber-100); color: var(--color-amber-600);">+ เพิ่มโจทย์</a>
-                   <a href="teacher-create-exercise.html?lessonId=${l.ID}" class="btn btn-outline flex-1" style="border-radius: var(--radius-md); height: 38px; font-size: 0.8rem; font-weight: 700; border-color: var(--color-primary-100); color: var(--color-primary-600);">+ เพิ่มภารกิจ</a>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `).join('');
+                    <!-- Assessments Section -->
+                    <div style="background: var(--bg-surface); border-radius: var(--radius-lg); padding: var(--sp-4); margin-bottom: var(--sp-4); border: 1px solid var(--border-subtle);">
+                       <div class="t-xs fw-black mb-3 uppercase" style="color: var(--text-secondary); letter-spacing:0.05em; display: flex; align-items: center; gap: 6px;">
+                         <span data-icon="task" style="width:14px;height:14px;"></span> แบบฝึกหัด
+                       </div>
+                       <div class="flex flex-col gap-2">
+                         ${myQuizzes.length > 0 ? myQuizzes.map((q, qIndex) => `
+                           <div class="flex items-center justify-between p-2" style="background: var(--neutral-50); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                              <div class="flex items-center gap-2">
+                                 <span class="tag tag-quiz" style="border-radius: 4px; font-weight: 800; font-size:0.6rem; min-width: 65px; text-align: center;">ชุดที่ ${qIndex + 1}</span>
+                                 <span class="fw-bold" style="font-size: 0.8rem; color: var(--neutral-800);">${q.Title}</span>
+                              </div>
+                              <button onclick="handleDeleteQuiz('${q.ID}', '${q.Title}')" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-error); width: 24px; height: 24px; padding:0;">
+                                 ${TRASH_ICON}
+                              </button>
+                           </div>
+                         `).join('') : '<div class="t-xs p-1" style="color: var(--text-disabled); font-style: italic;">ยังไม่มีแบบฝึกหัด</div>'}
+                       </div>
+                    </div>
+
+                    <!-- Missions Section -->
+                    <div style="background: var(--bg-surface); border-radius: var(--radius-lg); padding: var(--sp-4); margin-bottom: var(--sp-4); border: 1px solid var(--border-subtle); flex: 1;">
+                       <div class="t-xs fw-black mb-3 uppercase" style="color: var(--text-secondary); letter-spacing:0.05em; display: flex; align-items: center; gap: 6px;">
+                         <span data-icon="activity" style="width:14px;height:14px;"></span> ภารกิจ (Missions)
+                       </div>
+                       <div class="flex flex-col gap-2">
+                         ${myTasks.length > 0 ? myTasks.map((t, tIndex) => `
+                           <div class="flex items-center justify-between p-2" style="background: var(--neutral-50); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                              <div class="flex items-center gap-2">
+                                 <span class="tag tag-task" style="border-radius: 4px; font-weight: 800; font-size:0.6rem; min-width: 65px; text-align: center;">ภารกิจ ${tIndex + 1}</span>
+                                 <span class="fw-bold" style="font-size: 0.8rem; color: var(--neutral-800);">${t.Title}</span>
+                              </div>
+                              <button onclick="handleDeleteTask('${t.ID}', '${t.Title}')" class="btn btn-ghost btn-icon btn-sm" style="color: var(--color-error); width: 24px; height: 24px; padding:0;">
+                                 ${TRASH_ICON}
+                              </button>
+                           </div>
+                         `).join('') : '<div class="t-xs p-1" style="color: var(--text-disabled); font-style: italic;">ยังไม่มีภารกิจ</div>'}
+                       </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-auto pt-2">
+                       <a href="teacher-create-problem.html?lessonId=${l.ID}" class="btn btn-outline flex-1" style="border-radius: var(--radius-md); height: 38px; font-size: 0.8rem; font-weight: 700; border-color: var(--color-amber-200); color: var(--color-amber-600); background: var(--color-amber-bg);">+ เพิ่มโจทย์</a>
+                       <a href="teacher-create-exercise.html?lessonId=${l.ID}" class="btn btn-outline flex-1" style="border-radius: var(--radius-md); height: 38px; font-size: 0.8rem; font-weight: 700; border-color: var(--color-primary-200); color: var(--color-primary-600); background: var(--color-primary-50);">+ เพิ่มภารกิจ</a>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`; // Close manage-grade-section
+    }
+
+    container.innerHTML = html;
 
     if (window.UI && window.UI.initIcons) window.UI.initIcons();
   }

@@ -66,16 +66,16 @@ body.page-exit {
   --border-subtle:  oklch(96% 0.002 260 / 0.6);
   --border-strong:  oklch(85% 0.01 260);
 
-  /* --- Primary Brand Scale (Electric Iris — hue 275) --- */
-  --color-primary-50:  oklch(97% 0.012 275);
-  --color-primary-100: oklch(93% 0.028 275);
-  --color-primary-200: oklch(86% 0.055 275);
-  --color-primary-300: oklch(76% 0.10 275);
-  --color-primary-400: oklch(66% 0.14 275);
-  --color-primary-500: oklch(56% 0.18 275); /* Main Accent */
-  --color-primary-600: oklch(46% 0.16 275);
-  --color-primary-700: oklch(36% 0.14 275);
-  --color-primary-800: oklch(26% 0.10 275);
+  /* --- Primary Brand Scale (Action Blue) --- */
+  --color-primary-50:  #f0f7ff;
+  --color-primary-100: #e0f0ff;
+  --color-primary-200: #baddff;
+  --color-primary-300: #8ac0ff;
+  --color-primary-400: #559cff;
+  --color-primary-500: #0066cc; /* Action Blue */
+  --color-primary-600: #0071e3; /* Focus Blue */
+  --color-primary-700: #005bb5;
+  --color-primary-800: #00458a;
 
   /* --- Secondary Brand Scale (Cool Teal — hue 185) --- */
   --color-purple-50:  oklch(97% 0.010 185);
@@ -106,12 +106,12 @@ body.page-exit {
   --color-amber-500:   var(--color-warning);
 
   /* --- Semantic Mappings --- */
-  --bg-app:            oklch(98% 0.003 260);
-  --bg-surface:        oklch(99.5% 0.002 260);
-  --text-primary:      var(--neutral-900);
-  --text-secondary:    var(--neutral-500);
-  --border-default:    oklch(93% 0.006 260);
-  --border-subtle:     oklch(96% 0.004 260);
+  --bg-app:            #f5f5f7; /* Canvas Parchment */
+  --bg-surface:        #ffffff; /* Canvas */
+  --text-primary:      #1d1d1f; /* Apple Ink */
+  --text-secondary:    #7a7a7a;
+  --border-default:    #e0e0e0; /* Hairline */
+  --border-subtle:     rgba(0, 0, 0, 0.08);
 
   /* --- Effects & Elevations --- */
   --grad-primary:      linear-gradient(135deg, var(--color-primary-500), var(--color-primary-400));
@@ -133,25 +133,21 @@ body.page-exit {
   --sp-24: 6rem;     /* 96px */
 
   /* Radius */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-full: 9999px;
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 18px; /* Apple Utility Card */
+  --radius-xl: 24px;
+  --radius-full: 9999px; /* Pill */
 
-  /* Shadows (World-Class Soft Shadows) */
-  --shadow-sm:      0 2px 4px oklch(20% 0.02 260 / 0.02);
-  --shadow-md:      0 8px 24px oklch(20% 0.02 260 / 0.04),
-                    0 2px 6px oklch(20% 0.02 260 / 0.02);
-  --shadow-lg:      0 16px 48px oklch(20% 0.02 260 / 0.06),
-                    0 4px 16px oklch(20% 0.02 260 / 0.03);
-  --shadow-premium: 0 32px 80px oklch(20% 0.02 260 / 0.08),
-                    0 12px 32px oklch(20% 0.02 260 / 0.04);
+  /* Shadows (World-Class Soft Shadows / Apple Flat) */
+  --shadow-sm:      none;
+  --shadow-md:      none;
+  --shadow-lg:      0 16px 48px rgba(0, 0, 0, 0.04);
+  --shadow-premium: 0 3px 5px 30px rgba(0, 0, 0, 0.22); /* Apple Product Shadow */
 
   /* Hover glow for cards — tinted with primary hue */
-  --shadow-glow:    0 8px 32px oklch(56% 0.12 275 / 0.10),
-                    0 2px 8px oklch(56% 0.12 275 / 0.06);
+  --shadow-glow:    none;
 
   /* Animation & Transitions */
   --ease-premium:    cubic-bezier(0.16, 1, 0.3, 1);   /* expo-out */
@@ -210,12 +206,13 @@ body.page-exit {
 .stagger-in > *:nth-child(8) { animation-delay: 420ms; }
 
 /* ─── Typography Utility Classes ───────────────────────────── */
-.t-display    { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.12; color: var(--neutral-900); }
-.t-subheading { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; color: var(--neutral-900); }
-.t-title      { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; color: var(--neutral-900); }
-.t-body       { font-size: 0.9375rem; font-weight: 400; line-height: 1.7; color: var(--text-secondary); }
-.t-small      { font-size: 0.8125rem; font-weight: 500; line-height: 1.5; color: var(--text-secondary); }
-.t-xs         { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.4; color: var(--neutral-400); }
+.t-display    { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.07; color: var(--text-primary); }
+.t-subheading { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.015em; line-height: 1.14; color: var(--text-primary); }
+.t-title      { font-size: 1.3125rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.19; color: var(--text-primary); }
+.t-body       { font-size: 1.0625rem; font-weight: 400; line-height: 1.47; letter-spacing: -0.01em; color: var(--text-primary); }
+.t-small      { font-size: 0.875rem; font-weight: 400; line-height: 1.43; letter-spacing: -0.01em; color: var(--text-secondary); }
+.t-xs         { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.29; color: var(--text-secondary); }
+
 
 /* ─── Color Utilities ──────────────────────────────────────── */
 .t-primary { color: var(--text-primary); }

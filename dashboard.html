@@ -182,7 +182,14 @@
     if (s3) animateCountUp(s3, (stats.avgScore || 0) + '%');
 
     // Render Lessons with smooth content reveal
-    const lessons = data.lessons || [];
+    let lessons = data.lessons || [];
+    const user = Auth.get();
+    if (user && user.role !== 'admin' && user.grade) {
+       lessons = lessons.filter(l => {
+          const g = String(l.Grade || '').trim();
+          return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
+       });
+    }
     const container = document.getElementById('lessonsContainer');
     if (lessons.length > 0) {
       const html = lessons.slice(0, 3).map(l => `

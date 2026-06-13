@@ -11,7 +11,7 @@
   padding: 0 var(--sp-6);
   height: 44px;
   min-width: 44px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   font-weight: 600;
   font-size: 0.875rem;
   transition: all var(--duration-normal) var(--ease-premium);
@@ -41,19 +41,17 @@
 .btn-primary {
   background: var(--color-primary-500);
   color: white;
-  box-shadow: 0 1px 3px oklch(56% 0.18 275 / 0.20),
-              0 1px 2px oklch(56% 0.18 275 / 0.12);
+  box-shadow: none;
 }
 .btn-primary:hover:not(:disabled) {
   background: var(--color-primary-600);
-  box-shadow: 0 4px 14px oklch(56% 0.18 275 / 0.28),
-              0 2px 4px oklch(56% 0.18 275 / 0.14);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 .btn-primary:active:not(:disabled) {
   background: var(--color-primary-700);
-  transform: translateY(0) scale(0.97);
-  box-shadow: 0 1px 2px oklch(56% 0.18 275 / 0.15);
+  transform: translateY(0) scale(0.95);
+  box-shadow: none;
   transition-duration: var(--duration-fast);
 }
 
@@ -146,20 +144,17 @@
 /* ─── Card System ──────────────────────────────────────────── */
 .card {
   background: var(--bg-surface);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   padding: var(--sp-6);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-default);
+  box-shadow: none;
   transition: transform var(--duration-normal) var(--ease-premium),
-              box-shadow var(--duration-normal) var(--ease-premium),
               border-color var(--duration-normal) var(--ease-premium);
   position: relative;
   overflow: hidden;
 }
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--neutral-200);
+  border-color: var(--neutral-300);
 }
 
 /* Interactive card variant (clickable links) */
@@ -183,8 +178,8 @@
 }
 .stat-value {
   font-size: 2.25rem;
-  font-weight: 800;
-  color: var(--neutral-900);
+  font-weight: 600;
+  color: var(--text-primary);
   letter-spacing: -0.03em;
   line-height: 1.1;
 }
@@ -777,18 +772,16 @@
 }
 .bento-card {
   background: var(--bg-surface);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   padding: var(--sp-6);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-default);
+  box-shadow: none;
   transition: all var(--duration-normal) var(--ease-premium);
   display: flex;
   flex-direction: column;
 }
 .bento-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--neutral-200);
+  border-color: var(--neutral-300);
 }
 
 /* ─── Premium Section Header ───────────────────────────────── */

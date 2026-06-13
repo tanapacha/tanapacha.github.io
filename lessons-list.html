@@ -161,7 +161,14 @@
       const container = document.getElementById('chaptersContainer');
       
       if (res.status === 'success') {
-        const lessons = res.data;
+        let lessons = res.data;
+        const userRole = (user.role || '').toLowerCase();
+        if (userRole !== 'admin' && userRole !== 'teacher' && user.grade) {
+          lessons = lessons.filter(l => {
+             const g = String(l.Grade || '').trim();
+             return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
+          });
+        }
         if (!lessons || lessons.length === 0) {
           container.innerHTML = `
             <div class="card p-16 t-center animate-in">
@@ -207,13 +214,13 @@
                 <div class="chevron" style="color: var(--neutral-300);"><span data-icon="chevron-down"></span></div>
               </div>
               <div class="lesson-list" style="padding: 0 var(--sp-4) var(--sp-4);">
-                ${chapterLessons.map(lesson => `
+                ${chapterLessons.map((lesson, index) => `
                   <a href="play-lesson.html?id=${lesson.ID}" class="lesson-item" style="border-radius: var(--radius-lg); border-bottom: none; margin-bottom: 4px; padding: var(--sp-4) var(--sp-6);">
                     <div class="lesson-icon" style="background: var(--neutral-50); border-radius: var(--radius-sm);">
                       <span data-icon="${lesson.Type === 'video' ? 'play' : 'book'}"></span>
                     </div>
                     <div class="flex-1">
-                      <div class="fw-bold" style="font-size: 0.9375rem; color: var(--neutral-900);">${lesson.Title}</div>
+                      <div class="fw-bold" style="font-size: 0.9375rem; color: var(--neutral-900);"><span style="color: var(--color-primary-600); margin-right: 6px;">ตอนที่ ${index + 1}</span>${lesson.Title}</div>
                       <div class="t-xs" style="color: var(--text-secondary); font-weight: 600; margin-top: 2px;">${lesson.Category || 'เนื้อหาเรียนรู้'}</div>
                     </div>
                     <div class="btn btn-outline btn-sm" style="border-radius: var(--radius-xs); font-weight: 800; padding: 0 16px;">เริ่มเรียน</div>

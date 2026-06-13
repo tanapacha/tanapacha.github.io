@@ -155,7 +155,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
     const user = Auth.get();
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
-      location.href = 'login.html';
+      location.href = 'index.html';
       return;
     }
 

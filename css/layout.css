@@ -251,7 +251,7 @@ body {
   max-width: 440px;
   padding: var(--sp-10);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: none;
   border: 1px solid var(--border-default);
   position: relative;
   z-index: 10;

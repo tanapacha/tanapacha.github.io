@@ -87,13 +87,13 @@ const Auth = (() => {
 
   function logout() {
     sessionStorage.removeItem(SESSION_KEY);
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
   }
 
   function requireAuth() {
     const user = get();
     if (!user) {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
       return null;
     }
     return user;

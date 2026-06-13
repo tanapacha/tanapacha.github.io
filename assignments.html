@@ -24,7 +24,7 @@
     }
     .cat-tab.active {
       background: var(--color-primary-500); color: white; border-color: var(--color-primary-500);
-      box-shadow: var(--shadow-sm);
+      box-shadow: none;
     }
     .mission-card .cat-badge {
       font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800;
@@ -194,9 +194,24 @@
       if (sRes.status !== 'success') throw new Error(sRes.message || "Failed to fetch assignments");
       if (lRes.status !== 'success') throw new Error(lRes.message || "Failed to fetch lessons");
 
-      allMissions = mRes.data;
+      let missions = mRes.data;
+      let lessons = lRes.data;
+
+      const userRole = (user.role || '').toLowerCase();
+      if (userRole !== 'admin' && userRole !== 'teacher' && user.grade) {
+         missions = missions.filter(m => {
+            const g = String(m.Grade || '').trim();
+            return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
+         });
+         lessons = lessons.filter(l => {
+            const g = String(l.Grade || '').trim();
+            return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
+         });
+      }
+
+      allMissions = missions;
       userSubmissions = sRes.data.filter(s => s.StudentID === user.id);
-      allLessons = lRes.data;
+      allLessons = lessons;
 
       renderTabs();
       

@@ -208,10 +208,7 @@ const ApiService = {
     
     try {
       const result = await this.get("getDashboardData", { id: user.id, role: user.role }, true);
-      // If we have lessons, cache them too
-      if (result.status === 'success' && result.lessons) {
-        this._setCache("GET_getLessons_{}", { status: "success", data: result.lessons });
-      }
+      // Remove the corrupted cache injection that overwrote getLessons
       return result;
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);

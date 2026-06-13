@@ -122,11 +122,18 @@
       const lessons = (lRes.status === 'success') ? lRes.data : [];
       let quizzes = qRes.data;
 
+      const userRole = (user.role || '').toLowerCase();
+      if (userRole !== 'admin' && userRole !== 'teacher' && user.grade) {
+        quizzes = quizzes.filter(q => {
+           const g = String(q.Grade || '').trim();
+           return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
+        });
+      }
 
-        // ถ้ามีรหัสบทเรียนส่งมา ให้กรองเหลือแค่โจทย์ของบทนั้น
-        if (filterId) {
-          quizzes = quizzes.filter(q => String(q.LessonID) === String(filterId));
-        }
+      // ถ้ามีรหัสบทเรียนส่งมา ให้กรองเหลือแค่โจทย์ของบทนั้น
+      if (filterId) {
+        quizzes = quizzes.filter(q => String(q.LessonID) === String(filterId));
+      }
 
         const container = document.getElementById('quizContainer');
         const countDisplay = document.getElementById('quizCount');
@@ -176,7 +183,7 @@
                   <span data-icon="task"></span>
                 </div>
                 <div class="flex-1">
-                  <div class="fw-bold" style="font-size: 1rem; color: var(--neutral-900); line-height: 1.4;">${quiz.Title}</div>
+                  <div class="fw-bold" style="font-size: 1rem; color: var(--neutral-900); line-height: 1.4;"><span style="color: var(--color-amber-600); margin-right: 6px;">ชุดที่ ${idx + 1}</span>${quiz.Title}</div>
                   <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${lessonInfo}</div>
                 </div>
               </div>

@@ -100,7 +100,7 @@
 
     <div class="mt-12" style="text-align: center;">
       <p class="t-body" style="font-size: 0.9rem;">
-        มีบัญชีอยู่แล้ว? <a href="login.html" class="t-primary-color" style="text-decoration:none; font-weight: 800; border-bottom: 2px solid var(--color-primary-100);">เข้าสู่ระบบ</a>
+        มีบัญชีอยู่แล้ว? <a href="index.html" class="t-primary-color" style="text-decoration:none; font-weight: 800; border-bottom: 2px solid var(--color-primary-100);">เข้าสู่ระบบ</a>
       </p>
     </div>
   </div>
@@ -168,8 +168,10 @@
       try {
         const res = await ApiService.register(userData);
         if (res.status === 'success') {
-          alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
-          location.href = 'login.html';
+          alert('สมัครสมาชิกสำเร็จ!');
+          setTimeout(() => {
+            location.href = 'index.html';
+          }, 2000);
         } else {
           alert(res.message || 'ไม่สามารถสมัครสมาชิกได้');
         }
