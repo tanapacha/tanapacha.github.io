@@ -337,11 +337,11 @@ body {
   }
 
   .page-header {
-    padding: var(--sp-4) var(--sp-5);
+    padding: var(--sp-4) var(--sp-4);
   }
 
   .page-body {
-    padding: var(--sp-4);
+    padding: var(--sp-4) var(--sp-2);
   }
 }
 
