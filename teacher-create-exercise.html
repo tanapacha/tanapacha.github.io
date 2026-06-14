@@ -252,7 +252,7 @@
     }
 
     const btn = document.getElementById('submitBtn');
-    UI.setLoading(btn, true);
+    UI.btnLoading(btn, true);
 
     const data = {
       id: 'T' + Date.now(),
@@ -268,15 +268,16 @@
     try {
       const res = await ApiService.saveTask(data);
       if (res.status === 'success') {
-        alert("สั่งงานเรียบร้อยแล้ว!");
-        location.href = 'teacher-manage-content.html';
+        alert('สร้างภารกิจสำเร็จ!');
+        window.location.href = 'teacher-manage-content.html';
       } else {
-        alert(res.message);
+        alert('เกิดข้อผิดพลาด: ' + res.message);
       }
     } catch (err) {
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      alert('การเชื่อมต่อล้มเหลว');
+      console.error(err);
     } finally {
-      UI.setLoading(btn, false, '<span data-icon="send" style="margin-right:8px;"></span> สั่งงานและบันทึก');
+      UI.btnLoading(btn, false);
       if(window.UI && window.UI.initIcons) window.UI.initIcons();
     }
   }

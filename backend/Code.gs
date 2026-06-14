@@ -744,38 +744,44 @@ function logSystem(action, details) {
   } catch(e) {}
 }
 function handleCreateLesson(payload) {
-  const { category, title, description, videoUrl: payloadVideoUrl, slideFile } = payload;
+  const { category, title, description, videoUrl: payloadVideoUrl, slideFile, coverFile } = payload;
   let videoUrl = payloadVideoUrl || "";
   let slideUrl = "";
+  let coverUrl = "";
 
-  // อัปโหลดสไลด์ไปยัง Drive (ถ้ามีไฟล์แนบ)
-  // [PERF FIX] ย้ายการสร้าง Folder มาทำ Lazy: สร้างเฉพาะเมื่อมีไฟล์จริงๆ เท่านั้น
-  // เดิม: สร้าง Folder เสมอแม้จะไม่มีไฟล์ → เสียเวลา DriveApp 2-3 วินาทีโดยไม่จำเป็น
-  if (slideFile && slideFile.base64) {
+  // Helper สำหรับสร้าง/หาโฟลเดอร์
+  const getOrCreateDir = (parent, name) => {
+    const dirs = parent.getFoldersByName(name);
+    return dirs.hasNext() ? dirs.next() : parent.createFolder(name);
+  };
+
+  // Upload Slide & Cover
+  if ((slideFile && slideFile.base64) || (payload.coverFiles && payload.coverFiles.length > 0)) {
     try {
-      const rootFolderId = PropertiesService.getScriptProperties().getProperty('UPLOAD_FOLDER_ID');
-      const rootFolder = DriveApp.getFolderById(rootFolderId);
+      const rootFolder = DriveApp.getFolderById(PropertiesService.getScriptProperties().getProperty('UPLOAD_FOLDER_ID'));
+      const catFolder = getOrCreateDir(rootFolder, category);
+      const lessonFolder = getOrCreateDir(catFolder, title);
 
-      // หรือสร้าง Folder ของ category
-      let catFolder;
-      const catFolders = rootFolder.getFoldersByName(category);
-      catFolder = catFolders.hasNext() ? catFolders.next() : rootFolder.createFolder(category);
+      if (slideFile && slideFile.base64) {
+        const slideBlob = Utilities.newBlob(Utilities.base64Decode(slideFile.base64.split(',')[1]), slideFile.mimeType, 'Slides_' + slideFile.name);
+        const sFile = lessonFolder.createFile(slideBlob);
+        sFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        slideUrl = sFile.getUrl();
+      }
 
-      // หาหรือสร้าง Folder ของ lesson
-      let lessonFolder;
-      const lessonFolders = catFolder.getFoldersByName(title);
-      lessonFolder = lessonFolders.hasNext() ? lessonFolders.next() : catFolder.createFolder(title);
-
-      const blob = Utilities.newBlob(
-        Utilities.base64Decode(slideFile.base64.split(',')[1]),
-        slideFile.mimeType,
-        'Slides_' + slideFile.name
-      );
-      const file = lessonFolder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      slideUrl = file.getUrl();
+      if (payload.coverFiles && payload.coverFiles.length > 0) {
+        let urls = [];
+        payload.coverFiles.forEach((file, index) => {
+          if (file && file.base64) {
+            const coverBlob = Utilities.newBlob(Utilities.base64Decode(file.base64.split(',')[1]), file.mimeType, 'Cover_' + index + '_' + file.name);
+            const cFile = lessonFolder.createFile(coverBlob);
+            cFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+            urls.push(cFile.getUrl());
+          }
+        });
+        coverUrl = urls.join(',');
+      }
     } catch (driveErr) {
-      // ถ้า Drive upload ล้มเหลว ให้บันทึก Lesson ลง Sheet ก่อน แล้วค่อยแจ้งว่าสไลด์ไม่ได้อัปโหลด
       Logger.log('Drive upload failed: ' + driveErr);
     }
   }
@@ -799,7 +805,7 @@ function handleCreateLesson(payload) {
     Title: title,
     Description: description || '',
     Type: videoUrl ? 'video' : (slideUrl ? 'slides' : 'text'),
-    Thumbnail: '',
+    Thumbnail: coverUrl,
     Order: sheet.getLastRow(),
     Instructions: '',
     Criteria: '',
@@ -833,7 +839,47 @@ function handleDeleteLesson(payload) {
 }
 
 function handleUpdateLesson(payload) {
-  const { lessonId, category, title, description, videoUrl, slideUrl, grade } = payload;
+  const { lessonId, category, title, description, videoUrl, slideUrl: payloadSlideUrl, grade, slideFile, coverFile } = payload;
+  let slideUrl = payloadSlideUrl || "";
+  let coverUrl = "";
+
+  // Helper สำหรับสร้าง/หาโฟลเดอร์
+  const getOrCreateDir = (parent, name) => {
+    const dirs = parent.getFoldersByName(name);
+    return dirs.hasNext() ? dirs.next() : parent.createFolder(name);
+  };
+
+  // Upload Slide & Cover
+  if ((slideFile && slideFile.base64) || (payload.coverFiles && payload.coverFiles.length > 0)) {
+    try {
+      const rootFolder = DriveApp.getFolderById(PropertiesService.getScriptProperties().getProperty('UPLOAD_FOLDER_ID'));
+      const catFolder = getOrCreateDir(rootFolder, category);
+      const lessonFolder = getOrCreateDir(catFolder, title);
+
+      if (slideFile && slideFile.base64) {
+        const slideBlob = Utilities.newBlob(Utilities.base64Decode(slideFile.base64.split(',')[1]), slideFile.mimeType, 'Slides_' + slideFile.name);
+        const sFile = lessonFolder.createFile(slideBlob);
+        sFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        slideUrl = sFile.getUrl();
+      }
+
+      if (payload.coverFiles && payload.coverFiles.length > 0) {
+        let urls = [];
+        payload.coverFiles.forEach((file, index) => {
+          if (file && file.base64) {
+            const coverBlob = Utilities.newBlob(Utilities.base64Decode(file.base64.split(',')[1]), file.mimeType, 'Cover_' + index + '_' + file.name);
+            const cFile = lessonFolder.createFile(coverBlob);
+            cFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+            urls.push(cFile.getUrl());
+          }
+        });
+        coverUrl = urls.join(',');
+      }
+    } catch (driveErr) {
+      Logger.log('Drive upload failed: ' + driveErr);
+    }
+  }
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(CONFIG.SHEETS.LESSONS);
   const data = sheet.getDataRange().getValues();
@@ -844,6 +890,7 @@ function handleUpdateLesson(payload) {
   const colTitle    = headers.indexOf('Title')    + 1; // C
   const colDesc     = headers.indexOf('Description') + 1; // D
   const colType     = headers.indexOf('Type')     + 1; // E
+  const colThumbnail= headers.indexOf('Thumbnail') + 1; // F
   const colVideo    = headers.indexOf('VideoURL') + 1; // L
   const colSlide    = headers.indexOf('SlideURL') + 1; // M
   const colGrade    = headers.indexOf('Grade')    + 1; // N
@@ -852,16 +899,17 @@ function handleUpdateLesson(payload) {
     if (data[i][0] === lessonId) {
       const row = i + 1;
 
-      // [PERF FIX] เขียน Cells ทั้งหมดในแถว 1 ครั้งด้วย setValues() แทนที่จะเรียก setValue() ทีละช่อง
-      // ลดจาก 6 Sheets API calls → 1 call เท่านั้น ลดเวลาอย่างน้อย 5 เท่า
-      // สร้าง array ของ [column_index, value] สำหรับแต่ละ field ที่ต้องการอัปเดต
       const updates = [];
       if (colCategory) updates.push([row, colCategory, category]);
       if (colTitle)    updates.push([row, colTitle, title]);
       if (colDesc)     updates.push([row, colDesc, description]);
       if (colType)     updates.push([row, colType, videoUrl ? 'video' : 'slides']);
       if (colVideo)    updates.push([row, colVideo, videoUrl || '']);
-      if (colSlide)    updates.push([row, colSlide, slideUrl || '']);
+      if (colSlide && slideUrl) updates.push([row, colSlide, slideUrl]); // only update if provided or explicitly cleared? Wait, previous code always updated. Let's keep it.
+      if (colSlide && (slideFile || !slideUrl)) updates.push([row, colSlide, slideUrl || '']);
+      // For Thumbnail, only update if coverUrl was uploaded
+      if (colThumbnail && coverUrl) updates.push([row, colThumbnail, coverUrl]);
+      
       if (colGrade)    updates.push([row, colGrade, grade || 'ป.4']);
 
       updates.forEach(([r, c, val]) => sheet.getRange(r, c).setValue(val));

@@ -91,7 +91,8 @@
     <div class="page-body">
       <!-- Hub View -->
       <div id="hubView" class="anim-fade-up">
-        <div id="categoryTabs" class="cat-tabs">
+        <div id="gradeTabsContainer" class="flex gap-2 overflow-x-auto pb-4 mb-4" style="display:none;"></div>
+        <div id="categoryTabs" class="flex gap-2 overflow-x-auto pb-4 mb-6">
            <button class="cat-tab active" onclick="filterMissions('all')">ทั้งหมด</button>
         </div>
 
@@ -173,10 +174,14 @@
 <script>
   let allMissions = [], allLessons = [], userSubmissions = [];
   let selectedMissionId = null, currentFilter = 'all';
+  let currentGradeFilter = 'all';
+  let currentUserRole = '';
 
   async function init() {
     const user = Auth.requireAuth();
     if (!user) return;
+    
+    currentUserRole = (user.role || '').toLowerCase();
 
     // Update sidebar grade label
     const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
@@ -197,8 +202,7 @@
       let missions = mRes.data;
       let lessons = lRes.data;
 
-      const userRole = (user.role || '').toLowerCase();
-      if (userRole !== 'admin' && userRole !== 'teacher' && user.grade) {
+      if (currentUserRole !== 'admin' && currentUserRole !== 'teacher' && user.grade) {
          missions = missions.filter(m => {
             const g = String(m.Grade || '').trim();
             return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
@@ -213,6 +217,9 @@
       userSubmissions = sRes.data.filter(s => s.StudentID === user.id);
       allLessons = lessons;
 
+      if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
+         renderGradeTabs();
+      }
       renderTabs();
       
       // Auto-Jump Logic
@@ -248,9 +255,49 @@
     }
   }
 
+  function filterByGrade(grade) {
+    currentGradeFilter = grade;
+    currentFilter = 'all'; // reset category filter
+    renderGradeTabs();
+    renderTabs();
+    renderGrid();
+  }
+
+  function renderGradeTabs() {
+    const container = document.getElementById('gradeTabsContainer');
+    if (!container) return;
+    container.style.display = 'flex';
+    
+    // Extract unique grades from allMissions
+    const grades = [...new Set(allMissions.map(m => {
+       const lesson = allLessons.find(l => String(l.ID) === String(m.LessonID));
+       return (m.Grade || (lesson ? lesson.Grade : '') || 'ไม่ระบุ').trim();
+    }))].filter(Boolean);
+    
+    let html = `<button class="cat-tab ${currentGradeFilter==='all'?'active':''}" onclick="filterByGrade('all')">ทุกระดับชั้น</button>`;
+    html += grades.map(g => `<button class="cat-tab ${currentGradeFilter===g?'active':''}" onclick="filterByGrade('${g}')">${g}</button>`).join('');
+    
+    container.innerHTML = html;
+  }
+
+  function getDisplayLessons() {
+    if (currentGradeFilter === 'all') return allLessons;
+    return allLessons.filter(l => (l.Grade || 'ไม่ระบุ').trim() === currentGradeFilter);
+  }
+
+  function getDisplayMissions() {
+    if (currentGradeFilter === 'all') return allMissions;
+    return allMissions.filter(m => {
+       const lesson = allLessons.find(l => String(l.ID) === String(m.LessonID));
+       const g = (m.Grade || (lesson ? lesson.Grade : '') || 'ไม่ระบุ').trim();
+       return g === currentGradeFilter;
+    });
+  }
+
   function renderTabs() {
     const tabs = document.getElementById('categoryTabs');
-    const cats = [...new Set(allLessons.map(l => l.Category || l.Title))].filter(Boolean);
+    const displayLessons = getDisplayLessons();
+    const cats = [...new Set(displayLessons.map(l => l.Category || l.Title))].filter(Boolean);
     tabs.innerHTML = `<button class="cat-tab ${currentFilter==='all'?'active':''}" onclick="filterMissions('all')">ทั้งหมด</button>` + 
       cats.map(c => `<button class="cat-tab ${currentFilter===c?'active':''}" onclick="filterMissions('${c}')">${c}</button>`).join('');
   }
@@ -263,10 +310,13 @@
 
   function renderGrid() {
     const grid = document.getElementById('missionGrid');
-    let filtered = allMissions;
+    const displayMissions = getDisplayMissions();
+    const displayLessons = getDisplayLessons();
+    
+    let filtered = displayMissions;
     if (currentFilter !== 'all') {
-      const lessonIdsInCat = allLessons.filter(l => (l.Category || l.Title) === currentFilter).map(l => String(l.ID));
-      filtered = allMissions.filter(m => {
+      const lessonIdsInCat = displayLessons.filter(l => (l.Category || l.Title) === currentFilter).map(l => String(l.ID));
+      filtered = displayMissions.filter(m => {
         const mId = String(m.LessonID || '').trim();
         // 1. เช็กว่ารหัสตรงไหม 
         if (lessonIdsInCat.includes(mId)) return true;
@@ -302,6 +352,9 @@
       } else if (m.LessonID && m.LessonID !== 'ทั่วไป' && m.LessonID !== '') {
         categoryName = `รหัสในชีท: ${m.LessonID}`;
       }
+      
+      const user = Auth.get();
+      const userRole = (user && user.role) ? user.role.toLowerCase() : '';
 
       let statusBadge = `<div class="badge" style="background:var(--neutral-100); color:var(--text-secondary); position:absolute; top:20px; right:20px;">ยังไม่ได้ทำ</div>`;
       if (sub) {
@@ -366,7 +419,14 @@
     const fileInput = document.getElementById('fileInput');
     let fileData = {};
     if (fileInput.files.length > 0) {
-      const file = fileInput.files[0], reader = new FileReader();
+      const file = fileInput.files[0];
+      const MAX_SIZE = 15 * 1024 * 1024; // 15 MB
+      if (file.size > MAX_SIZE) {
+        alert('ขนาดไฟล์ใหญ่เกิน 15 MB เบราว์เซอร์อาจจะทำงานผิดพลาด กรุณาลดขนาดไฟล์ครับ');
+        btn.disabled = false; btn.innerHTML = '<span data-icon="send"></span> ยืนยันการส่งภารกิจ'; window.UI.initIcons();
+        return;
+      }
+      const reader = new FileReader();
       const base64 = await new Promise(r => { reader.onload = () => r(reader.result); reader.readAsDataURL(file); });
       fileData = { fileBase64: base64, fileName: file.name, mimeType: file.type };
     }

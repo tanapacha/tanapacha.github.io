@@ -361,6 +361,12 @@
     let fileData = {};
     if (fileInput.files.length > 0) {
       const file = fileInput.files[0];
+      const MAX_SIZE = 15 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        alert('ขนาดไฟล์ใหญ่เกิน 15 MB เบราว์เซอร์อาจจะทำงานผิดพลาด กรุณาลดขนาดไฟล์ครับ');
+        btn.disabled = false; btn.innerHTML = '<span>ยืนยันการส่งภารกิจ</span>';
+        return;
+      }
       const reader = new FileReader();
       const base64 = await new Promise(r => { reader.onload = () => r(reader.result); reader.readAsDataURL(file); });
       fileData = { fileBase64: base64, fileName: file.name, mimeType: file.type };

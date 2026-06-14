@@ -266,36 +266,37 @@
       return alert("กรุณาเลือกระดับชั้น");
     }
 
-    if (!url.startsWith('http')) {
-      alert("ลิงก์ Google Form ไม่ถูกต้อง!\nโปรดใส่ลิงก์ที่ขึ้นต้นด้วย http:// หรือ https:// ครับ");
-      return;
+    let finalUrl = url;
+    if (!finalUrl.startsWith('http')) {
+      finalUrl = 'https://' + finalUrl;
     }
 
     const btn = document.getElementById('submitBtn');
-    UI.setLoading(btn, true);
+    UI.btnLoading(btn, true);
 
     const data = {
       action: 'createQuiz',
       LessonID: lessonId,
       Title: title,
       Type: type,
-      QuizURL: url,
+      QuizURL: finalUrl,
       Points: points,
       Grade: selectedGrade
     };
 
     try {
-      const res = await ApiService.post('createQuiz', data, false);
+      const res = await ApiService.createQuiz(data);
       if (res.status === 'success') {
-        alert("บันทึกโจทย์ปัญหาเรียบร้อยแล้ว!");
-        location.href = 'teacher-manage-content.html';
+        alert('สร้างโจทย์ปัญหาใหม่สำเร็จ!');
+        window.location.href = 'teacher-manage-content.html';
       } else {
-        alert(res.message);
+        alert('เกิดข้อผิดพลาด: ' + res.message);
       }
     } catch (err) {
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+      alert('การเชื่อมต่อล้มเหลว');
+      console.error(err);
     } finally {
-      UI.setLoading(btn, false, '<span data-icon="send" style="margin-right:8px;"></span> บันทึกโจทย์ปัญหา');
+      UI.btnLoading(btn, false);
       if(window.UI && window.UI.initIcons) window.UI.initIcons();
     }
   }

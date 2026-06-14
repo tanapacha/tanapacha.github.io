@@ -133,6 +133,7 @@
     </header>
 
     <div class="page-body">
+      <div id="gradeTabsContainer" class="flex gap-2 overflow-x-auto pb-4 mb-6" style="display:none;"></div>
       <div id="chaptersContainer" class="flex flex-col gap-2">
         <!-- Chapters will be injected here -->
         <div class="p-16 t-center">
@@ -149,89 +150,33 @@
 <script src="js/auth.js"></script>
 <script src="js/app.js"></script>
 <script>
+  let allLessonsData = [];
+  let currentGradeFilter = 'all';
+  let currentUserRole = '';
+
   async function initLessons() {
     const user = Auth.requireAuth();
     if (!user) return;
 
-    // Pass student's grade for server-side filtering
+    currentUserRole = (user.role || '').toLowerCase();
     const userGrade = (user.role === 'user' && user.grade) ? user.grade : null;
 
     try {
       const res = await ApiService.getLessons(userGrade);
-      const container = document.getElementById('chaptersContainer');
       
       if (res.status === 'success') {
-        let lessons = res.data;
-        const userRole = (user.role || '').toLowerCase();
-        if (userRole !== 'admin' && userRole !== 'teacher' && user.grade) {
-          lessons = lessons.filter(l => {
+        allLessonsData = res.data;
+        if (currentUserRole !== 'admin' && currentUserRole !== 'teacher' && user.grade) {
+          allLessonsData = allLessonsData.filter(l => {
              const g = String(l.Grade || '').trim();
              return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
           });
         }
-        if (!lessons || lessons.length === 0) {
-          container.innerHTML = `
-            <div class="card p-16 t-center animate-in">
-              <div class="avatar mb-6" style="margin:0 auto; width:80px; height:80px; background:var(--neutral-100); color:var(--neutral-400); border:none; border-radius: 24px;">
-                <span data-icon="bookOpen" style="width:40px; height:40px;"></span>
-              </div>
-              <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีบทเรียนในชั้นนี้</h3>
-              <p class="t-body">คุณครูยังไม่ได้เพิ่มบทเรียนสำหรับชั้น ${user.grade || ''} <br>ลองกลับมาดูใหม่อีกครั้งในภายหลังนะครับ</p>
-              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-sm);">กลับไปหน้าหลัก</a>
-            </div>
-          `;
-          if (window.UI && window.UI.initIcons) window.UI.initIcons();
-          return;
+        
+        if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
+           renderGradeTabs();
         }
-        
-        // Group by Category
-        const categories = [];
-        lessons.forEach(l => {
-          const cat = (l.Category || 'ทั่วไป').trim();
-          if (!categories.includes(cat)) categories.push(cat);
-        });
-        
-        container.innerHTML = categories.map((name, idx) => {
-          const chapterLessons = lessons.filter(l => (l.Category || 'ทั่วไป').trim() === name);
-          
-          let displayTitle = name;
-          if (!name.includes('บทที่') && name !== 'ทั่วไป' && name !== 'บทนำ') {
-            displayTitle = `บทที่ ${idx + 1}: ${name}`;
-          } else if (name === 'ทั่วไป' || name === 'บทนำ') {
-            displayTitle = `บทเรียนเสริม/ทั่วไป`;
-          }
-          
-          return `
-            <div class="chapter-card active animate-in" id="chap-${idx}" style="animation-delay: ${idx * 100}ms;">
-              <div class="chapter-header" onclick="toggleChapter(${idx})">
-                <div class="flex items-center gap-6">
-                  <div class="avatar" style="background:var(--color-primary-50); color:var(--color-primary-600); font-weight:800; border-radius: var(--radius-sm); width: 48px; height: 48px; border: none;">${idx + 1}</div>
-                  <div>
-                    <div class="t-title" style="font-size: 1.25rem;">${displayTitle}</div>
-                    <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${chapterLessons.length} บทเรียนย่อยในหน่วยนี้</div>
-                  </div>
-                </div>
-                <div class="chevron" style="color: var(--neutral-300);"><span data-icon="chevron-down"></span></div>
-              </div>
-              <div class="lesson-list" style="padding: 0 var(--sp-4) var(--sp-4);">
-                ${chapterLessons.map((lesson, index) => `
-                  <a href="play-lesson.html?id=${lesson.ID}" class="lesson-item" style="border-radius: var(--radius-lg); border-bottom: none; margin-bottom: 4px; padding: var(--sp-4) var(--sp-6);">
-                    <div class="lesson-icon" style="background: var(--neutral-50); border-radius: var(--radius-sm);">
-                      <span data-icon="${lesson.Type === 'video' ? 'play' : 'book'}"></span>
-                    </div>
-                    <div class="flex-1">
-                      <div class="fw-bold" style="font-size: 0.9375rem; color: var(--neutral-900);"><span style="color: var(--color-primary-600); margin-right: 6px;">ตอนที่ ${index + 1}</span>${lesson.Title}</div>
-                      <div class="t-xs" style="color: var(--text-secondary); font-weight: 600; margin-top: 2px;">${lesson.Category || 'เนื้อหาเรียนรู้'}</div>
-                    </div>
-                    <div class="btn btn-outline btn-sm" style="border-radius: var(--radius-xs); font-weight: 800; padding: 0 16px;">เริ่มเรียน</div>
-                  </a>
-                `).join('')}
-              </div>
-            </div>
-          `;
-        }).join('');
-        
-        if (window.UI && window.UI.initIcons) window.UI.initIcons();
+        renderLessons();
       } else {
         renderError(res.message);
       }
@@ -239,6 +184,111 @@
       console.error("Lessons list error:", err);
       renderError(err.message);
     }
+  }
+
+  function filterByGrade(grade) {
+    currentGradeFilter = grade;
+    renderGradeTabs();
+    renderLessons();
+  }
+
+  function renderGradeTabs() {
+    const container = document.getElementById('gradeTabsContainer');
+    if (!container) return;
+    container.style.display = 'flex';
+    
+    // Extract unique grades
+    const grades = [...new Set(allLessonsData.map(l => (l.Grade || 'ไม่ระบุ').trim()))].filter(Boolean);
+    
+    let html = `<button class="cat-tab ${currentGradeFilter==='all'?'active':''}" onclick="filterByGrade('all')">ทุกระดับชั้น</button>`;
+    html += grades.map(g => `<button class="cat-tab ${currentGradeFilter===g?'active':''}" onclick="filterByGrade('${g}')">${g}</button>`).join('');
+    
+    container.innerHTML = html;
+  }
+
+  function renderLessons() {
+    const container = document.getElementById('chaptersContainer');
+    
+    let displayLessons = allLessonsData;
+    if (currentGradeFilter !== 'all') {
+      displayLessons = displayLessons.filter(l => (l.Grade || 'ไม่ระบุ').trim() === currentGradeFilter);
+    }
+
+    if (!displayLessons || displayLessons.length === 0) {
+      container.innerHTML = `
+        <div class="card p-16 t-center animate-in">
+          <div class="avatar mb-6" style="margin:0 auto; width:80px; height:80px; background:var(--neutral-100); color:var(--neutral-400); border:none; border-radius: 24px;">
+            <span data-icon="bookOpen" style="width:40px; height:40px;"></span>
+          </div>
+          <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีบทเรียน</h3>
+          <p class="t-body">ยังไม่มีเนื้อหาบทเรียนสำหรับ ${currentGradeFilter === 'all' ? 'ชั้นเรียนนี้' : currentGradeFilter}</p>
+          <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-sm);">กลับไปหน้าหลัก</a>
+        </div>
+      `;
+      if (window.UI && window.UI.initIcons) window.UI.initIcons();
+      return;
+    }
+    
+    // Group by Category
+    const categories = [];
+    displayLessons.forEach(l => {
+      const cat = (l.Category || 'ทั่วไป').trim();
+      if (!categories.includes(cat)) categories.push(cat);
+    });
+    
+    container.innerHTML = categories.map((name, idx) => {
+      const chapterLessons = displayLessons.filter(l => (l.Category || 'ทั่วไป').trim() === name);
+      
+      let displayTitle = name;
+      if (!name.includes('บทที่') && name !== 'ทั่วไป' && name !== 'บทนำ') {
+        displayTitle = `บทที่ ${idx + 1}: ${name}`;
+      } else if (name === 'ทั่วไป' || name === 'บทนำ') {
+        displayTitle = `บทเรียนเสริม/ทั่วไป`;
+      }
+      
+      return `
+        <div class="chapter-card active animate-in" id="chap-${idx}" style="animation-delay: ${idx * 100}ms;">
+          <div class="chapter-header" onclick="toggleChapter(${idx})">
+            <div class="flex items-center gap-6">
+              <div class="avatar" style="background:var(--color-primary-50); color:var(--color-primary-600); font-weight:800; border-radius: var(--radius-sm); width: 48px; height: 48px; border: none;">${idx + 1}</div>
+              <div>
+                <div class="t-title" style="font-size: 1.25rem;">${displayTitle}</div>
+                <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${chapterLessons.length} บทเรียนย่อยในหน่วยนี้</div>
+              </div>
+            </div>
+            <div class="chevron" style="color: var(--neutral-300);"><span data-icon="chevron-down"></span></div>
+          </div>
+          <div class="lesson-list" style="padding: 0 var(--sp-4) var(--sp-4);">
+            ${chapterLessons.map((lesson, index) => {
+              const getDirectImg = (url) => {
+                if (!url) return '';
+                let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+                return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000` : url;
+              };
+              const firstThumbRaw = lesson.Thumbnail ? lesson.Thumbnail.split(',')[0].trim() : '';
+              const thumbUrl = getDirectImg(firstThumbRaw);
+              return `
+              <a href="play-lesson.html?id=${lesson.ID}" class="lesson-item" style="border-radius: var(--radius-lg); border-bottom: none; margin-bottom: 4px; padding: var(--sp-4) var(--sp-6);">
+                <div class="lesson-icon" style="background: var(--neutral-50); border-radius: var(--radius-sm); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0;">
+                  ${thumbUrl ? 
+                    `<img src="${thumbUrl}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                    `<span data-icon="${lesson.Type === 'video' ? 'play' : 'book'}"></span>`
+                  }
+                </div>
+                <div class="flex-1">
+                  <div class="fw-bold" style="font-size: 0.9375rem; color: var(--neutral-900);"><span style="color: var(--color-primary-600); margin-right: 6px;">ตอนที่ ${index + 1}</span>${lesson.Title}</div>
+                  <div class="t-xs" style="color: var(--text-secondary); font-weight: 600; margin-top: 2px;">${lesson.Category || 'เนื้อหาเรียนรู้'}</div>
+                </div>
+                <div class="btn btn-outline btn-sm" style="border-radius: var(--radius-xs); font-weight: 800; padding: 0 16px;">เริ่มเรียน</div>
+              </a>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    if (window.UI && window.UI.initIcons) window.UI.initIcons();
   }
 
   function renderError(message) {

@@ -25,7 +25,7 @@ const ApiService = {
     if (stored) {
       const parsed = JSON.parse(stored);
       // ถ้าข้อมูลยังไม่เก่าเกินไป (เช่น 1 ชม.) ให้ส่งกลับไปก่อนเลยเพื่อความไว
-      if (Date.now() - parsed.time < 3600000) {
+      if (Date.now() - parsed.time < API_CONFIG.CACHE_TIME) {
         return parsed.data;
       }
     }
@@ -329,12 +329,14 @@ const ApiService = {
 
   clearCache() {
     this._cache = {};
-    // ล้างเฉพาะ cache ของ API
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('API_CACHE_')) {
-        localStorage.removeItem(key);
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('API_CACHE_')) {
+        keysToRemove.push(key);
       }
-    });
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
     console.log("API Cache cleared");
   }
 };

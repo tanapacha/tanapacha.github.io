@@ -186,9 +186,13 @@
       const res = await ApiService.getLessons();
       if (res.status !== 'success') throw new Error(res.message || "Failed to load lessons");
       
-      const all = res.data;
+      let all = res.data;
       const current = all.find(l => l.ID === lessonId);
       if (!current) throw new Error("ไม่พบข้อมูลบทเรียนย่อยนี้ในระบบ");
+
+      // Filter to only show lessons of the same grade
+      const currentGrade = String(current.Grade || '').trim();
+      all = all.filter(l => String(l.Grade || '').trim() === currentGrade);
 
       // 1. Sidebar Rendering
       const groups = {};
@@ -211,8 +215,16 @@
       `).join('');
 
       // 2. Main Content Rendering
-      const vUrl = getEmbedUrl(current.VideoURL || current.Thumbnail);
-      const sUrl = getEmbedUrl(current.SlideURL || current.Deadline);
+      const getDirectImageUrl = (url) => {
+        if (!url) return '';
+        let match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+        return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000` : url;
+      };
+
+      const vUrl = getEmbedUrl(current.VideoURL);
+      const sUrl = getEmbedUrl(current.SlideURL);
+      const coverUrlsRaw = current.Thumbnail ? current.Thumbnail.split(',').filter(u => u.trim()) : [];
+      const hasImages = coverUrlsRaw.length > 0;
 
       document.getElementById('lessonContent').innerHTML = `
         <div class="flex flex-col gap-2 mb-10 anim-fade-up">
@@ -231,6 +243,10 @@
            <button id="tabSlide" class="media-tab-btn" onclick="switchMedia('slide')">
               <span data-icon="folder"></span> สไลด์ประกอบ
            </button>
+           ${hasImages ? `
+           <button id="tabImage" class="media-tab-btn" onclick="switchMedia('image')">
+              <span data-icon="image"></span> รูปภาพประกอบ
+           </button>` : ''}
         </div>
 
         <div id="videoContainer" class="player-wrapper anim-scale-in anim-delay-2">
@@ -250,6 +266,14 @@
              </div>
            `}
         </div>
+
+        ${hasImages ? `
+        <div id="imageContainer" class="player-wrapper anim-scale-in anim-delay-2" style="display:none; background:#f8fafc; overflow:auto;">
+           <div class="flex flex-col items-center justify-start p-4 gap-4" style="min-height: 100%;">
+             ${coverUrlsRaw.map(u => `<img src="${getDirectImageUrl(u.trim())}" style="max-width: 100%; object-fit: contain; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);" alt="Lesson Image">`).join('')}
+           </div>
+        </div>
+        ` : ''}
 
         <div class="grid-2 gap-12 mt-12 anim-fade-up anim-delay-3">
            <div>
@@ -365,28 +389,31 @@
   }
 
   function getEmbedUrl(url) {
-    if (!url || typeof url !== 'string' || !url.startsWith('http')) return null;
-    if (url.includes('drive.google.com')) return url.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    if (!url || typeof url !== 'string') return null;
+    let cleanUrl = url.trim();
+    if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
+    if (cleanUrl.includes('drive.google.com')) return cleanUrl.replace(/\/view.*$/, '/preview').replace(/\/edit.*$/, '/preview');
+    if (cleanUrl.includes('youtube.com') || cleanUrl.includes('youtu.be')) {
       let vId = '';
-      if (url.includes('v=')) vId = url.split('v=')[1].split('&')[0];
-      else if (url.includes('youtu.be/')) vId = url.split('youtu.be/')[1].split('?')[0];
-      else if (url.includes('shorts/')) vId = url.split('shorts/')[1].split('?')[0];
+      if (cleanUrl.includes('v=')) vId = cleanUrl.split('v=')[1].split('&')[0];
+      else if (cleanUrl.includes('youtu.be/')) vId = cleanUrl.split('youtu.be/')[1].split('?')[0];
+      else if (cleanUrl.includes('shorts/')) vId = cleanUrl.split('shorts/')[1].split('?')[0];
       if (vId) return `https://www.youtube.com/embed/${vId}`;
     }
-    return url;
+    return cleanUrl;
   }
 
   function switchMedia(type) {
-    const v = document.getElementById('videoContainer'), s = document.getElementById('slideContainer');
-    const tv = document.getElementById('tabVideo'), ts = document.getElementById('tabSlide');
-    if (type === 'video') {
-      v.style.display = 'block'; s.style.display = 'none';
-      tv.classList.add('active'); ts.classList.remove('active');
-    } else {
-      v.style.display = 'none'; s.style.display = 'block';
-      tv.classList.remove('active'); ts.classList.add('active');
-    }
+    const v = document.getElementById('videoContainer'), s = document.getElementById('slideContainer'), i = document.getElementById('imageContainer');
+    const tv = document.getElementById('tabVideo'), ts = document.getElementById('tabSlide'), ti = document.getElementById('tabImage');
+    
+    if (v) v.style.display = type === 'video' ? 'block' : 'none';
+    if (s) s.style.display = type === 'slide' ? 'block' : 'none';
+    if (i) i.style.display = type === 'image' ? 'block' : 'none';
+    
+    if (tv) tv.classList.toggle('active', type === 'video');
+    if (ts) ts.classList.toggle('active', type === 'slide');
+    if (ti) ti.classList.toggle('active', type === 'image');
   }
 
   init();

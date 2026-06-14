@@ -77,7 +77,8 @@
           <div class="t-xs fw-bold t-secondary" id="quizCount">กำลังโหลด...</div>
         </div>
         
-        <div id="quizContainer" class="bento-grid">
+        <div id="gradeTabsContainer" class="flex gap-2 overflow-x-auto pb-4 mb-6" style="display:none;"></div>
+      <div id="quizContainer" class="bento-grid">
             <div class="p-16 t-center">
               <div class="spinner" style="margin: 0 auto;"></div>
               <p class="t-body mt-6">กำลังเตรียมภารกิจสุดพิเศษให้คุณ...</p>
@@ -97,6 +98,16 @@
     const user = Auth.requireAuth();
     if (!user) return;
 
+  let allQuizzesData = [];
+  let allLessonsData = [];
+  let currentGradeFilter = 'all';
+  let currentUserRole = '';
+  let activeFilterId = null;
+
+  async function initQuizzes() {
+    const user = Auth.requireAuth();
+    if (!user) return;
+
     // Update sidebar grade label
     const gradeLabel = document.querySelector('[data-bind="gradeLabel"]');
     if (gradeLabel && user.grade) {
@@ -105,111 +116,38 @@
     
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const filterId = urlParams.get('id'); // รับรหัสบทเรียนเพื่อกรองอัตโนมัติ
+      activeFilterId = urlParams.get('id');
 
       const [qRes, lRes] = await Promise.all([
         ApiService.getQuizzes(null, user.grade), 
         ApiService.getLessons(user.grade)
       ]);
       
-      // ตรวจสอบแต่ละ response แยกกัน (ไม่ให้พังทั้งหมดถ้าผิดแค่อันเดียว)
       if (qRes.status !== 'success') {
         console.error('Quiz API Error:', qRes.message);
         document.getElementById('quizContainer').innerHTML = `<div class="card p-12 t-center"><div class="t-secondary mb-4">ไม่สามารถโหลดโจทย์ปัญหาได้</div><p class="t-xs t-secondary">${qRes.message || 'กรุณาลองรีเฟรชหน้าเว็บ'}</p><button onclick="location.reload()" class="btn btn-outline btn-sm mt-4">ลองใหม่</button></div>`;
         return;
       }
 
-      const lessons = (lRes.status === 'success') ? lRes.data : [];
-      let quizzes = qRes.data;
+      allLessonsData = (lRes.status === 'success') ? lRes.data : [];
+      allQuizzesData = qRes.data;
 
-      const userRole = (user.role || '').toLowerCase();
-      if (userRole !== 'admin' && userRole !== 'teacher' && user.grade) {
-        quizzes = quizzes.filter(q => {
+      currentUserRole = (user.role || '').toLowerCase();
+      if (currentUserRole !== 'admin' && currentUserRole !== 'teacher' && user.grade) {
+        allQuizzesData = allQuizzesData.filter(q => {
            const g = String(q.Grade || '').trim();
            return g === user.grade || g === 'ทั้งหมด' || g === 'ALL' || g === '';
         });
       }
 
-      // ถ้ามีรหัสบทเรียนส่งมา ให้กรองเหลือแค่โจทย์ของบทนั้น
-      if (filterId) {
-        quizzes = quizzes.filter(q => String(q.LessonID) === String(filterId));
+      if (activeFilterId) {
+        allQuizzesData = allQuizzesData.filter(q => String(q.LessonID) === String(activeFilterId));
       }
 
-        const container = document.getElementById('quizContainer');
-        const countDisplay = document.getElementById('quizCount');
-        if (countDisplay) countDisplay.textContent = `พบ ${quizzes.length} รายการ`;
-
-        if (quizzes.length === 0) {
-          container.innerHTML = `
-            <div class="bento-card p-16 t-center animate-in" style="grid-column: 1/-1; border: 2px dashed var(--border-subtle); background: transparent; box-shadow: none;">
-              <div class="avatar mb-6" style="margin:0 auto; width:80px; height:80px; background:var(--neutral-100); color:var(--neutral-400); border:none; border-radius: 24px;">
-                <span data-icon="task" style="width:40px; height:40px;"></span>
-              </div>
-              <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีโจทย์ปัญหา</h3>
-              <p class="t-body">${filterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาสำหรับชั้นของคุณในขณะนี้'}</p>
-              <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-sm);">กลับไปหน้าหลัก</a>
-            </div>
-          `;
-          if (window.UI && window.UI.initIcons) window.UI.initIcons();
-          return;
-        }
-
-        container.innerHTML = quizzes.map((quiz, idx) => {
-          const lesson = lessons.find(l => String(l.ID) === String(quiz.LessonID));
-          let lessonInfo = 'ภารกิจทั่วไป';
-          if (lesson) {
-            lessonInfo = lesson.Category ? `${lesson.Category} : ${lesson.Title}` : lesson.Title;
-          }
-          
-          let rawUrl = String(quiz.QuizURL || quiz['Quiz URL'] || quiz.Link || '').trim();
-          const pointsStr = String(quiz.Points || '').trim();
-          
-          if (!rawUrl.includes('http') && pointsStr.includes('http')) {
-             rawUrl = pointsStr;
-          }
-
-          const urlStr = rawUrl.toLowerCase();
-          const isExternal = urlStr.includes('http');
-          const finalLink = isExternal ? rawUrl : `play-problem.html?id=${quiz.LessonID}`;
-          const target = isExternal ? '_blank' : '_self';
-          
-          const lessonVideo = lesson ? lesson.VideoURL : '';
-          const hasVideo = lessonVideo && lessonVideo.includes('http');
-
-          return `
-            <div class="bento-card flex flex-col animate-in" style="animation-delay: ${idx * 100}ms;">
-              <div class="flex items-center gap-5 mb-6">
-                <div class="avatar" style="background:var(--color-amber-50); color:var(--color-amber-500); border:none; border-radius: var(--radius-sm); width: 48px; height: 48px;">
-                  <span data-icon="task"></span>
-                </div>
-                <div class="flex-1">
-                  <div class="fw-bold" style="font-size: 1rem; color: var(--neutral-900); line-height: 1.4;"><span style="color: var(--color-amber-600); margin-right: 6px;">ชุดที่ ${idx + 1}</span>${quiz.Title}</div>
-                  <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${lessonInfo}</div>
-                </div>
-              </div>
-              
-              <div class="flex-1">
-                 <p class="t-body mb-8" style="font-size: 0.9rem; line-height: 1.6;">
-                   ${isExternal ? 'แบบทดสอบผ่านเครื่องมือภายนอก' : 'ภารกิจลับในระบบ KIDDO'} พร้อมแล้วที่จะให้คุณมาพิชิตคะแนนเต็ม!
-                 </p>
-              </div>
-              
-              <div class="flex flex-col gap-3">
-                ${hasVideo ? `
-                  <a href="${lessonVideo}" target="_blank" class="btn btn-outline btn-block" style="border-color:var(--color-primary-100); color:var(--color-primary-600); border-radius: var(--radius-sm); height: 48px; font-weight: 800;">
-                    <span data-icon="video" style="margin-right: 8px;"></span> ทบทวนบทเรียน
-                  </a>
-                ` : ''}
-                <a href="${finalLink}" target="${target}" class="btn btn-primary btn-block" style="border-radius: var(--radius-sm); height: 48px; font-weight: 800;">
-                  เริ่มทำโจทย์ <span data-icon="arrow-right" style="margin-left: 8px;"></span>
-                </a>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        
-        if (window.UI && window.UI.initIcons) window.UI.initIcons();
+      if (currentUserRole === 'admin' || currentUserRole === 'teacher') {
+         renderGradeTabs();
+      }
+      renderQuizzes();
 
     } catch (err) {
       console.error("Quiz error:", err);
@@ -220,6 +158,107 @@
           <button onclick="location.reload()" class="btn btn-outline btn-sm mt-4">ลองใหม่</button>
         </div>`;
     }
+  }
+
+  function filterByGrade(grade) {
+    currentGradeFilter = grade;
+    renderGradeTabs();
+    renderQuizzes();
+  }
+
+  function renderGradeTabs() {
+    const container = document.getElementById('gradeTabsContainer');
+    if (!container) return;
+    container.style.display = 'flex';
+    
+    const grades = [...new Set(allQuizzesData.map(q => (q.Grade || 'ไม่ระบุ').trim()))].filter(Boolean);
+    
+    let html = `<button class="cat-tab ${currentGradeFilter==='all'?'active':''}" onclick="filterByGrade('all')">ทุกระดับชั้น</button>`;
+    html += grades.map(g => `<button class="cat-tab ${currentGradeFilter===g?'active':''}" onclick="filterByGrade('${g}')">${g}</button>`).join('');
+    
+    container.innerHTML = html;
+  }
+
+  function renderQuizzes() {
+    const container = document.getElementById('quizContainer');
+    const countDisplay = document.getElementById('quizCount');
+    
+    let displayQuizzes = allQuizzesData;
+    if (currentGradeFilter !== 'all') {
+      displayQuizzes = displayQuizzes.filter(q => (q.Grade || 'ไม่ระบุ').trim() === currentGradeFilter);
+    }
+
+    if (countDisplay) countDisplay.textContent = `พบ ${displayQuizzes.length} รายการ`;
+
+    if (displayQuizzes.length === 0) {
+      container.innerHTML = `
+        <div class="bento-card p-16 t-center animate-in" style="grid-column: 1/-1; border: 2px dashed var(--border-subtle); background: transparent; box-shadow: none;">
+          <div class="avatar mb-6" style="margin:0 auto; width:80px; height:80px; background:var(--neutral-100); color:var(--neutral-400); border:none; border-radius: 24px;">
+            <span data-icon="task" style="width:40px; height:40px;"></span>
+          </div>
+          <h3 class="t-title mb-4" style="font-size: 1.5rem;">ยังไม่มีโจทย์ปัญหา</h3>
+          <p class="t-body">${activeFilterId ? 'ยังไม่มีโจทย์สำหรับบทเรียนนี้' : 'ยังไม่มีโจทย์ปัญหาสำหรับชั้นที่คุณเลือก'}</p>
+          <a href="dashboard.html" class="btn btn-outline mt-8" style="border-radius: var(--radius-sm);">กลับไปหน้าหลัก</a>
+        </div>
+      `;
+      if (window.UI && window.UI.initIcons) window.UI.initIcons();
+      return;
+    }
+
+    container.innerHTML = displayQuizzes.map((quiz, idx) => {
+      const lesson = allLessonsData.find(l => String(l.ID) === String(quiz.LessonID));
+      let lessonInfo = 'ภารกิจทั่วไป';
+      if (lesson) {
+        lessonInfo = lesson.Category ? `${lesson.Category} : ${lesson.Title}` : lesson.Title;
+      }
+      
+      let rawUrl = String(quiz.QuizURL || quiz['Quiz URL'] || quiz.Link || '').trim();
+      const pointsStr = String(quiz.Points || '').trim();
+      if (!rawUrl.includes('http') && pointsStr.includes('http')) {
+         rawUrl = pointsStr;
+      }
+
+      const urlStr = rawUrl.toLowerCase();
+      const isExternal = urlStr.includes('http');
+      const finalLink = isExternal ? rawUrl : `play-problem.html?id=${quiz.LessonID}`;
+      const target = isExternal ? '_blank' : '_self';
+      
+      const lessonVideo = lesson ? lesson.VideoURL : '';
+      const hasVideo = lessonVideo && lessonVideo.includes('http');
+
+      return `
+        <div class="bento-card flex flex-col animate-in" style="animation-delay: ${idx * 50}ms;">
+          <div class="flex items-center gap-5 mb-6">
+            <div class="avatar" style="background:var(--color-amber-50); color:var(--color-amber-500); border:none; border-radius: var(--radius-sm); width: 48px; height: 48px;">
+              <span data-icon="task"></span>
+            </div>
+            <div class="flex-1">
+              <div class="fw-bold" style="font-size: 1rem; color: var(--neutral-900); line-height: 1.4;"><span style="color: var(--color-amber-600); margin-right: 6px;">ชุดที่ ${idx + 1}</span>${quiz.Title}</div>
+              <div class="t-xs mt-1" style="color: var(--text-secondary); font-weight: 600;">${lessonInfo}</div>
+            </div>
+          </div>
+          
+          <div class="flex-1">
+             <p class="t-body mb-8" style="font-size: 0.9rem; line-height: 1.6;">
+               ${isExternal ? 'แบบทดสอบผ่านเครื่องมือภายนอก' : 'ภารกิจลับในระบบ KIDDO'} พร้อมแล้วที่จะให้คุณมาพิชิตคะแนนเต็ม!
+             </p>
+          </div>
+          
+          <div class="flex flex-col gap-3">
+            ${hasVideo ? `
+              <a href="${lessonVideo}" target="_blank" class="btn btn-outline btn-block" style="border-color:var(--color-primary-100); color:var(--color-primary-600); border-radius: var(--radius-sm); height: 48px; font-weight: 800;">
+                <span data-icon="video" style="margin-right: 8px;"></span> ทบทวนบทเรียน
+              </a>
+            ` : ''}
+            <a href="${finalLink}" target="${target}" class="btn btn-primary btn-block" style="border-radius: var(--radius-sm); height: 48px; font-weight: 800;">
+              เริ่มทำโจทย์ <span data-icon="arrow-right" style="margin-left: 8px;"></span>
+            </a>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    if (window.UI && window.UI.initIcons) window.UI.initIcons();
   }
 
   initQuizzes();

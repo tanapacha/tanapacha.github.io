@@ -141,6 +141,43 @@
   width: 100%; 
 }
 
+/* ─── Category / Filter Tabs System ────────────────────────── */
+.cat-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--sp-5);
+  height: 40px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.875rem;
+  background: var(--neutral-50);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--duration-fast) var(--ease-premium);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+.cat-tab:hover {
+  background: var(--neutral-100);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.cat-tab:active {
+  transform: scale(0.96);
+}
+.cat-tab.active {
+  background: var(--neutral-900);
+  color: white;
+  border-color: var(--neutral-900);
+  box-shadow: none; /* Flat apple style */
+}
+.cat-tab:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
 /* ─── Card System ──────────────────────────────────────────── */
 .card {
   background: var(--bg-surface);

@@ -422,26 +422,29 @@
 
   async function handleDeleteQuiz(id, title) {
     if (!confirm(`ต้องการลบแบบทดสอบ "${title}" ใช่หรือไม่?`)) return;
+    UI.showLoading('กำลังลบแบบทดสอบ...');
     try {
       const res = await ApiService.deleteQuiz(id);
-      if (res.status === 'success') { alert("ลบโจทย์เรียบร้อยแล้ว"); init(); }
-    } catch (e) { console.error(e); }
+      if (res.status === 'success') { alert("ลบแบบทดสอบเรียบร้อยแล้ว"); init(); }
+    } catch (e) { console.error(e); } finally { UI.hideLoading(); }
   }
 
   async function handleDeleteTask(id, title) {
     if (!confirm(`ต้องการลบภารกิจ "${title}" ใช่หรือไม่?`)) return;
+    UI.showLoading('กำลังลบภารกิจ...');
     try {
       const res = await ApiService.deleteTask(id);
       if (res.status === 'success') { alert("ลบภารกิจเรียบร้อยแล้ว"); init(); }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(e); } finally { UI.hideLoading(); }
   }
 
   async function handleDeleteLesson(id, title) {
     if (!confirm(`ลบบทเรียน "${title}" และเนื้อหาทั้งหมด?`)) return;
+    UI.showLoading('กำลังลบบทเรียน...');
     try {
       const res = await ApiService.deleteLesson(id);
       if (res.status === 'success') { alert("ลบบทเรียนเรียบร้อยแล้ว"); init(); }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(e); } finally { UI.hideLoading(); }
   }
 
   init();

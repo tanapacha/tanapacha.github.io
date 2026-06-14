@@ -411,12 +411,14 @@
     if (!selectedGrade) return alert("กรุณาเลือกระดับชั้น");
     if (!lessonId || !title) return alert("กรุณาระบุบทเรียนและชื่อเกมครับ");
     
-    if (currentGameType === 'external' && (!gameItems[0] || !gameItems[0].url.startsWith('http'))) {
-      return alert("กรุณาระบุลิงก์เกมให้ถูกต้อง (ขึ้นต้นด้วย http:// หรือ https://)");
+    if (currentGameType === 'external' && gameItems[0] && gameItems[0].url) {
+      if (!gameItems[0].url.startsWith('http')) {
+        gameItems[0].url = 'https://' + gameItems[0].url;
+      }
     }
 
     const btn = document.getElementById('submitBtn');
-    UI.setLoading(btn, true);
+    UI.btnLoading(btn, true);
 
     const payload = {
       action: 'createQuiz',
@@ -429,18 +431,18 @@
     };
 
     try {
-      const res = await ApiService.post('createQuiz', payload, false);
+      const res = await ApiService.createQuiz(payload);
       if (res.status === 'success') {
-        alert("สร้างเกมการศึกษาเรียบร้อยแล้ว!");
-        location.href = 'teacher-manage-content.html';
+        alert('สร้างเกมสำเร็จ!');
+        window.location.href = 'teacher-manage-content.html';
       } else {
-        alert(res.message);
+        alert('เกิดข้อผิดพลาด: ' + res.message);
       }
-    } catch (e) {
-      console.error(e);
-      alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+    } catch (err) {
+      alert('การเชื่อมต่อล้มเหลว');
+      console.error(err);
     } finally {
-      UI.setLoading(btn, false, '<span data-icon="playCircle"></span> บันทึกและเปิดใช้งานเกม');
+      UI.btnLoading(btn, false);
       if(window.UI && window.UI.initIcons) window.UI.initIcons();
     }
   }
