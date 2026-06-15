@@ -302,9 +302,9 @@
       groups[cat].push(l);
     });
 
-    let html = '<option value="">-- เลือกบทเรียน --</option>';
+    let html = '<option value="">-- ไม่เชื่อมโยง (เป็นเกมทั่วไป) --</option>';
     if (filtered.length === 0) {
-      html = '<option value="">-- ไม่มีบทเรียนในระดับชั้นนี้ --</option>';
+      html = '<option value="">ไม่มีบทเรียนในระดับชั้นนี้ (เป็นเกมทั่วไป)</option>';
     } else {
       for (const cat in groups) {
         html += `<optgroup label="${cat}">`;
@@ -409,7 +409,7 @@
     const title = document.getElementById('gameTitle').value;
     
     if (!selectedGrade) return alert("กรุณาเลือกระดับชั้น");
-    if (!lessonId || !title) return alert("กรุณาระบุบทเรียนและชื่อเกมครับ");
+    if (!title) return alert("กรุณาระบุชื่อเกมครับ");
     
     if (currentGameType === 'external' && gameItems[0] && gameItems[0].url) {
       if (!gameItems[0].url.startsWith('http')) {

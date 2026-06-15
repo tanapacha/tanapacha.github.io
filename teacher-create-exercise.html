@@ -135,8 +135,8 @@
             </div>
 
             <div class="form-group" style="background: var(--bg-app); padding:var(--sp-5); border-radius:var(--radius-lg); border:1px solid var(--border-subtle);">
-              <label class="form-label" style="font-size: 1rem;">3. เชื่อมโยงกับบทเรียน</label>
-              <div class="form-hint" style="margin-bottom:12px;">ภารกิจนี้จัดอยู่ในหมวดหมู่บทเรียนใด</div>
+              <label class="form-label" style="font-size: 1rem;">3. เชื่อมโยงกับบทเรียน (ไม่บังคับ)</label>
+              <div class="form-hint" style="margin-bottom:12px;">หากไม่เลือก ภารกิจนี้จะถูกจัดอยู่ในหมวดหมู่ "ภารกิจทั่วไป"</div>
               <select id="mLesson" class="input" style="font-size: 1.1rem; padding: 12px 16px;">
                 <option>กำลังโหลดบทเรียน...</option>
               </select>
@@ -218,9 +218,9 @@
       groups[cat].push(l);
     });
 
-    let html = '<option value="">-- เลือกบทเรียน --</option>';
+    let html = '<option value="">-- ไม่เชื่อมโยง (เป็นภารกิจทั่วไป) --</option>';
     if (filtered.length === 0) {
-      html = '<option value="">-- ไม่มีบทเรียนในระดับชั้นนี้ --</option>';
+      html = '<option value="">ไม่มีบทเรียนในระดับชั้นนี้ (เป็นภารกิจทั่วไป)</option>';
     } else {
       for (const cat in groups) {
         html += `<optgroup label="${cat}">`;
